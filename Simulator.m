@@ -45,10 +45,16 @@ classdef Simulator < handle
                 time = time + this.dt;
             end
         end
-
+        % Add/remove the objects
         function [this] = AddObject(this,newObject)
             assert(isa(newObject,"SimObject"),"Expecting a valid SimObject.");
             this.Objects = vertcat(this.Objects,newObject);
+        end
+        function [this] = DeleteObject(this,index)
+            % Temporary index
+            vec = 1:1:numel(this.Objects);
+            % Remove the object 
+            this.Objects = this.Objects(vec ~= index);
         end
     end
 
@@ -60,7 +66,6 @@ classdef Simulator < handle
             this.UpdatePositions(dt);
             this.ApplyWorldConstraint();
             this.SolveCollisions();
-
         end
         % Physics
         function [this] = ApplyGravity(this)
