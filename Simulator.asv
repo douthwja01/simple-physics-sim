@@ -10,21 +10,28 @@ classdef Simulator < handle
         dt = 0.01;
         g = [0;0;-9.81];
     end
+    properties (Access = private)
+        IsStopped = false;
+    end
 
     methods
         function [this] = Simulate(this,duration)
-            
+            % This function executes the simulation sequence
+
             % Sanity check
             assert(isscalar(duration) && duration > 0,"Expecting a scalar duration greater than zero.");
             
             [ax] = this.InitialiseGraphics();
 
-            sub_dt = this.dt/this.SubSteps;
-
+            if this.EnableSubStepping
+                sub_dt = this.dt/this.SubSteps;
+            end
+            
             time = 0;
-            while (time < duration)
-                fprintf("[t=%ds] Stepping.\n",time);
+            while (time < duration && ~this.IsStopped)
+                fprintf("[t=%.2fs] Stepping.\n",time);
 
+                % Step (or substep) the world
                 if this.EnableSubStepping
                     for s = 1:this.SubSteps
                         this.Step(sub_dt);
@@ -38,6 +45,11 @@ classdef Simulator < handle
                 time = time + this.dt;
             end
         end
+
+        function [this] = AddObject(this,newObject)
+            assert(isa(newObject,"SimObject"),"Expecting a valid SimObject.");
+            this.Objects = vertcat(this.Objects,newObject);
+        end
     end
 
     methods (Access = private)
@@ -46,13 +58,16 @@ classdef Simulator < handle
             this.ApplyGravity();
             this.UpdatePositions(dt);
             this.ApplyWorldConstraint();
-
+            this.SolveCollisions();
+          
         end
         % Physics
         function [this] = ApplyGravity(this)
+            % This function applies gravity to all particles
+
             for i = 1:numel(this.Objects)
                 % Apply gravity
-                this.Objects(i).ApplyGravity(this.g);
+                this.Objects(i).Accelerate(this.g);
             end
         end
         function [this] = UpdatePositions(this,dt)
@@ -63,7 +78,35 @@ classdef Simulator < handle
             end
         end
         % Constraints
+        function [this] = SolveCollisions(this)
+            % This function solves the inter-particle collisions
+            for i = 1:numel(this.Objects)
+                object_i = this.Objects(i);
+
+                for j = 1:numel(this.Objects)
+                    object_j = this.Objects(j);
+
+                    % Check if assessing self-collision
+                    if (object_i == object_j)
+                        continue
+                    end
+
+                    collisionAxis = object_i.Position - object_j.Position;
+                    distance = norm(collisionAxis);
+                    radialSum = object_i.Radius + object_j.Radius;
+                    if distance < radialSum
+                        unitCollisionAxis = collisionAxis/distance;
+                        delta = radialSum - distance;
+                        object_i.Position = object_i.Position + 0.5*delta*unitCollisionAxis;
+                        object_j.Position = object_j.Position - 0.5*delta*unitCollisionAxis;
+                    end
+
+                end
+            end
+
+        end
         function [this] = ApplyWorldConstraint(this)
+            % This function applies the world-constraint of a fixed sphere.
 
             globeCenter = [0;0;10];
             globeRadius = 10;
@@ -71,24 +114,13 @@ classdef Simulator < handle
             for i = 1:numel(this.Objects)
                 object_i = this.Objects(i);
                 
-                v = object_i.position - globeCenter;
+                v = object_i.Position - globeCenter;
                 distance = norm(v);
-
-                constraintDistance = globeRadius - object_i.radius;
-                if (distance > (globeRadius - object_i.radius)
+                constraintDistance = globeRadius - object_i.Radius;
+                if distance > constraintDistance
                     unit_v = v/distance;
-                    
-                    delta = distance - object_i.radius;
-                    object_i.position = object_i.position - delta*unit_v;
-                end
-                % If the object is below the ground plane, stop.
-%                 if object_i.p(3) < 0
-%                     object_i.p(3) = 0; 
-%                 end
-
-                vector = (object_i.p - globeCenter);
-                if norm(vector) > 5
-                    object_i.p = 
+                    delta = globeRadius - object_i.Radius;
+                    object_i.Position = globeCenter + delta*unit_v;
                 end
             end
         end
@@ -104,13 +136,15 @@ classdef Simulator < handle
             set(ax,"View",[35,35])
             grid on;
             box on;
+            axis equal;
             xlabel(ax,"X (m)");
             ylabel(ax,"Y (m)");
             zlabel(ax,"Z (m)");
             xlim(ax,[-axisLimits,axisLimits]);
             ylim(ax,[-axisLimits,axisLimits]);
             zlim(ax,[0,axisLimits]);
-            axis equal;
+
+            set(fig,'KeyPressFcn',@(src,evnt)KeyPressCallback(this,src,evnt));
         end
         function [this] = UpdateGraphics(this,ax)
             % This function updates the graphical handles of all the
@@ -120,6 +154,18 @@ classdef Simulator < handle
                 this.Objects(i).UpdateGraphics(ax);
                 drawnow;
             end
+        end
+    
+        function KeyPressCallback(this,src,event)
+            % This function is called on key press withthe active figure.
+           disp(event.Key);
+
+           if strcmpi(event.Key,"escape")
+               fprintf("Simulation Stopping.");
+                this.IsStopped = true;
+           else
+               warning("Press 'escape' to stop the simulation.");
+           end
         end
     end
 end

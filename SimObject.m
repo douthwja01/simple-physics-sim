@@ -20,9 +20,9 @@ classdef SimObject < handle
             this.Transform = Transform();
         end
 
-        function [this] = ApplyGravity(this,g)
+        function [this] = Accelerate(this,a)
             % Calcuate the acceleration
-            this.Acceleration = g;
+            this.Acceleration = a;
         end
         function [this] = Update(this,dt)
             % Update the physics

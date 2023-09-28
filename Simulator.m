@@ -1,7 +1,7 @@
 
 classdef Simulator < handle
 
-    properties 
+    properties
         EnableSubStepping = true;
         SubSteps = 5;
 
@@ -10,21 +10,28 @@ classdef Simulator < handle
         dt = 0.01;
         g = [0;0;-9.81];
     end
+    properties (Access = private)
+        IsStopped = false;
+    end
 
     methods
         function [this] = Simulate(this,duration)
-            
+            % This function executes the simulation sequence
+
             % Sanity check
             assert(isscalar(duration) && duration > 0,"Expecting a scalar duration greater than zero.");
-            
+
             [ax] = this.InitialiseGraphics();
 
-            sub_dt = this.dt/this.SubSteps;
+            if this.EnableSubStepping
+                sub_dt = this.dt/this.SubSteps;
+            end
 
             time = 0;
-            while (time < duration)
+            while (time < duration && ~this.IsStopped)
                 fprintf("[t=%.2fs] Stepping.\n",time);
 
+                % Step (or substep) the world
                 if this.EnableSubStepping
                     for s = 1:this.SubSteps
                         this.Step(sub_dt);
@@ -38,8 +45,14 @@ classdef Simulator < handle
                 time = time + this.dt;
             end
         end
+
+        function [this] = AddObject(this,newObject)
+            assert(isa(newObject,"SimObject"),"Expecting a valid SimObject.");
+            this.Objects = vertcat(this.Objects,newObject);
+        end
     end
 
+    % Updates
     methods (Access = private)
         function [this] = Step(this,dt)
             % The step procedure
@@ -47,15 +60,15 @@ classdef Simulator < handle
             this.UpdatePositions(dt);
             this.ApplyWorldConstraint();
             this.SolveCollisions();
-          
+
         end
         % Physics
         function [this] = ApplyGravity(this)
             % This function applies gravity to all particles
-            
+
             for i = 1:numel(this.Objects)
                 % Apply gravity
-                this.Objects(i).ApplyGravity(this.g);
+                this.Objects(i).Accelerate(this.g);
             end
         end
         function [this] = UpdatePositions(this,dt)
@@ -101,7 +114,7 @@ classdef Simulator < handle
 
             for i = 1:numel(this.Objects)
                 object_i = this.Objects(i);
-                
+
                 v = object_i.Position - globeCenter;
                 distance = norm(v);
                 constraintDistance = globeRadius - object_i.Radius;
@@ -112,10 +125,23 @@ classdef Simulator < handle
                 end
             end
         end
-        % Graphics 
+        % Graphics
+        function [this] = UpdateGraphics(this,ax)
+            % This function updates the graphical handles of all the
+            % objects.
+
+            for i = 1:numel(this.Objects)
+                this.Objects(i).UpdateGraphics(ax);
+                drawnow;
+            end
+        end
+    end
+
+    % Setup
+    methods (Access = private)
         function [ax,this] = InitialiseGraphics(this)
             % Draw the state of the world
-           
+
             axisLimits = 10;
 
             fig = figure("Name","Simulation");
@@ -131,14 +157,18 @@ classdef Simulator < handle
             xlim(ax,[-axisLimits,axisLimits]);
             ylim(ax,[-axisLimits,axisLimits]);
             zlim(ax,[0,axisLimits]);
-        end
-        function [this] = UpdateGraphics(this,ax)
-            % This function updates the graphical handles of all the
-            % objects.
 
-            for i = 1:numel(this.Objects)
-                this.Objects(i).UpdateGraphics(ax);
-                drawnow;
+            set(fig,'KeyPressFcn',@(src,evnt)KeyPressCallback(this,src,evnt));
+        end
+        function KeyPressCallback(this,src,event)
+            % This function is called on key press withthe active figure.
+            % disp(event.Key);
+
+            if strcmpi(event.Key,"escape")
+                fprintf("Simulation Stopped.\n");
+                this.IsStopped = true;
+            else
+                warning("Press 'escape' to stop the simulation.");
             end
         end
     end
