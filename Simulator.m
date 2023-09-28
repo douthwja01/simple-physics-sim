@@ -46,10 +46,13 @@ classdef Simulator < handle
             this.ApplyGravity();
             this.UpdatePositions(dt);
             this.ApplyWorldConstraint();
-
+            this.SolveCollisions();
+          
         end
         % Physics
         function [this] = ApplyGravity(this)
+            % This function applies gravity to all particles
+            
             for i = 1:numel(this.Objects)
                 % Apply gravity
                 this.Objects(i).ApplyGravity(this.g);
@@ -63,7 +66,35 @@ classdef Simulator < handle
             end
         end
         % Constraints
+        function [this] = SolveCollisions(this)
+            % This function solves the inter-particle collisions
+            for i = 1:numel(this.Objects)
+                object_i = this.Objects(i);
+
+                for j = 1:numel(this.Objects)
+                    object_j = this.Objects(j);
+
+                    % Check if assessing self-collision
+                    if (object_i == object_j)
+                        continue
+                    end
+
+                    collisionAxis = object_i.Position - object_j.Position;
+                    distance = norm(collisionAxis);
+                    radialSum = object_i.Radius + object_j.Radius;
+                    if distance < radialSum
+                        unitCollisionAxis = collisionAxis/distance;
+                        delta = radialSum - distance;
+                        object_i.Position = object_i.Position + 0.5*delta*unitCollisionAxis;
+                        object_j.Position = object_j.Position - 0.5*delta*unitCollisionAxis;
+                    end
+
+                end
+            end
+
+        end
         function [this] = ApplyWorldConstraint(this)
+            % This function applies the world-constraint of a fixed sphere.
 
             globeCenter = [0;0;10];
             globeRadius = 10;
@@ -71,13 +102,13 @@ classdef Simulator < handle
             for i = 1:numel(this.Objects)
                 object_i = this.Objects(i);
                 
-                v = object_i.position - globeCenter;
+                v = object_i.Position - globeCenter;
                 distance = norm(v);
-
-                if distance > (globeRadius - object_i.Radius)
+                constraintDistance = globeRadius - object_i.Radius;
+                if distance > constraintDistance
                     unit_v = v/distance;
-                    delta = distance - object_i.Radius;
-                    object_i.position = globeCenter + delta*unit_v;
+                    delta = globeRadius - object_i.Radius;
+                    object_i.Position = globeCenter + delta*unit_v;
                 end
             end
         end
