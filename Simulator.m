@@ -2,13 +2,14 @@
 classdef Simulator < handle
 
     properties
+        TimeDelta = 0.01;
         EnableSubStepping = true;
         SubSteps = 5;
-
-
-        Objects = SimObject.empty;
-        dt = 0.01;
         g = [0;0;-9.81];
+        % Contents
+        FixedObjects = SimObject.empty;
+        Objects = SimObject.empty;
+        Links = SimLink.empty;
     end
     properties (Access = private)
         IsStopped = false;
@@ -24,7 +25,7 @@ classdef Simulator < handle
             [ax] = this.InitialiseGraphics();
 
             if this.EnableSubStepping
-                sub_dt = this.dt/this.SubSteps;
+                subTimeDelta = this.TimeDelta/this.SubSteps;
             end
 
             time = 0;
@@ -34,15 +35,15 @@ classdef Simulator < handle
                 % Step (or substep) the world
                 if this.EnableSubStepping
                     for s = 1:this.SubSteps
-                        this.Step(sub_dt);
+                        this.Step(subTimeDelta);
                     end
                 else
-                    this.Step(this.dt);
+                    this.Step(this.TimeDelta);
                 end
                 % Update the visual representation
                 this.UpdateGraphics(ax);
                 % Integrate the time
-                time = time + this.dt;
+                time = time + this.TimeDelta;
             end
         end
         % Add/remove the objects
@@ -56,16 +57,33 @@ classdef Simulator < handle
             % Remove the object 
             this.Objects = this.Objects(vec ~= index);
         end
+        % Add fixed object
+%         function [this] = AddFixedObject(this,fixedObject)
+%             assert(isa(fixedObject,"SimObject"),"Expecting a valid SimObject.");
+%             this.FixedObjects = vertcat(this.FixedObjects,newObject);
+%         end                
+        % Add links
+        function [this] = AddLink(this,objectA,objectB)
+            assert(isa(objectA,"SimObject"),"Expecting a first valid SimObject.");
+            assert(isa(objectB,"SimObject"),"Expecting a second valid SimObject.");
+            % Create a new link object
+            newLink = Link(objectA,objectB);
+            this.Links = vertcat(this.Links,newLink);
+        end
+%         function [this] = AddFixedObject(this,fixed)
+% 
+%         end
     end
 
     % Updates
     methods (Access = private)
-        function [this] = Step(this,dt)
+        function [this] = Step(this,TimeDelta)
             % The step procedure
             this.ApplyGravity();
-            this.UpdatePositions(dt);
+            this.UpdatePositions(TimeDelta);
             this.ApplyWorldConstraint();
             this.SolveCollisions();
+            this.ApplyLinks();
         end
         % Physics
         function [this] = ApplyGravity(this)
@@ -76,14 +94,21 @@ classdef Simulator < handle
                 this.Objects(i).Accelerate(this.g);
             end
         end
-        function [this] = UpdatePositions(this,dt)
+        function [this] = UpdatePositions(this,timeDelta)
             % Update the physics properties of the world.
 
             for i = 1:numel(this.Objects)
-                this.Objects(i).Update(dt);
+                this.Objects(i).Update(timeDelta);
             end
         end
         % Constraints
+        function [this] = ApplyLinks(this)
+            % This function applys the set of link constraints to the
+            % system.
+            for i = 1:numel(this.Links)
+                this.Links(i).Apply();
+            end
+        end
         function [this] = SolveCollisions(this)
             % This function solves the inter-particle collisions
             for i = 1:numel(this.Objects)
