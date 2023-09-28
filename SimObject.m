@@ -1,10 +1,11 @@
 
 classdef SimObject < handle
     properties
-        a = zeros(3,1);
-        v = zeros(3,1);
-        p = zeros(3,1);
+        Radius = 0.5;
 
+        acceleration = zeros(3,1);
+        velocity = zeros(3,1);
+        position = zeros(3,1);
         Handle = gobjects(1);
     end
     properties (Access = private)
@@ -21,12 +22,12 @@ classdef SimObject < handle
 
         function [this] = ApplyGravity(this,g)
             % Calcuate the acceleration
-            this.a = g;
+            this.acceleration = g;
         end
         function [this] = Update(this,dt)
             % Update the physics
-            this.v = this.v + this.a*dt;
-            this.p = this.p + this.v*dt + (1/2)*this.a*dt^2;
+            this.velocity = this.velocity + this.acceleration*dt;
+            this.position = this.position + this.velocity*dt + (1/2)*this.acceleration*dt^2;
         end
 
         function [this] = Collide(this)
@@ -41,7 +42,7 @@ classdef SimObject < handle
             end
 
             % Update the position
-            this.Transform.position = this.p;
+            this.Transform.position = this.position;
             
             % Transform plotf
             set(this.Handle,"Matrix",this.Transform.transform);

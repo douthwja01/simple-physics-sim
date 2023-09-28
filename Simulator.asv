@@ -23,7 +23,7 @@ classdef Simulator < handle
 
             time = 0;
             while (time < duration)
-                fprintf("[t=%.2fs] Stepping.\n",time);
+                fprintf("[t=%ds] Stepping.\n",time);
 
                 if this.EnableSubStepping
                     for s = 1:this.SubSteps
@@ -74,10 +74,21 @@ classdef Simulator < handle
                 v = object_i.position - globeCenter;
                 distance = norm(v);
 
-                if distance > (globeRadius - object_i.Radius)
+                constraintDistance = globeRadius - object_i.radius;
+                if (distance > (globeRadius - object_i.radius)
                     unit_v = v/distance;
-                    delta = distance - object_i.Radius;
-                    object_i.position = globeCenter + delta*unit_v;
+                    
+                    delta = distance - object_i.radius;
+                    object_i.position = object_i.position - delta*unit_v;
+                end
+                % If the object is below the ground plane, stop.
+%                 if object_i.p(3) < 0
+%                     object_i.p(3) = 0; 
+%                 end
+
+                vector = (object_i.p - globeCenter);
+                if norm(vector) > 5
+                    object_i.p = 
                 end
             end
         end
@@ -93,13 +104,13 @@ classdef Simulator < handle
             set(ax,"View",[35,35])
             grid on;
             box on;
-            axis equal;
             xlabel(ax,"X (m)");
             ylabel(ax,"Y (m)");
             zlabel(ax,"Z (m)");
             xlim(ax,[-axisLimits,axisLimits]);
             ylim(ax,[-axisLimits,axisLimits]);
             zlim(ax,[0,axisLimits]);
+            axis equal;
         end
         function [this] = UpdateGraphics(this,ax)
             % This function updates the graphical handles of all the
