@@ -83,7 +83,7 @@ classdef Transform < handle
                 "Tag","Transform");
 
             % Get the gizmo appearance properties
-            gizmoParams = VisualUtilities.GizmoProperties();
+            gizmoParams = Graphics.GizmoProperties();
 
             % Return if no numerics
             if this.isSymbolic
@@ -95,7 +95,7 @@ classdef Transform < handle
             end
 
             % Draw a triad at the location
-            hTri = VisualUtilities.DrawTriad(gizmoParams.scale);                                                        
+            hTri = Graphics.DrawTriad(gizmoParams.scale);                                                        
             set(hTri,'Parent',th);
         end
         function [eta] = GetEulers(this)

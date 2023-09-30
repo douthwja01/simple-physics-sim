@@ -1,5 +1,5 @@
 
-classdef VisualUtilities
+classdef Graphics
   	%% Constant properties
     properties (Constant, Access = public)
         colours = 'rgbymc';
@@ -21,7 +21,7 @@ classdef VisualUtilities
             end
 
             % Import the standard figure properties
-            figureProperties = VisualUtilities.Properties();
+            figureProperties = Graphics.Properties();
 
             % Configure the figure frame
             setappdata(...
@@ -76,16 +76,6 @@ classdef VisualUtilities
     
     %% Object Drawing
     methods (Static,Access = public)
-%         % Geom
-%         patch(ax,'Vertices',objectID1.GEOMETRY.vertices*R_final + finalPosition',...
-%             'Faces',objectID1.GEOMETRY.faces,...
-%             'FaceColor',SIM.OBJECTS(ID1).colour,...
-%             'EdgeColor',DATA.figureProperties.edgeColor,...
-%             'EdgeAlpha',DATA.figureProperties.edgeAlpha,...  
-%             'FaceLighting',DATA.figureProperties.faceLighting,...
-%             'FaceAlpha',DATA.figureProperties.faceAlpha,...
-%             'LineWidth',DATA.figureProperties.patchLineWidth);             % Patch properties            % Patch properties
-        
         % Gizmos
         function [h,container] = DrawMassMarker(scale,container)
             % This function will plot a 3D "center of mass" marker within
@@ -180,7 +170,7 @@ classdef VisualUtilities
             end
 
             % Standardised properties
-            figureProperties = VisualUtilities.Properties();
+            figureProperties = Graphics.Properties();
             % Transform the triad vectors
             frameOrigin     = zeros(3,1);
             triadVectors    = eye(3)*scale;
@@ -194,7 +184,7 @@ classdef VisualUtilities
                 temp = [frameOrigin';triadVectors(n,:)];
                 % Draw axis unit vectors
                 plot3(h,temp(:,1),temp(:,2),temp(:,3),...
-                    "Color",VisualUtilities.colours(n),...
+                    "Color",Graphics.colours(n),...
                     "LineWidth",figureProperties.lineWidth,...
                     "LineStyle",figureProperties.lineStyle);
             end
@@ -207,7 +197,7 @@ classdef VisualUtilities
             end
 
             % Gizmo properties
-            gizmo = VisualUtilities.GizmoProperties();
+            gizmo = Graphics.GizmoProperties();
             % Create graphics container
             axisNorm = norm(axis);
             axisUnit = axis/axisNorm;
@@ -326,7 +316,7 @@ classdef VisualUtilities
 
             % Calculate extents from radius
             v = ones(3,1)*radius/1.7321;                                 	% Rate of dimensional expansion
-            [h,container] = VisualUtilities.DrawCuboid(-v,v,container);                   	% Pass to extent calculator
+            [h,container] = Graphics.DrawCuboid(-v,v,container);                   	% Pass to extent calculator
         end
         function [h,container] = DrawCuboid(minExtents,maxExtents,container)              % Draw cuboid (from min-max in each dimension)
             % Return a matrix of point defining a cuboid scaled to that of

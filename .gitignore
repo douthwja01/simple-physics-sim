@@ -1,0 +1,11 @@
+# Ommited directories
+slprj/
+# Ommitted file types
+*.mat
+*.asv
+*.csv
+*.xlsx
+# Data files
+*.fig
+*.avi
+*.gif

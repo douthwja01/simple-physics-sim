@@ -7,8 +7,7 @@ classdef Simulator < handle
         SubSteps = 5;
         g = [0;0;-9.81];
         % Contents
-        FixedObjects = SimObject.empty;
-        Objects = SimObject.empty;
+        Objects = [];
         Links = SimLink.empty;
     end
     properties (Access = private)
@@ -80,10 +79,9 @@ classdef Simulator < handle
         function [this] = Step(this,TimeDelta)
             % The step procedure
             this.ApplyGravity();
-            this.UpdatePositions(TimeDelta);
-            this.ApplyWorldConstraint();
             this.SolveCollisions();
-            this.ApplyLinks();
+            this.ApplyWorldConstraint();
+            this.UpdatePositions(TimeDelta);
         end
         % Physics
         function [this] = ApplyGravity(this)

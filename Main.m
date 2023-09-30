@@ -2,13 +2,15 @@
 clear all;
 close all;
 addpath("Common");
+addpath("Objects");
 
 sim = Simulator();
 
-numberOfObjects = 20;
-objectArray = SimObject.empty;
+numberOfObjects = 10;
+objectArray = VerletObject.empty;
 for i = 1:numberOfObjects
-    object_i = SimObject();
+    % Create a verlet-object
+    object_i = VerletObject();
 
     if (i == 1)
         spawnPosition = [0;0;10];
