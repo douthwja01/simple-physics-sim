@@ -2,7 +2,8 @@
 clear all;
 close all;
 addpath("Common");
-addpath("Objects");
+addpath("Physics/Colliders");
+addpath("Physics/Objects");
 
 sim = Simulator();
 

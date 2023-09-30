@@ -4,6 +4,7 @@ classdef CollisionObject < SimObject
     
     properties
         Radius = 0.5;
+        Collider;
     end
     
     methods

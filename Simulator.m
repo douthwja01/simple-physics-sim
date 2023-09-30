@@ -50,18 +50,20 @@ classdef Simulator < handle
             assert(isa(newObject,"SimObject"),"Expecting a valid SimObject.");
             this.Objects = vertcat(this.Objects,newObject);
         end
-        function [this] = DeleteObject(this,index)
-            % Temporary index
-            vec = 1:1:numel(this.Objects);
-            % Remove the object 
-            this.Objects = this.Objects(vec ~= index);
-        end
-        % Add fixed object
-%         function [this] = AddFixedObject(this,fixedObject)
-%             assert(isa(fixedObject,"SimObject"),"Expecting a valid SimObject.");
-%             this.FixedObjects = vertcat(this.FixedObjects,newObject);
-%         end                
-        % Add links
+        function [this] = DeleteObject(this,delObject)
+            assert(isa(delObject,"SimObject"),"Expecting a valid SimObject.");
+            % Delete the object from the world
+            if isnumeric(index)
+                % Temporary index
+                vec = 1:1:numel(this.Objects);     
+                % Remove the object 
+                this.Objects = this.Objects(vec ~= delObject);
+            else
+                % Remove the object from the set
+                this.Objects = this.Objects(this.Object ~= delObject);
+            end
+        end      
+        % Links
         function [this] = AddLink(this,objectA,objectB)
             assert(isa(objectA,"SimObject"),"Expecting a first valid SimObject.");
             assert(isa(objectB,"SimObject"),"Expecting a second valid SimObject.");
@@ -69,9 +71,7 @@ classdef Simulator < handle
             newLink = Link(objectA,objectB);
             this.Links = vertcat(this.Links,newLink);
         end
-%         function [this] = AddFixedObject(this,fixed)
-% 
-%         end
+
     end
 
     % Updates
