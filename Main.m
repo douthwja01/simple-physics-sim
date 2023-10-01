@@ -2,28 +2,29 @@
 clear all;
 close all;
 addpath("Common");
+addpath("Physics");
 addpath("Physics/Colliders");
 addpath("Physics/Objects");
+addpath("Physics/Solvers");
 
 sim = Simulator();
 
 numberOfObjects = 10;
-objectArray = VerletObject.empty;
 for i = 1:numberOfObjects
-    % Create a verlet-object
-    object_i = VerletObject();
-
+    % Spawn positions
     if (i == 1)
         spawnPosition = [0;0;10];
     else
-        spawnPosition = spawnPosition + 0.1*RandZero(3) + [2;0;0]*object_i.Radius;
+        spawnPosition = spawnPosition + 0.1*RandZero(3) + [2;0;0];
     end
     % Place the object
-    object_i.Position = spawnPosition;
+    entity_i = Entity(spawnPosition);
+    entity_i.AddElement(RigidBody());
+    entity_i.AddElement(SphereCollider());
+    entity_i.AddElement(MeshRenderer());
     % Assign the object
-    sim.AddObject(object_i);
+    sim.AddEntity(entity_i);
 end
 
-% sim.AddFixedObject();
-
+% Simulate
 sim.Simulate(inf);

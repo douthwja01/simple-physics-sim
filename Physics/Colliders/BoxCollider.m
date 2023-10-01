@@ -5,7 +5,6 @@ classdef BoxCollider < Collider
     properties
         Type = ColliderCode.OBB; 
         Center = zeros(3,1);
-        Radius = 0;
     end
 
     methods

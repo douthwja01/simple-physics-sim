@@ -3,165 +3,113 @@ classdef Simulator < handle
 
     properties
         TimeDelta = 0.01;
-        EnableSubStepping = true;
-        SubSteps = 5;
-        g = [0;0;-9.81];
+        PhysicsSubSteps = 5;
+        Physics;
         % Contents
-        Objects = [];
-        Links = SimLink.empty;
+        g = [0;0;-9.81];
+    end
+    properties (SetAccess = private)
+        Entities = [];
     end
     properties (Access = private)
         IsStopped = false;
     end
 
     methods
+        function [this] = Simulator()
+            % CONSTRUCTOR for simulators.
+
+            this.Physics = DynamicsWorld();
+        end
         function [this] = Simulate(this,duration)
             % This function executes the simulation sequence
 
             % Sanity check
             assert(isscalar(duration) && duration > 0,"Expecting a scalar duration greater than zero.");
+            assert(~isempty(this.Physics),"Expecting a valid 'DynamicsWorld' managing physics.");
 
+            % Initialise the physics world with substeps
+            this.Physics.Initialise(this.PhysicsSubSteps);
+            % Initialise the graphics
             [ax] = this.InitialiseGraphics();
 
-            if this.EnableSubStepping
-                subTimeDelta = this.TimeDelta/this.SubSteps;
-            end
-
+            % Update routine
             time = 0;
             while (time < duration && ~this.IsStopped)
                 fprintf("[t=%.2fs] Stepping.\n",time);
-
-                % Step (or substep) the world
-                if this.EnableSubStepping
-                    for s = 1:this.SubSteps
-                        this.Step(subTimeDelta);
-                    end
-                else
-                    this.Step(this.TimeDelta);
-                end
-                % Update the visual representation
+                % Update physics
+                this.Physics.Step(this.TimeDelta);
+                % Update visuals
                 this.UpdateGraphics(ax);
                 % Integrate the time
                 time = time + this.TimeDelta;
             end
         end
         % Add/remove the objects
-        function [this] = AddObject(this,newObject)
-            assert(isa(newObject,"SimObject"),"Expecting a valid SimObject.");
-            this.Objects = vertcat(this.Objects,newObject);
+        function [this] = AddEntity(this,entity)
+            % Add an entity to the simulator.
+
+            % Sanity check
+            assert(isa(entity,"Entity"),"Expecting a valid 'Entity'.");
+            % Add collider
+            cl = entity.GetElement("Collider");
+            if ~isempty(cl)
+                this.Physics.AddCollider(cl);
+            end
+            % Add Rigid-body        
+            rb = entity.GetElement("RigidBody");
+            if ~isempty(rb)
+                this.Physics.AddRigidBody(rb);
+            end
+            % Add to entity-list
+            this.Entities = vertcat(this.Entities,entity);
         end
-        function [this] = DeleteObject(this,delObject)
-            assert(isa(delObject,"SimObject"),"Expecting a valid SimObject.");
-            % Delete the object from the world
-            if isnumeric(index)
+        function [this] = DeleteEntity(this,entity)
+            % Delete the entity from the simulator
+
+            % Sanity check
+            assert(isa(entity,"Entity"),"Expecting a valid 'Entity' object.");
+            % Add collider
+            cl = entity.GetElement("Collider");
+            if ~isempty(cl)
+                this.Physics.RemoveCollider(cl);
+            end
+            % Add Rigid-body        
+            rb = entity.GetElement("RigidBody");
+            if ~isempty(rb)
+                this.Physics.RemoveRigidBody(rb);
+            end
+
+            % Delete the entity from the world
+            if isnumeric(entity)
                 % Temporary index
-                vec = 1:1:numel(this.Objects);     
+                vec = 1:1:numel(this.Entities);     
                 % Remove the object 
-                this.Objects = this.Objects(vec ~= delObject);
+                this.Entities = this.Entities(vec ~= entity);
             else
+                assert(isa(entity,"Entity"),"Expecting a valid 'Entity' object.");
                 % Remove the object from the set
-                this.Objects = this.Objects(this.Object ~= delObject);
+                this.Entities = this.Entities(this.Object ~= entity);
             end
         end      
-        % Links
-        function [this] = AddLink(this,objectA,objectB)
-            assert(isa(objectA,"SimObject"),"Expecting a first valid SimObject.");
-            assert(isa(objectB,"SimObject"),"Expecting a second valid SimObject.");
-            % Create a new link object
-            newLink = Link(objectA,objectB);
-            this.Links = vertcat(this.Links,newLink);
-        end
-
     end
 
-    % Updates
+    % Graphics
     methods (Access = private)
-        function [this] = Step(this,TimeDelta)
-            % The step procedure
-            this.ApplyGravity();
-            this.SolveCollisions();
-            this.ApplyWorldConstraint();
-            this.UpdatePositions(TimeDelta);
-        end
-        % Physics
-        function [this] = ApplyGravity(this)
-            % This function applies gravity to all particles
-
-            for i = 1:numel(this.Objects)
-                % Apply gravity
-                this.Objects(i).Accelerate(this.g);
-            end
-        end
-        function [this] = UpdatePositions(this,timeDelta)
-            % Update the physics properties of the world.
-
-            for i = 1:numel(this.Objects)
-                this.Objects(i).Update(timeDelta);
-            end
-        end
-        % Constraints
-        function [this] = ApplyLinks(this)
-            % This function applys the set of link constraints to the
-            % system.
-            for i = 1:numel(this.Links)
-                this.Links(i).Apply();
-            end
-        end
-        function [this] = SolveCollisions(this)
-            % This function solves the inter-particle collisions
-            for i = 1:numel(this.Objects)
-                object_i = this.Objects(i);
-
-                for j = 1:numel(this.Objects)
-                    object_j = this.Objects(j);
-
-                    % Check if assessing self-collision
-                    if (object_i == object_j)
-                        continue
-                    end
-
-                    collisionAxis = object_i.Position - object_j.Position;
-                    distance = norm(collisionAxis);
-                    radialSum = object_i.Radius + object_j.Radius;
-                    if distance < radialSum
-                        unitCollisionAxis = collisionAxis/distance;
-                        delta = radialSum - distance;
-                        object_i.Position = object_i.Position + 0.5*delta*unitCollisionAxis;
-                        object_j.Position = object_j.Position - 0.5*delta*unitCollisionAxis;
-                    end
-
-                end
-            end
-
-        end
-        function [this] = ApplyWorldConstraint(this)
-            % This function applies the world-constraint of a fixed sphere.
-
-            globeCenter = [0;0;10];
-            globeRadius = 10;
-
-            for i = 1:numel(this.Objects)
-                object_i = this.Objects(i);
-
-                v = object_i.Position - globeCenter;
-                distance = norm(v);
-                constraintDistance = globeRadius - object_i.Radius;
-                if distance > constraintDistance
-                    unit_v = v/distance;
-                    delta = globeRadius - object_i.Radius;
-                    object_i.Position = globeCenter + delta*unit_v;
-                end
-            end
-        end
-        % Graphics
         function [this] = UpdateGraphics(this,ax)
             % This function updates the graphical handles of all the
             % objects.
 
-            for i = 1:numel(this.Objects)
-                this.Objects(i).UpdateGraphics(ax);
-                drawnow;
+            for i = 1:numel(this.Entities)
+                renderer_i = this.Entities(i).GetElement("MeshRenderer");
+                if isempty(renderer_i)
+                    continue;
+                end
+                % Entities
+                renderer_i.Update(ax);
+%                 drawnow;
             end
+            drawnow;
         end
     end
 

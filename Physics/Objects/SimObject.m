@@ -5,9 +5,7 @@ classdef (Abstract)SimObject < handle
         Handle = gobjects(1);
     end
 
-    methods (Abstract)
-        [this] = Update(this,dt);
-    end
+
 
     methods
         function [this] = SimObject(varargin)

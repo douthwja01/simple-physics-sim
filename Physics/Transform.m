@@ -2,10 +2,11 @@
 % A class define a container describing the motion and pose of a point of
 % reference or frame.
 
-classdef Transform < handle
+classdef Transform < Element
     %% Main
     properties (SetObservable = true,AbortSet)
         transform = eye(4);
+        scale = ones(3,1);
     end
     properties (Dependent)
         rotation;
@@ -31,6 +32,10 @@ classdef Transform < handle
             this.transform = Transform.FromPose(p,R);
         end
         % Get/sets
+        function set.scale(this,s)
+            assert(IsColumn(s,3),"Expecting a valid scale vecor [3x1].");
+            this.scale = s;
+        end
         function [R] = get.rotation(this)
             R = Transform.ToRotation(this.transform);
         end

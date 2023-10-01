@@ -2,10 +2,12 @@
 classdef SphereCollider < Collider
     % A sphere collider primitive
 
+    properties (Constant)
+        Type = ColliderCode.Sphere; 
+    end
     properties
-        Type = ColliderCode.spherical; 
         Center = zeros(3,1);
-        Radius = 0;
+        Radius = 1;
     end
 
     methods
@@ -26,7 +28,6 @@ classdef SphereCollider < Collider
                 otherwise
                     error("Collider type not recognised.");
             end
-
         end
     end
 end
