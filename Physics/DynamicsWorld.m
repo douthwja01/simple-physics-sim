@@ -14,6 +14,12 @@ classdef DynamicsWorld < CollisionWorld
     end
     % Main
     methods
+        function [this] = DynamicsWorld(varargin)
+            % Physics world constructor.
+            
+            % Collision world
+            this = this@CollisionWorld(varargin{:});
+        end
         % High-level
         function [this] = Initialise(this,subSteps)
             % Initialise the dynamic world.

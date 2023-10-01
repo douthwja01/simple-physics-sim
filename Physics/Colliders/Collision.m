@@ -3,7 +3,7 @@ classdef Collision
     %collision between two bodies.
     
     properties
-        A;          % The first collision object
+        A;          % The first collisionbject
         B;          % The second collision object
         Points;     % The points defining the collision
     end

@@ -11,6 +11,12 @@ classdef CollisionWorld < handle
 
     % Main
     methods
+        function [this] = CollisionWorld()
+            % Collision world constructor.
+            
+            % Add a solver
+            this.AddSolver(PositionSolver());
+        end
         % Resolve world Collisions
         function [this] = ResolveCollisions(this,dt)
             % This function builds the lists of 'detected' collisions and
@@ -63,18 +69,17 @@ classdef CollisionWorld < handle
                     end
                 end
             end
+            
+            % No collisions occurred
+            if isempty(collisions)
+                return;
+            end
+
             % Resolve the collisions
             this.SolveCollisions(collisions,dt);
             % Issue collision and trigger event callbacks
             this.SendCollisionCallbacks(collisions,dt);
             this.SendCollisionCallbacks(triggers,dt);
-        end
-       
-        function [this] = SetCollisionCallback(this,eventHandle)
-            % This function allows the setting of a collision callback
-            % method.
-            assert(isa(eventHandle,"function_handle"),"Expecting valid function handle.");
-            this.Callback = eventHandle;
         end
         % Managing collision objects
         function [this] = AddCollider(this,collider)
@@ -92,7 +97,6 @@ classdef CollisionWorld < handle
             assert(isa(collider,"Collider"),"Expecting a valid 'Collider' element.");
             % Remove a given solver from the array of collisions solvers.
             this.Colliders = this.Colliders(this.Colliders ~= collider);
-
         end
         % Managing collision Solvers
         function [this] = AddSolver(this,solver)
@@ -112,6 +116,13 @@ classdef CollisionWorld < handle
                 this.Solvers = this.Solvers(this.Solvers ~= solver);
             end
         end
+        % Callbacks
+        function [this] = SetCollisionCallback(this,eventHandle)
+            % This function allows the setting of a collision callback
+            % method.
+            assert(isa(eventHandle,"function_handle"),"Expecting valid function handle.");
+            this.Callback = eventHandle;
+        end
     end
     % Utilties
     methods (Access = private)
@@ -122,9 +133,13 @@ classdef CollisionWorld < handle
             % Sanity check
             assert(isnumeric(dt),"Expecting a valid time step.");
 
+            if isempty(collisions)
+                return;
+            end
+
             for i = 1:numel(this.Solvers)
                 % Solve the collisions
-                this.Solvers(i).Solve(collisions(i),dt);
+                this.Solvers(i).Solve(collisions,dt);
             end
         end
         function [this] = SendCollisionCallbacks(this,colliders,dt)

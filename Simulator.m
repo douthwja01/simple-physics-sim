@@ -107,7 +107,6 @@ classdef Simulator < handle
                 end
                 % Entities
                 renderer_i.Update(ax);
-%                 drawnow;
             end
             drawnow;
         end
