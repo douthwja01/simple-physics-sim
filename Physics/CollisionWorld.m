@@ -148,7 +148,7 @@ classdef CollisionWorld < handle
             for i = 1:numel(colliders)
                 collider_i = colliders(i);
                 % Notify the collider
-                notify(collider_i,"OnCollision",dt);
+                notify(collider_i.A,"OnCollision");
             end
         end
     end

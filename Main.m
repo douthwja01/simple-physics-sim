@@ -26,5 +26,14 @@ for i = 1:numberOfObjects
     sim.AddEntity(entity_i);
 end
 
+fixed = Entity([0;0;1]);
+fixed.AddElement(RigidBody())
+fixed.AddElement(SphereCollider());
+renderer = fixed.AddElement(MeshRenderer());
+renderer.SetColour("b");
+tf_fixed = fixed.GetElement("Transform");
+tf_fixed.IsStatic = true;
+
+sim.AddEntity(fixed);
 % Simulate
 sim.Simulate(inf);

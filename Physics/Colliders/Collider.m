@@ -49,9 +49,9 @@ classdef (Abstract) Collider < Element
             a = transformA.position + normal*colliderA.Radius;
             b = transformB.position - normal*colliderB.Radius;
             % The overlap distance
-            depth = (colliderA.Radius + colliderB.Radius) - distance;
+            depth = distance - (colliderA.Radius + colliderB.Radius);
             % Collision points
-            points = CollisionPoints(a,b,normal,depth);
+            points = CollisionPoints(a,b,normal,depth,~(depth > 0));
         end
         function [points] = FindSpherePlaneCollisionPoints(transformA,colliderA,transformB,colliderB)
             % Find the collisions points between a sphere and a plane.

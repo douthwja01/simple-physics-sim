@@ -12,7 +12,10 @@ classdef Transform < Element
         rotation;
         position;
         state;
-        isSymbolic;
+        IsSymbolic;
+    end
+    properties
+        IsStatic = false;
     end
     methods
         % Constructor
@@ -65,7 +68,7 @@ classdef Transform < Element
             this.SetQuaternion(X(1:4,1));
             this.position = X(5:7,1);
         end
-        function [flag] = get.isSymbolic(this)
+        function [flag] = get.IsSymbolic(this)
             flag = isa(this.transform,"sym");
         end
     end
@@ -91,7 +94,7 @@ classdef Transform < Element
             gizmoParams = Graphics.GizmoProperties();
 
             % Return if no numerics
-            if this.isSymbolic
+            if this.IsSymbolic
                 warning("Unable to plot SO3 group as its transform is symbolic, drawing identity.");
                 set(th,"Matrix",eye(4));
             else
@@ -123,7 +126,6 @@ classdef Transform < Element
             % Reset to default transform
             this.transform = eye(4);
         end
-        
     end
 
     methods (Access = private)

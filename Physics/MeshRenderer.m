@@ -5,10 +5,12 @@ classdef MeshRenderer < Element
 
     properties (SetAccess = protected)
         Mesh;
+        Colour = 'r';
         Handle = gobjects(1);
     end
     properties (Access = private)
         Transform;
+        MeshHandle = gobjects(1);
     end
     methods
         function [this] = MeshRenderer()
@@ -24,6 +26,13 @@ classdef MeshRenderer < Element
             % Transform plot
             set(this.Handle,"Matrix",this.Transform.transform);
         end
+        function [this] = SetColour(this,colorString)
+            assert(isstring(colorString),"Expecting a valid color code string (i.e 'r').");
+            this.Colour = colorString;
+            if isa(this.Handle,"GraphicsPlaceholder")
+                set(this.MeshHandle,"FaceColor",this.Colour);
+            end
+        end
     end
     % Utilities
     methods (Access = private)
@@ -37,8 +46,8 @@ classdef MeshRenderer < Element
 
             radius = 1; %this.Collider.Radius;
 
-            h_sph = Graphics.DrawSphere(radius,h_data);
-            set(h_sph,"FaceColor","r");
+            this.MeshHandle = Graphics.DrawSphere(radius,h_data);
+            set(this.MeshHandle,"FaceColor",this.Colour);
             this.Handle = h_data;
         end
     end

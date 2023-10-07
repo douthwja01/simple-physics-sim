@@ -10,13 +10,13 @@ classdef CollisionPoints
     end
 
     methods
-        function [this] = CollisionPoints(a,b,n,d)
+        function [this] = CollisionPoints(a,b,n,d,isColliding)
             % Constructor for the collision points object.
-
             this.A = a;
             this.B = b;
             this.Normal = n;
             this.Depth = d;
+            this.IsColliding = isColliding;
         end
     end
 end
