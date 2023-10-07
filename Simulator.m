@@ -15,6 +15,7 @@ classdef Simulator < handle
         IsStopped = false;
     end
 
+    % Main
     methods
         function [this] = Simulator()
             % CONSTRUCTOR for simulators.

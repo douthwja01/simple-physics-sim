@@ -32,15 +32,6 @@ classdef (Abstract) Collider < Element
         function [points] = FindSphereSphereCollisionPoints(transformA,colliderA,transformB,colliderB)
             % Find the collision points between two spheres.
 
-            % Collision resolutions
-%             radialSum = colliderA.Radius + colliderB.Radius;
-%             if distance < radialSum
-%                 unitCollisionAxis = collisionAxis/distance;
-%                 delta = radialSum - distance;
-%                 transformA.Position = transformA.Position + 0.5*delta*unitCollisionAxis;
-%                 transformB.Position = transformB.Position - 0.5*delta*unitCollisionAxis;
-%             end
-
             % Separation axis
             collisionAxis = transformA.position - transformB.position;
             distance = norm(collisionAxis);

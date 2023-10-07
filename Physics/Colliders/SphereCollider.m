@@ -29,5 +29,9 @@ classdef SphereCollider < Collider
                     error("Collider type not recognised.");
             end
         end
+        function [this] = SetRadius(this,r)
+            assert(isnumeric(r),"Expecting a numerical radius.");
+            this.Radius = r;
+        end
     end
 end
