@@ -3,9 +3,9 @@ classdef Collision
     %collision between two bodies.
     
     properties
-        A;          % The first collisionbject
-        B;          % The second collision object
-        Points;     % The points defining the collision
+        ColliderA;      % The first collisionbject
+        ColliderB;      % The second collision object
+        Points;         % The points defining the collision
     end
     
     methods
@@ -13,8 +13,8 @@ classdef Collision
             %COLLISION Construct an instance of a collision.
             
             % Capture the properties
-            this.A = a;
-            this.B = b;
+            this.ColliderA = a;
+            this.ColliderB = b;
             this.Points = points;
         end
     end

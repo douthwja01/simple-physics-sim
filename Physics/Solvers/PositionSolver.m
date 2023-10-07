@@ -12,11 +12,11 @@ classdef PositionSolver < Solver
                 collision = collisions(i);
                 manifold = collision.Points;
 
-                entityA = collision.A.Entity;
+                entityA = collision.ColliderA.Entity;
                 transformA = entityA.GetElement("Transform");
                 isStaticA = transformA.IsStatic;
 			    
-                entityB = collision.B.Entity;
+                entityB = collision.ColliderB.Entity;
                 transformB = entityB.GetElement("Transform");
 			    isStaticB = transformB.IsStatic;
 

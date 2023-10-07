@@ -142,13 +142,13 @@ classdef CollisionWorld < handle
                 this.Solvers(i).Solve(collisions,dt);
             end
         end
-        function [this] = SendCollisionCallbacks(this,colliders,dt)
+        function [this] = SendCollisionCallbacks(this,collisions,dt)
             % Send the collision callbacks.
 
-            for i = 1:numel(colliders)
-                collider_i = colliders(i);
+            for i = 1:numel(collisions)
+                collision = collisions(i);
                 % Notify the collider
-                notify(collider_i.A,"OnCollision");
+                notify(collision.ColliderA,"OnCollision");
             end
         end
     end

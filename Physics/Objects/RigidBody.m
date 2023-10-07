@@ -32,9 +32,16 @@ classdef RigidBody < Element
     methods %(Abstract)
         function [this] = Update(this,dt)
             % Update the physics
-
+            
             transform_i = this.Entity.GetElement("Transform");
-
+            
+            % If the object is static, abort
+            if transform_i.IsStatic
+               this.Velocity = zeros(3,1);
+               this.Acceleration = zeros(3,1);
+               return;
+            end
+            % Update the velocity
             this.Velocity = this.Velocity + this.Acceleration*dt;
             % Update the transform position
             transform_i.position = transform_i.position + this.Velocity*dt + (1/2)*this.Acceleration*dt^2;
