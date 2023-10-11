@@ -3,7 +3,7 @@ classdef SphereCollider < Collider
     % A sphere collider primitive
 
     properties (Constant)
-        Type = ColliderCode.Sphere; 
+        Code = ColliderCode.Sphere; 
     end
     properties
         Center = zeros(3,1);
@@ -15,7 +15,7 @@ classdef SphereCollider < Collider
             % Test for collision between this collider and a variable
             % second collider.
             
-            switch colliderB.Type
+            switch colliderB.Code
                 case ColliderCode.Sphere
                     % The second collider is a sphere
                     points = Collider.FindSphereSphereCollisionPoints(transformA,this,transformB,colliderB);

@@ -126,6 +126,19 @@ classdef Transform < Element
             % Reset to default transform
             this.transform = eye(4);
         end
+
+        function [s] = WorldScale(this)
+            % This scale multiplied by all the parent scales
+
+            % [To fix after parentage]
+            s = 1;
+        end
+        function [p] = WorldPosition(this)
+            % This transform multiplied by all its parents
+            
+            % [To fix after parentage]
+            p = this.position;
+        end
     end
 
     methods (Access = private)

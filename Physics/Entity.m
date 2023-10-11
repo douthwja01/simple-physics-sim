@@ -2,6 +2,9 @@
 classdef Entity < matlab.mixin.Heterogeneous & handle
     % A primitive representing a simulation object.
     
+    properties
+        Name = "Unnamed";
+    end
     properties (SetAccess = private)
         Elements = Element.empty;
     end

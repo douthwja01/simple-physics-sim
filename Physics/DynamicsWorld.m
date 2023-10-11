@@ -88,7 +88,7 @@ classdef DynamicsWorld < CollisionWorld
             % The step procedure
             this.ApplyGravity();
             this.ResolveCollisions(dt);
-            this.ApplyWorldConstraint();
+%             this.ApplyWorldConstraint();
             this.UpdatePositions(dt);
         end
         function [this] = ApplyGravity(this)

@@ -3,13 +3,13 @@ classdef MeshRenderer < Element
     % This class is a an element responsible for the appearance of the
     % visual elements of an Entity.
 
-    properties (SetAccess = protected)
-        Mesh;
+    properties %(SetAccess = protected)
+        Mesh = Mesh.empty;
         Colour = 'r';
-        Handle = gobjects(1);
     end
     properties (Access = private)
         Transform;
+        Handle = gobjects(1);
         MeshHandle = gobjects(1);
     end
     methods
@@ -26,7 +26,11 @@ classdef MeshRenderer < Element
             % Transform plot
             set(this.Handle,"Matrix",this.Transform.transform);
         end
-        function [this] = SetColour(this,colorString)
+        function set.Mesh(this,m)
+            assert(isa(m,"Mesh"),"Expecting a valid mesh object.");
+            this.Mesh = m;
+        end
+        function set.Colour(this,colorString)
             assert(isstring(colorString),"Expecting a valid color code string (i.e 'r').");
             this.Colour = colorString;
             if isa(this.Handle,"GraphicsPlaceholder")
@@ -44,9 +48,15 @@ classdef MeshRenderer < Element
             % Plot the handle
             h_data = this.Transform.Plot(ax);
 
-            radius = 1; %this.Collider.Radius;
+            % Sanity check
+            if isempty(this.Mesh)
+                warning("No mesh assigned to renderer.");
+                return;
+            end
 
-            this.MeshHandle = Graphics.DrawSphere(radius,h_data);
+            % Plot the mesh to the handle
+            this.MeshHandle = this.Mesh.Draw(h_data);
+            % Set the colour
             set(this.MeshHandle,"FaceColor",this.Colour);
             this.Handle = h_data;
         end

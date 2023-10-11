@@ -90,63 +90,20 @@ classdef Graphics
             if nargin < 2
                 container = hggroup("DisplayName","Mass Marker");
             end
-            if nargin < 1
-                scale = 1;
-            end
-            k = "smooth";
-%             k = "coarse";
-            switch k
-                case 'coarse'
-                    a=.44433292853227944784221559874174;
-                    % Spherical vertices
-                    v = [ 0 0         1;
-                        sin(pi/8) 0 cos(pi/8);0         sin(pi/8) cos(pi/8);
-                        sin(pi/4) 0 sin(pi/4);a a sqrt(1-2*a^2);0 sin(pi/4) sin(pi/4);
-                        cos(pi/8) 0 sin(pi/8);sqrt(1-2*a^2) a a;a sqrt(1-2*a^2) a;0 cos(pi/8) sin(pi/8);
-                        1 0 0;cos(pi/8) sin(pi/8) 0;sin(pi/4) sin(pi/4) 0;sin(pi/8) cos(pi/8) 0;0 1 0]./50;
-                    % Generate face connectivity matrix                  
-                    f  = [1 2 3;2 4 5;2 5 3;
-                        3 5 6;4 7 8;4 8 5;
-                        5 8 9;5 9 6;6 9 10;
-                        7 11 12;7 12 8;8 12 13;
-                        8 13 9;9 13 14;9 14 10;
-                        10 14 15];
-                    f1 = [f;f+15;f+30;f+45];
-                case 'smooth'
-                    % smoother com: what is the correct value for b?
-                    % b=5275338780780258*2^(-54);
-                    b  = 5271341053858645*2^(-54);
-                    c  = 5020924469873901*2^(-53);
-                    e  = 5590528873889244*2^(-54);
-                    a  = [sin(pi/12) cos(pi/12)  sin(pi/6) cos(pi/6) sqrt(.5) sqrt(1-2*b^2) sqrt(1-c^2-e^2)];
-                    % Spherical vertices
-                    v  = [0 0 1;a(1) 0 a(2);0 a(1) a(2);a(3) 0 a(4);b b a(6);0 a(3) a(4);
-                        a(5) 0 a(5);c e a(7);e c a(7);0 a(5) a(5);a(4) 0 a(3) ;a(7) e c;[1 1 1]/sqrt(3);
-                        e a(7) c;0 a(4) a(3);a(2) 0 a(1) ;a(6) b b;a(7) c e;c a(7) e;b a(6) b;0 a(2) a(1);
-                        1 0 0;a(2) a(1) 0;a(4) a(3) 0;a(5) a(5) 0;a(3) a(4) 0;a(1) a(2) 0;0 1 0];
-                    % Generate face connectivity matrix
-                    f  = [1 2 3;2 4 5;2 5 3;3 5 6;4 7 8;4 8 5;5 8 9;5 9 6;6 9 10;7 11 12;7 12 8;8 12 13;8 13 9;9 13 14;
-                        9 14 10;10 14 15;11 16 17;11 17 12;12 17 18;12 18 13;13 18 19;13 19 14;14 19 20;14 20 15;15 20 21;
-                        16 22 23;16 23 17;17 23 24;17 24 18;18 24 25;18 25 19;19 25 26;19 26 20;20 26 27;20 27 21;21 27 28];
-                    f1 = [f;f+28;f+56;f+84];
-            end
-            % Align vertex permutations
-            v0 = [v;[-v(:,1) -v(:,2) v(:,3)];[ v(:,1) -v(:,2) -v(:,3)];[-v(:,1) v(:,2) -v(:,3)]];
-            % Transform vertex pair
-            Ts = Transform.Scale(scale);
-            padding = ones(size(v0,1),1);
-            v_major = [ v0,padding]*Ts;
-            v_minor = [-v0,padding]*Ts;
+                
+            % Generate the mass-marker meshes
+            [majorMesh,minorMesh] = MeshGenerator.MassMarker(zeros(3,1),scale);
             
-            % Generate patch            
-            h(1) = patch(container,'Vertices',v_major(:,1:3),'Faces',f1);
+            % Generate (Major) patch            
+            h(1) = patch(container,'Vertices',majorMesh.Vertices,'Faces',majorMesh.Faces);
             set(h(1),...
                 'FaceColor',[0 0 0],...
                 'EdgeAlpha',0,...
                 'FaceLighting','phong',...
                 'DiffuseStrength',0.2,...
                 'FaceAlpha',0.8);
-            h(2) = patch(container,'Vertices',v_minor(:,1:3),'Faces',f1);
+            % Generate (Minor) patch
+            h(2) = patch(container,'Vertices',minorMesh.Vertices,'Faces',minorMesh.Faces);
             set(h(2),...
                 'FaceColor',[1 1 0],...
                 'EdgeAlpha',0,...
@@ -247,39 +204,14 @@ classdef Graphics
             % This function assumes the origin of the cylinder is half way
             % along the cylinder's length.
             
-            % Sanity check
-            assert(IsColumn(p0,3) && IsColumn(p,3),"Expecting two Cartesian points defining the axis [3x1]");
-            assert(numel(radius) == 1,"Expecting a scalar radius.");
-            
             % Ensure valid axes
             if nargin < 4
                 container = hggroup("DisplayName","Cylinder");
             end
-            % Assemble the cylinder geometry
-            axis = p - p0;
-            unitAxis = axis/norm(axis);
-            perpVector = cross(unitAxis,[1;0;0]);
-            if sum(perpVector) == 0
-                perpVector = cross(unitAxis,[0;1;0]);
-            end
-            perpVector = radius*perpVector;               
-            points = 10;
-            nodalAngle = pi/2;
-            increment = 2*pi/points;
-            coordinates = zeros(2*points,3);
-            for i = 1:points
-                % Calculate the vector as a result of the perpendicular
-                % rotated through "nodal angle"
-                radialVector = RodriguesRotation(perpVector,unitAxis,nodalAngle);
-                coordinates(i,:) = (p0 + radialVector)';       % Ring defining base
-                coordinates(i+10,:) = (p + radialVector)';     % Ring defining top
-                % Iterate
-                nodalAngle = nodalAngle - increment;
-            end
-            % Triangulate rotated volume
-            [faces,~] = convhull(coordinates(:,1),coordinates(:,2),coordinates(:,3),"simplify",true);
+            % Generate the mesh
+            mesh = MeshGenerator.CylinderFromAxis(p0,p,radius);
             % Generate patch    
-            h = patch(container,'Vertices',coordinates,'Faces',faces);
+            h = patch(container,'Vertices',mesh.Vertices,'Faces',mesh.Faces);
         end
         function [h,container] = DrawSphere(radius,container,faceNumber)                             % Draw sphere
             % This function returns a sphere coordinate cloud at a given
@@ -293,16 +225,12 @@ classdef Graphics
             if nargin < 2
                 container = hggroup("DisplayName","Sphere");
             end
+            
+            % Create a sphere
+            mesh = MeshGenerator.Sphere(zeros(3,1),radius,faceNumber);
 
-            % Triangulate a sphere
-            [X,Y,Z] = sphere(faceNumber);
-            X = X.*radius;
-            Y = Y.*radius;
-            Z = Z.*radius;
-            % Generate patch object
-            [faces,vertices,~] = surf2patch(X,Y,Z,'triangles');
             % Generate patch            
-            h = patch(container,'Vertices',vertices,'Faces',faces);
+            h = patch(container,'Vertices',mesh.vertices,'Faces',mesh.faces);
         end
         function [h,container] = DrawCuboidFromRadius(radius,container)                   % Draw cuboid (from an enclosing sphere)
             % This function creates a set of vertices for a cube
@@ -316,7 +244,7 @@ classdef Graphics
 
             % Calculate extents from radius
             v = ones(3,1)*radius/1.7321;                                 	% Rate of dimensional expansion
-            [h,container] = Graphics.DrawCuboid(-v,v,container);                   	% Pass to extent calculator
+            [h,container] = Graphics.DrawCuboid(-v,v,container);            % Pass to extent calculator
         end
         function [h,container] = DrawCuboid(minExtents,maxExtents,container)              % Draw cuboid (from min-max in each dimension)
             % Return a matrix of point defining a cuboid scaled to that of
@@ -329,22 +257,24 @@ classdef Graphics
             if nargin < 3
                 container = hggroup("DisplayName","Cuboid");
             end
-
-            % Define vertex data from limits
-            vertices = zeros(8,3);
-            vertices(1,:) = [maxExtents(1),maxExtents(2),maxExtents(3)];
-            vertices(2,:) = [maxExtents(1),maxExtents(2),minExtents(3)];
-            vertices(3,:) = [maxExtents(1),minExtents(2),minExtents(3)];
-            vertices(4,:) = [maxExtents(1),minExtents(2),maxExtents(3)];
-            vertices(5,:) = [minExtents(1),minExtents(2),minExtents(3)];
-            vertices(6,:) = [minExtents(1),minExtents(2),maxExtents(3)];
-            vertices(7,:) = [minExtents(1),maxExtents(2),maxExtents(3)];
-            vertices(8,:) = [minExtents(1),maxExtents(2),minExtents(3)];
-            % Define face connectivity matrix
-            faces =  [ 1,2,7; 1,4,2; 1,7,4; 2,3,8; 2,4,3; 2,8,7; 3,4,6;
-                       3,5,8; 3,6,5; 4,7,6; 5,6,8; 6,7,8];              
+            % Generate a cuboid mesh
+            mesh = MeshGenerator.CuboidFromExtents(minExtents,maxExtents);
             % Generate patch  
-            h = patch(container,'Vertices',vertices,'Faces',faces);
+            h = patch(container,'Vertices',mesh.Vertices,'Faces',mesh.Faces);
+        end
+        function [h,container] = DrawPlane(center,normal,width,height,container)
+            % This function will draw a plane to a given graphical
+            % container.
+
+            % Ensure valid axes
+            if nargin < 5
+                container = hggroup("DisplayName","Plane");
+            end
+            % Generate a planar mesh
+            mesh = MeshGenerator.Plane(center,normal,width,height);
+            % Generate patch  
+            h = patch(container,'Vertices',mesh.Vertices,'Faces',mesh.Faces);
+            set(h,"FaceColor","g");
         end
     end
     

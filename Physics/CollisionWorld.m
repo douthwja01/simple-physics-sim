@@ -48,6 +48,10 @@ classdef CollisionWorld < handle
                     tf_i = collider_i.Entity.GetElement("Transform");
                     tf_j = collider_j.Entity.GetElement("Transform");
 
+                    if numel(tf_i) > 1 || numel(tf_j) > 1
+                        warning("Shouldn't happen.");
+                    end
+
                     % Test collisions with their respective colliders.
                     points = collider_i.TestCollision( ...
                         tf_i, ...
