@@ -29,8 +29,9 @@ classdef CollisionWorld < handle
             triggers = [];
             collisions = [];
 
-            % This function solves the inter-particle collisions (brute
-            % force) 
+            % This function solves the inter-particle collisions (brute force) 
+            
+            
             for i = 1:numel(this.Colliders)
                 collider_i = this.Colliders(i);
                 for j = 1:numel(this.Colliders)

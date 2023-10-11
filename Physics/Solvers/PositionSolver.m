@@ -12,12 +12,12 @@ classdef PositionSolver < Solver
                 collision = collisions(i);
                 manifold = collision.Points;
 
+                % Party one
                 entityA = collision.ColliderA.Entity;
                 transformA = entityA.GetElement("Transform");
                 isStaticA = transformA.IsStatic;
 
-                p0 = transformA.position;
-
+                % Party two
                 entityB = collision.ColliderB.Entity;
                 transformB = entityB.GetElement("Transform");
                 isStaticB = transformB.IsStatic;
@@ -31,10 +31,6 @@ classdef PositionSolver < Solver
                 % Modify the positions
                 transformA.position =  transformA.position - delta_a;
                 transformB.position =  transformB.position + delta_b;
-
-                if norm(transformA.position - p0) > 0
-                    fprintf("Change\n");
-                end
             end
         end
     end

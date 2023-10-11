@@ -4,12 +4,18 @@ classdef Entity < matlab.mixin.Heterogeneous & handle
     
     properties
         Name = "Unnamed";
+        Uuid;
     end
     properties (SetAccess = private)
         Elements = Element.empty;
     end
     methods
         function [this] = Entity(position)
+            % Create an entity object
+
+            % Generate a random integer 
+            this.Uuid = RandIntOfLength(6);
+            
             % Constructor for entities.
             if nargin > 0
                 tf = Transform(position,eye(3));
