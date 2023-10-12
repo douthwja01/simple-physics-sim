@@ -10,7 +10,7 @@ classdef PositionSolver < Solver
             for i = 1:numel(collisions) %Manifold& manifold : manifolds)
                 % For each collision
                 collision = collisions(i);
-                manifold = collision.Points;
+                manifold = collision.Points;       
 
                 % Party one
                 entityA = collision.ColliderA.Entity;
@@ -22,9 +22,10 @@ classdef PositionSolver < Solver
                 transformB = entityB.GetElement("Transform");
                 isStaticB = transformB.IsStatic;
 
+                fprintf("Resolving collision between %s and %s.\n",entityA.Name,entityB.Name);
+
                 % Calculate the resolution
                 resolution = manifold.Normal * manifold.Depth / max(1, isStaticA + isStaticB);
-                %resolution = resolution/2;
                 % Modify the positions
                 delta_a = resolution * (1 - isStaticA);
                 delta_b = resolution * (1 - isStaticB);

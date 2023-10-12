@@ -15,7 +15,8 @@ for i = 1:numberOfObjects
     if (i == 1)
         spawnPosition = [0;0;5];
     else
-        spawnPosition = spawnPosition + 0.1*RandZero(3) + [2;0;0];
+        spawnPosition = spawnPosition + [rand(2,1);0];
+%         spawnPosition = spawnPosition + 0.1*RandZero(3) + [2;0;0];
     end
     % Place the object
     entity_i = Entity(spawnPosition);
@@ -30,17 +31,17 @@ for i = 1:numberOfObjects
     sim.AddEntity(entity_i);
 end
 
-% fixed = Entity([0;0;5]);
-% fixed.AddElement(RigidBody())
-% fixed.AddElement(SphereCollider());
-% renderer = MeshRenderer();
-% renderer.Mesh = MeshGenerator.Sphere(zeros(3,1),1);
-% renderer.Colour = "b";
-% fixed.AddElement(renderer);
-% tf_fixed = fixed.GetElement("Transform");
-% tf_fixed.IsStatic = true;
-% % Add the fix object
-% sim.AddEntity(fixed);
+fixed = Entity([0;0;2]);
+fixed.AddElement(RigidBody())
+fixed.AddElement(SphereCollider());
+renderer = MeshRenderer();
+renderer.Mesh = MeshGenerator.Sphere(zeros(3,1),1);
+renderer.Colour = "r";
+fixed.AddElement(renderer);
+tf_fixed = fixed.GetElement("Transform");
+tf_fixed.IsStatic = true;
+% Add the fix object
+sim.AddEntity(fixed);
 
 % Add the ground plane
 ground = Entity([0;0;0]);

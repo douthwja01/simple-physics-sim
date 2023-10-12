@@ -29,18 +29,25 @@ classdef CollisionWorld < handle
             triggers = [];
             collisions = [];
 
-            % This function solves the inter-particle collisions (brute force) 
+            %entities = [this.Colliders.Entity];
+            %uuids = [entities.Uuid];
+
+            cache = [];
             
-            
+            % This function solves the inter-particle collisions (brute force)             
             for i = 1:numel(this.Colliders)
                 collider_i = this.Colliders(i);
+                uuid_i = collider_i.Entity.Uuid;
+
                 for j = 1:numel(this.Colliders)
                     collider_j = this.Colliders(j);
+                    uuid_j = collider_j.Entity.Uuid;
 
                     % Check if assessing self-collision
-                    if (collider_i == collider_j)
+                    if (uuid_i == uuid_j)
                         continue
                     end
+
                     % Only check if both objects have colliders
                     if isempty(collider_i) || isempty(collider_j)
                         continue
@@ -64,8 +71,11 @@ classdef CollisionWorld < handle
                         continue
                     end
 
+                    cache = vertcat(cache,[uuid_i,uuid_j]);
+
                     % Collision description
                     collision = Collision(collider_i,collider_j,points);
+
                     % If either are triggers
                     if collider_i.IsTrigger || collider_j.IsTrigger
                         triggers = vertcat(triggers,collision);
@@ -79,6 +89,9 @@ classdef CollisionWorld < handle
             if isempty(collisions)
                 return;
             end
+
+            % Remove all symmetrical collisions
+            [collisions] = this.RemoveSymmetricalCollisions(collisions,cache);
 
             % Resolve the collisions
             this.SolveCollisions(collisions,dt);
@@ -155,6 +168,31 @@ classdef CollisionWorld < handle
                 % Notify the collider
                 notify(collision.ColliderA,"OnCollision");
             end
+        end
+    end
+    methods (Static,Access = private)
+        function [collisions] = RemoveSymmetricalCollisions(collisions,cache)
+            % This function moves through all collisions and removes
+            % symmetrical/duplicate incidences.
+
+            % Remove duplicate (symmetrical checks)
+            cacheSize = size(cache,1);
+            logicals = true(cacheSize,1);
+            for i = 1:cacheSize
+                %pair = cache(i);
+                for j = i+1:cacheSize
+                    
+                    if cache(j,1) ~= cache(i,2)
+                        continue;
+                    end
+                    if cache(j,2) ~= cache(i,1)
+                        continue;
+                    end
+                    % Flag the duplicate
+                    logicals(j) = false;
+                end
+            end
+            collisions = collisions(logicals);
         end
     end
 end

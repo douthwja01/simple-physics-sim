@@ -47,7 +47,7 @@ classdef (Abstract) Collider < Element
             b = sTransformB.position - normal*sColliderB.Radius;
             % The overlap distance
             depth = distance - (sColliderA.Radius + sColliderB.Radius);
-            depth = depth/2;
+            %depth = depth/2;
             % Collision points
             points = CollisionPoints(a,b,normal,depth,~(depth > 0));
         end
@@ -60,39 +60,27 @@ classdef (Abstract) Collider < Element
             assert(isa(pTransform,"Transform"),"Expecting a valid second transform object.");
             assert(pCollider.Code == ColliderCode.Plane,"Second collider must be a plane collider.");
 
-% 		    aRadius = colliderB.Radius * major(bt.WorldScale());
-% 		    normal  = rot_vec<_d>((colliderA.Normal/norm(colliderA.Normal)), at);
-            
+            % Sphere properties
 		    aCenter = sCollider.Center + sTransform.WorldPosition();
             aRadius = sCollider.Radius * sTransform.WorldScale();
+            axis = pCollider.Normal/norm(pCollider.Normal);
 
-            colliderNormal = pCollider.Normal/norm(pCollider.Normal);
-            % The distance 
-            h = aCenter - pTransform.position;
-            distance = dot(h,colliderNormal);
-
+            % Planar projection
+            distance = dot(aCenter - pTransform.position,axis);
+            
             % Is it colliding
             isColliding = ~(distance > aRadius);
-
             if ~isColliding
 			    points = CollisionPoints();
                 return;
             end
-
-            toResolve = -1; %aRadius - distance; 
-
-		    aDeep = aCenter - colliderNormal * aRadius;
-		    bDeep = aCenter - colliderNormal * toResolve;
-
+            % Calculate the scalar distance to be resolved
+            toResolve = distance - aRadius;
+		    sDepth = aCenter - axis * aRadius;
+		    pDepth = aCenter - axis * toResolve;
             % Return the collision points
-            points = CollisionPoints(aDeep,bDeep,colliderNormal,toResolve,isColliding);
+            points = CollisionPoints(pDepth,sDepth,axis,toResolve,isColliding);
         end
-        function [points] = FindSphereOBBCollisionPoints(transformA,colliderA,transformB,colliderB)
-            % Find the collision points between a sphere and an OBB box.
-            
-            points = CollisionPoints();
-        end
-        % Plane
         function [points] = FindPlaneSphereCollisionPoints(pTransform,pCollider,sTransform,sCollider)
             % Find the collision points between a plane and a sphere.
 
@@ -102,32 +90,46 @@ classdef (Abstract) Collider < Element
             assert(isa(pTransform,"Transform"),"Expecting a valid second transform object.");
             assert(pCollider.Code == ColliderCode.Plane,"Second collider must be a plane collider.");
 
+            points = Collider.FindSpherePlaneCollisionPoints(sTransform,sCollider,pTransform,pCollider);
+
+%             a = points.A;
+%             b = points.B;
+% 
+%             points.A = b;
+%             points.B = a;
+
 % 		    aRadius = colliderB.Radius * major(bt.WorldScale());
 % 		    normal  = rot_vec<_d>((colliderA.Normal/norm(colliderA.Normal)), at);
             
-		    aCenter = sCollider.Center + sTransform.WorldPosition();
-            aRadius = sCollider.Radius * sTransform.WorldScale();
-
-            colliderNormal = pCollider.Normal/norm(pCollider.Normal);
-            % The distance 
-            h = aCenter - pTransform.position;
-            distance = dot(h,colliderNormal);
-
-            % Is it colliding
-            isColliding = ~(distance > aRadius);
-
-            if ~isColliding
-			    points = CollisionPoints();
-                return;
-            end
-
-            toResolve = -1; %aRadius - distance; 
-
-		    aDeep = aCenter - colliderNormal * aRadius;
-		    bDeep = aCenter - colliderNormal * toResolve;
-
-            % Return the collision points
-            points = CollisionPoints(aDeep,bDeep,colliderNormal,toResolve,isColliding);
+% 		    aCenter = sCollider.Center + sTransform.WorldPosition();
+%             aRadius = sCollider.Radius * sTransform.WorldScale();
+% 
+%             colliderNormal = pCollider.Normal/norm(pCollider.Normal);
+%             % The distance 
+%             h = aCenter - pTransform.position;
+%             distance = dot(h,colliderNormal);
+% 
+%             % Is it colliding
+%             isColliding = ~(distance > aRadius);
+% 
+%             if ~isColliding
+% 			    points = CollisionPoints();
+%                 return;
+%             end
+% 
+%             toResolve = aRadius - distance; %aRadius - distance; 
+% 		    aDeep = aCenter - colliderNormal * aRadius;
+% 		    bDeep = aCenter - colliderNormal * toResolve;
+% 
+%             % Return the collision points
+%             points = CollisionPoints(aDeep,bDeep,colliderNormal,distance,isColliding);
+        end
+        
+        
+        function [points] = FindSphereOBBCollisionPoints(transformA,colliderA,transformB,colliderB)
+            % Find the collision points between a sphere and an OBB box.
+            
+            points = CollisionPoints();
         end
         function [points] = FindPlaneOBBCollisionPoints(transformA,colliderA,transformB,colliderB)
             % Find the collision points between a plane and an OBB box.

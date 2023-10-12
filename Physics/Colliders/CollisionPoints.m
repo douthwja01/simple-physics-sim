@@ -5,7 +5,7 @@ classdef CollisionPoints
         A = zeros(3,1);         % Furtherest point of A into B
         B = zeros(3,1);         % Furtherest point of B into A
         Normal = zeros(3,1);    % B -A normalised vector
-        Depth = 0;              % The depth of penetration
+        Depth = 0;              % The depth of penetration (should be -ve)
         IsColliding = false;    % Collision flag
     end
 
