@@ -27,7 +27,7 @@ for i = 1:numberOfObjects
     entity_i.Name = sprintf("Object %d (Box)",i);
     entity_i.AddElement(BoxCollider());  
     renderer = MeshRenderer();
-    extents = 0.5*ones(3,1);
+    extents = 0.5*[1;1;1];% 0.5*ones(3,1);
     renderer.Mesh = MeshGenerator.CuboidFromExtents(-extents,extents);
     renderer.Alpha = 0.2;
     if mod(i,2) == 0
@@ -36,7 +36,7 @@ for i = 1:numberOfObjects
         renderer.Colour = "c";
     end
     entity_i.AddElement(renderer);
-    
+
 %     if mod(i,2) == 0
 %         entity_i.Name = sprintf("Object %d (Sphere)",i);
 %         entity_i.AddElement(SphereCollider());

@@ -15,7 +15,7 @@ classdef BoxCollider < Collider
             % CONSTRUCTOR - Generate a box-collider with a unitary cube mesh.
 
             % Generate a cuboid-mesh
-            extents = 0.5*ones(3,1);
+            extents = 0.5*[1;1;1];% ones(3,1);
             this.Mesh = MeshGenerator.CuboidFromExtents(-extents,extents);
         end
         function [points] = TestCollision(this,transformA,colliderB,transformB)

@@ -196,22 +196,18 @@ classdef (Abstract) Collider < Element
             
             % Find the greatest projection of A on the axis
             vertexProjectionsA = zeros(collisionMeshA.NumberOfVertices,1);
+            % Get the projections on the axis vector
             for i = 1:collisionMeshA.NumberOfVertices
-                % A given collision vertex
-                coordinate = collisionMeshA.Vertices(i,:)';
-                % Its projection on the separation vector
-                [vertexProjectionsA(i)] = Ray.PointProjection(axisRay,coordinate);
+                [vertexProjectionsA(i)] = Ray.PointProjection(axisRay,collisionMeshA.Vertices(i,:)');
             end
             % Maximum vertex extent from A towards B
             [maxAProjection] = max(vertexProjectionsA);
 
             % Find the greatest projection of B on the axis
             vertexProjectionsB = zeros(collisionMeshB.NumberOfVertices,1);
+            % Get the projections on the axis vector
             for i = 1:collisionMeshB.NumberOfVertices
-                % A given collision vertex
-                coordinate = collisionMeshB.Vertices(i,:)';
-                % Its projection on the separation vector
-                [vertexProjectionsB(i)] = Ray.PointProjection(reverseAxisRay,coordinate);
+                [vertexProjectionsB(i)] = Ray.PointProjection(reverseAxisRay,collisionMeshB.Vertices(i,:)');
             end
             % Minimum vertex extent from B towards A (min w.r.t to ray direction)
             [maxBProjection] = max(vertexProjectionsB);
