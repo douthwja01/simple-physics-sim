@@ -6,6 +6,7 @@ classdef MeshRenderer < Element
     properties %(SetAccess = protected)
         Mesh = Mesh.empty;
         Colour = 'r';
+        Alpha = 0.5;
     end
     properties (Access = private)
         Transform;
@@ -33,8 +34,15 @@ classdef MeshRenderer < Element
         function set.Colour(this,colorString)
             assert(isstring(colorString),"Expecting a valid color code string (i.e 'r').");
             this.Colour = colorString;
-            if isa(this.Handle,"GraphicsPlaceholder")
+            if ~isa(this.Handle,"matlab.graphics.GraphicsPlaceholder")
                 set(this.MeshHandle,"FaceColor",this.Colour);
+            end
+        end
+        function set.Alpha(this,alpha)
+            assert(isscalar(alpha),"Expecting a valid alpha value.");
+            this.Alpha = alpha;
+            if ~isa(this.Handle,"matlab.graphics.GraphicsPlaceholder")
+                set(this.MeshHandle,"FaceAlpha",this.Alpha);
             end
         end
     end
@@ -58,6 +66,7 @@ classdef MeshRenderer < Element
             this.MeshHandle = this.Mesh.Draw(h_data);
             % Set the colour
             set(this.MeshHandle,"FaceColor",this.Colour);
+            set(this.MeshHandle,"FaceAlpha",this.Alpha);
             this.Handle = h_data;
         end
     end

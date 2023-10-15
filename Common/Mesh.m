@@ -3,9 +3,14 @@ classdef Mesh < handle
     % A simple container primitive to hold mesh vertices and faces prior to
     % matlab's graphical utilities.
 
+    % Assumes that the vertices are centered around the origin.
+
     properties
         Vertices = [];
         Faces = [];
+    end
+    properties (Dependent)
+        NumberOfVertices;
     end
     % Main
     methods
@@ -29,6 +34,9 @@ classdef Mesh < handle
             assert(size(f,2) == 3,"Expecting an array of face-vertex indices.");
             this.Faces = f;
         end
+        function [n] = get.NumberOfVertices(this)
+            n = size(this.Vertices,1);
+        end
     end
     % Utilities
     methods
@@ -37,12 +45,13 @@ classdef Mesh < handle
             % transform matrix.
             
             % Sanity check
-            assert(size(Tf,1) == 4 && size(Tf,2),"Expecting a valid transformation matrix [4x4].");
+            assert(size(Tf,1) == 4 && size(Tf,2) == 4,"Expecting a valid transformation matrix [4x4].");
 
             % Transform the vertices
-            padding = ones(size(this.Vertices,1),1);
-            modifiedVertices = [ this.Vertices,padding]*Tf;
-            modifiedVertices = modifiedVertices(1:3,:);
+            padding = ones(this.NumberOfVertices,1);
+            modifiedVertices = Tf*[this.Vertices,padding]';
+            modifiedVertices = modifiedVertices(1:3,:)';
+
             % Create the two component meshes
             mesh = Mesh(modifiedVertices,this.Faces);
         end

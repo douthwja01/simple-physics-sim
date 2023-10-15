@@ -15,7 +15,6 @@ classdef CollisionPoints
 
             % Sanity check
             assert(nargin == 0 || nargin == 5,"Expecting either 0 or 5 inputs.");
-
             if nargin == 0
                 return;
             end
@@ -25,6 +24,15 @@ classdef CollisionPoints
             this.Normal = n;
             this.Depth = d;
             this.IsColliding = isColliding;
+        end
+
+        function [in] = SwapPoints(this)
+            % Swap the points 
+
+            in = this;
+            in.A = this.B;
+            in.B = this.A;
+            in.Normal = - this.Normal;
         end
     end
 end

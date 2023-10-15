@@ -25,6 +25,8 @@ classdef SphereCollider < Collider
                 case ColliderCode.OBB
                     % The second collider is an OBB box
                     points = Collider.FindSphereOBBCollisionPoints(transformA,this,transformB,colliderB);
+                    % Swap points
+                    points = points.SwapPoints();
                 otherwise
                     error("Collider type not recognised.");
             end

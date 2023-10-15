@@ -10,20 +10,20 @@ classdef Entity < matlab.mixin.Heterogeneous & handle
         Elements = Element.empty;
     end
     methods
-        function [this] = Entity(position)
+        function [this] = Entity(name)
             % Create an entity object
+
+            % Assign name
+            if nargin > 0
+                assert(isstring(name),"Expecting a valid name string.");
+                this.Name = name;
+            end
 
             % Generate a random integer 
             this.Uuid = RandIntOfLength(6);
             
-            % Constructor for entities.
-            if nargin > 0
-                tf = Transform(position,eye(3));
-            else
-                tf = Transform();
-            end
             % Add the transform
-            this.AddElement(tf);
+            this.AddElement(Transform(zeros(3,1),eye(3)));
         end
         % Element interaction
         function [element] = GetElement(this,className)

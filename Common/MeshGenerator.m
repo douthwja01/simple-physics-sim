@@ -149,7 +149,7 @@ classdef MeshGenerator
             % Calculate extents from radius
             v = ones(3,1)*radius/1.7321;                                 	% Rate of dimensional expansion
             % Generate the equivalent extent-defined cuboid
-            mesh = CuboidFromExtents(-v,v);
+            mesh = MeshGenerator.CuboidFromExtents(-v,v);
         end
         function [mesh] = CuboidFromExtents(minExtents,maxExtents)
             % Return a matrix of point defining a cuboid scaled to that of

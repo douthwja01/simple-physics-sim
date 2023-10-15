@@ -38,10 +38,10 @@ classdef Simulator < handle
             time = 0;
             while (time < duration && ~this.IsStopped)
                 fprintf("[t=%.2fs] Stepping.\n",time);
-                % Update physics
-                this.Physics.Step(this.TimeDelta);
                 % Update visuals
                 this.UpdateGraphics(ax);
+                % Update physics
+                this.Physics.Step(this.TimeDelta);
                 % Integrate the time
                 time = time + this.TimeDelta;
             end

@@ -7,7 +7,6 @@ classdef PlaneCollider < Collider
     end
     properties
         Normal = [0;0;1];
-        Distance = 0;
     end
     methods
         function [points] = TestCollision(this,transformA,colliderB,transformB)
@@ -17,7 +16,7 @@ classdef PlaneCollider < Collider
             switch colliderB.Code
                 case ColliderCode.Sphere
                     % The second collider is sphere
-                    points = Collider.FindPlaneSphereCollisionPoints(transformA,this,transformB,colliderB);
+                    points = Collider.FindSpherePlaneCollisionPoints(transformB,colliderB,transformA,this);
                 case ColliderCode.OBB
                     % The second collider is an OBB box
                     points = Collider.FindPlaneOBBCollisionPoints(transformA,this,transformB,colliderB);
