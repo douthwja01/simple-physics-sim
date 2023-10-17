@@ -8,6 +8,7 @@ classdef Mesh < handle
     properties
         Vertices = [];
         Faces = [];
+        Normals = [];
     end
     properties (Dependent)
         NumberOfVertices;
@@ -29,10 +30,12 @@ classdef Mesh < handle
         function set.Vertices(this,v)
             assert(size(v,2) == 3,"Expecting an array of vertex coordinates.");
             this.Vertices = v;
+            this.Normals = this.CalculateNormals(this.Faces,this.Vertices);
         end
         function set.Faces(this,f)
             assert(size(f,2) == 3,"Expecting an array of face-vertex indices.");
             this.Faces = f;
+            this.Normals = this.CalculateNormals(this.Faces,this.Vertices);
         end
         function [n] = get.NumberOfVertices(this)
             n = size(this.Vertices,1);
@@ -62,6 +65,31 @@ classdef Mesh < handle
             end
             % Generate patch
             h = patch(container,'Vertices',this.Vertices,'Faces',this.Faces);        
+        end
+    end
+    methods (Static,Access = private)
+        function [normals] = CalculateNormals(f,v)
+            % This function computes the normals of all the mesh faces.
+
+            % Sanity check
+            if size(f,2) ~= 3 || size(v,2) ~= 3
+                normals = [];
+                return
+            end
+
+            % Calculate the normals
+            normals= zeros(size(f,1),3);
+            for i = 1:size(f,1)
+                face = f(i,:);
+                points = v(face,:);
+                % Calculate the point faces
+                normals(i,:) = Mesh.GetFaceNormal(points(1,:),points(2,:),points(3,:));
+            end
+        end
+        function [n] = GetFaceNormal(a,b,c)
+            % Calculate norm of a face defined by three points.
+            vec = cross(b - a, c - a);
+            n = vec/norm(vec);
         end
     end
 end
