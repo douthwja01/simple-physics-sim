@@ -7,6 +7,9 @@ classdef Transform < Element
     properties (SetObservable = true,AbortSet)
         transform = eye(4);
         scale = ones(3,1);
+        % Kinematics
+        Velocity = zeros(3,1);
+        Acceleration = zeros(3,1);
     end
     properties (Dependent)
         rotation;

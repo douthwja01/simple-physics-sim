@@ -7,10 +7,11 @@ classdef DynamicsWorld < CollisionWorld
         % Timing
         EnableSubStepping = true;
         SubSteps = 5;
-
         Gravity = [0;0;-9.81];
         Links = SimLink.empty;
         Bodies = RigidBody.empty;
+        % Numerical integrators
+        Integrator = VerletIntegrator();
     end
     % Main
     methods
@@ -20,6 +21,14 @@ classdef DynamicsWorld < CollisionWorld
             % Collision world
             this = this@CollisionWorld(varargin{:});
         end
+        % Get/sets
+        function set.Integrator(this,int)
+            assert(isa(int,"Integrator"),"Expecting a valid integrator.");
+            this.Integrator = int;
+        end
+    end
+
+    methods        
         % High-level
         function [this] = Initialise(this,subSteps)
             % Initialise the dynamic world.
@@ -95,10 +104,16 @@ classdef DynamicsWorld < CollisionWorld
         function [this] = SubStep(this,dt)
             % The step procedure
             this.ApplyGravity();
-%             this.ResolveCollisions(dt);
-%             this.ApplyWorldConstraint();
-            this.UpdatePositions(dt);
+            % Update the changes of everything
+            this.UpdateAccelerations();
+            % Integrate at the end of the step
+            this.Integrate(dt);
+        end        
+        function [this] = Integrate(this,dt)
+            % Use the integrator components to integrate
+            this.Integrator.Integrate(this.Bodies,dt);
         end
+
         function [this] = ApplyGravity(this)
             % This function applies gravity to all particles
 
@@ -112,13 +127,17 @@ classdef DynamicsWorld < CollisionWorld
                 body_i.Accelerate(this.Gravity);
             end
         end
-        function [this] = UpdatePositions(this,dt)
-            % Update the physics properties of the world.
-
+        function [this] = UpdateAccelerations(this)
+            % Update the physics properties of the world and recalculate
+            % the acceleration properties of all objects based on their
+            % instantaneous kinematic configurations.
+            
+            % Update rigidbodies (accelerations)
             for i = 1:numel(this.Bodies)
-                this.Bodies(i).Update(dt);
+                this.Bodies(i).Update();
             end
         end
+
         % Constraints
         function [this] = ApplyLinks(this)
             % This function applys the set of link constraints to the

@@ -28,10 +28,6 @@ classdef CollisionWorld < handle
             % Collision container
             triggers = [];
             collisions = [];
-
-            %entities = [this.Colliders.Entity];
-            %uuids = [entities.Uuid];
-
             cache = [];
             
             % This function solves the inter-particle collisions (brute force)             

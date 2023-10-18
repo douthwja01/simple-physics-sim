@@ -4,12 +4,12 @@ close all;
 addpath("Common");
 addpath("Physics");
 addpath("Physics/Colliders");
-addpath("Physics/Objects");
+addpath("Physics/Integrators");
 addpath("Physics/Solvers");
 
 sim = Simulator();
 
-numberOfObjects = 10;
+numberOfObjects = 15;
 for i = 1:numberOfObjects
     % Spawn positions
     if (i == 1)
@@ -21,13 +21,12 @@ for i = 1:numberOfObjects
     % Place the object
     entity_i = Entity();
     entity_i.AddElement(RigidBody());
-
     transform_i = entity_i.GetElement("Transform");
     transform_i.position = spawnPosition;
     entity_i.Name = sprintf("Object %d (Box)",i);
     entity_i.AddElement(BoxCollider());  
     renderer = MeshRenderer();
-    extents = 0.5*[1;1;1];% 0.5*ones(3,1);
+    extents = 0.5*[1;1;1];
     renderer.Mesh = MeshGenerator.CuboidFromExtents(-extents,extents);
     renderer.Alpha = 0.2;
     if mod(i,2) == 0

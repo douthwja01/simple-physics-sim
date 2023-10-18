@@ -17,16 +17,7 @@ classdef MeshRenderer < Element
         function [this] = MeshRenderer()
             % Constructor for a visual elements
         end
-        function [this] = Update(this,ax)
-            % Draw the object in its current state
-            
-            if ~isa(this.Handle,"matlab.graphics.primitive.Transform")
-                this.Initialise(ax);
-            end
-
-            % Transform plot
-            set(this.Handle,"Matrix",this.Transform.transform);
-        end
+        % Get/sets
         function set.Mesh(this,m)
             assert(isa(m,"Mesh"),"Expecting a valid mesh object.");
             this.Mesh = m;
@@ -44,6 +35,19 @@ classdef MeshRenderer < Element
             if ~isa(this.Handle,"matlab.graphics.GraphicsPlaceholder")
                 set(this.MeshHandle,"FaceAlpha",this.Alpha);
             end
+        end
+    end
+
+    methods
+        function [this] = Update(this,ax)
+            % Draw the object in its current state
+            
+            if ~isa(this.Handle,"matlab.graphics.primitive.Transform")
+                this.Initialise(ax);
+            end
+
+            % Transform plot
+            set(this.Handle,"Matrix",this.Transform.transform);
         end
     end
     % Utilities
