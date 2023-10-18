@@ -39,7 +39,7 @@ classdef CollisionWorld < handle
                 collider_i = this.Colliders(i);
                 uuid_i = collider_i.Entity.Uuid;
 
-                for j = 1:numel(this.Colliders)
+                for j = i+1:numel(this.Colliders)
                     collider_j = this.Colliders(j);
                     uuid_j = collider_j.Entity.Uuid;
 
@@ -53,6 +53,7 @@ classdef CollisionWorld < handle
                         continue
                     end
 
+                    % Get the transforms
                     tf_i = collider_i.Entity.GetElement("Transform");
                     tf_j = collider_j.Entity.GetElement("Transform");
 

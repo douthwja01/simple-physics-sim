@@ -7,6 +7,7 @@ classdef Simulator < handle
         Physics;
         % Contents
         g = [0;0;-9.81];
+        WorldSize = 20;
     end
     properties (SetAccess = private)
         Entities = [];
@@ -119,8 +120,6 @@ classdef Simulator < handle
         function [ax,this] = InitialiseGraphics(this)
             % Draw the state of the world
 
-            axisLimits = 10;
-
             fig = figure("Name","Simulation");
             ax = axes(fig);
             hold on;
@@ -131,10 +130,11 @@ classdef Simulator < handle
             xlabel(ax,"X (m)");
             ylabel(ax,"Y (m)");
             zlabel(ax,"Z (m)");
+            axisLimits = this.WorldSize/2;
             xlim(ax,[-axisLimits,axisLimits]);
             ylim(ax,[-axisLimits,axisLimits]);
             zlim(ax,[0,axisLimits]);
-
+            % Register for key presses
             set(fig,'KeyPressFcn',@(src,evnt)KeyPressCallback(this,src,evnt));
         end
         function KeyPressCallback(this,src,event)
