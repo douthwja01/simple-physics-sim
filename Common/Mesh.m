@@ -43,6 +43,22 @@ classdef Mesh < handle
     end
     % Utilities
     methods
+        function [point] = GetFarthestPointInDirection(this,vec)
+            % Sanity check
+            assert(IsColumn(vec,3),"Expecting a valid 3D vector points [3x1].");
+            vec = vec/norm(vec);
+
+            maxMag = 0;
+            index = 1;
+            for i = this.NumberOfVertices
+                mag = dot(vec,this.Vertices(i));
+                if (mag > maxMag)
+                    maxMag = mag;
+                    index = i;
+                end
+            end
+            point = this.Vertices(index,:)';
+        end
         function [mesh] = TransformBy(this,Tf)
             % This function returns this mesh transformed by a given
             % transform matrix.
@@ -83,13 +99,8 @@ classdef Mesh < handle
                 face = f(i,:);
                 points = v(face,:);
                 % Calculate the point faces
-                normals(i,:) = Mesh.GetFaceNormal(points(1,:),points(2,:),points(3,:));
+                normals(i,:) = TripleProduct(points(1,:),points(2,:),points(3,:));
             end
-        end
-        function [n] = GetFaceNormal(a,b,c)
-            % Calculate norm of a face defined by three points.
-            vec = cross(b - a, c - a);
-            n = vec/norm(vec);
         end
     end
 end
