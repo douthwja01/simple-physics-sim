@@ -3,9 +3,10 @@ clear all;
 close all;
 addpath("Common");
 addpath("Physics");
-addpath("Physics/Colliders");
 addpath("Physics/Integrators");
 addpath("Physics/Solvers");
+addpath("Physics/Elements");
+addpath("Physics/Elements/Colliders/");
 
 sim = Simulator();
 
@@ -36,23 +37,6 @@ for i = 1:numberOfObjects
     end
     entity_i.AddElement(renderer);
 
-%     if mod(i,2) == 0
-%         entity_i.Name = sprintf("Object %d (Sphere)",i);
-%         entity_i.AddElement(SphereCollider());
-%         renderer = MeshRenderer();
-%         renderer.Mesh = MeshGenerator.Sphere(zeros(3,1),1);
-%         renderer.Colour = "b";
-%         renderer.Alpha = 0.2;
-%     else
-%         entity_i.Name = sprintf("Object %d (Box)",i);
-%         entity_i.AddElement(BoxCollider());
-%         renderer = MeshRenderer();
-%         extents = 0.5*ones(3,1);
-%         renderer.Mesh = MeshGenerator.CuboidFromExtents(-extents,extents);
-%         renderer.Colour = "c";
-%         renderer.Alpha = 0.2;
-%     end
-%     entity_i.AddElement(renderer);
     % Assign the object
     sim.AddEntity(entity_i);
 end
