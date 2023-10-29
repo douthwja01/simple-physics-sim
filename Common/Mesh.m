@@ -74,6 +74,11 @@ classdef Mesh < handle
             % Create the two component meshes
             mesh = Mesh(modifiedVertices,this.Faces);
         end
+        function [mesh] = ScaleBy(this,width,depth,height)
+            % Scale the mesh by a set of dimensional values.
+            tf = eye(4)*[width,depth,height;0];
+            mesh = this.TransformBy(tf);
+        end
         function [h] = Draw(this,container)
             % Draw this mesh to a given graphical container
             if nargin < 2

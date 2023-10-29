@@ -7,6 +7,7 @@ classdef (Abstract) Collider < Element
     end
     properties (SetAccess = private)
         IsTrigger = false;
+        Cid;
     end
 
     methods (Abstract)
@@ -16,9 +17,24 @@ classdef (Abstract) Collider < Element
     end
 
     methods
+        function [this] = Collider()
+            % CONSTRUCTOR - Collider
+
+            % Create a random colliderId
+            this.Cid = RandIntOfLength(6);
+            % Register for collision feedback
+            addlistener(this,"OnCollision",@(src,evnt)OnCollisionOccured(this));
+        end
         function [this] = SetTrigger(this,isTrigger)
             assert(islogical(isTrigger),"Expecting a boolean trigger.");
             this.IsTrigger = isTrigger;
+        end
+    end
+    methods (Access = private)
+        function [this] = OnCollisionOccured(this)
+            % On collision has occurred.
+
+            % Do something
         end
     end
 

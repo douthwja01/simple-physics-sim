@@ -12,6 +12,9 @@ classdef Collision
         function [this] = Collision(a,b,points)
             % COLLISION Construct an instance of a collision.
             
+            assert(isa(a,"Collider"),"Expecting a valid first collider.");
+            assert(isa(b,"Collider"),"Expecting a valid second collider.");
+
             % Capture the properties
             this.ColliderA = a;
             this.ColliderB = b;

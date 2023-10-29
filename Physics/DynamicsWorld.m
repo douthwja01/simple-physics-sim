@@ -8,7 +8,6 @@ classdef DynamicsWorld < CollisionWorld
         EnableSubStepping = true;
         SubSteps = 5;
         Gravity = [0;0;-9.81];
-        Links = SimLink.empty;
         Bodies = RigidBody.empty;
         % Numerical integrators
         Integrator = VerletIntegrator();
@@ -81,17 +80,6 @@ classdef DynamicsWorld < CollisionWorld
                 % Remove a given solver from the array of collisions solvers.
                 this.Bodies = this.Bodies(this.Bodies ~= body);
             end
-        end
-        % Add/remove Links
-        function [this] = AddLink(this,objectA,objectB)
-            assert(isa(objectA,"SimObject"),"Expecting a first valid SimObject.");
-            assert(isa(objectB,"SimObject"),"Expecting a second valid SimObject.");
-            % Create a new link object
-            newLink = Link(objectA,objectB);
-            this.Links = vertcat(this.Links,newLink);
-        end
-        function [this] = DeleteLink(this,objectA,objectB)
-            % Delete a link between the objects.
         end
         % World dynamics
         function [this] = SetGravity(this,g)

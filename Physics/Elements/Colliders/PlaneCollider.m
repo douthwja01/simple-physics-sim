@@ -9,6 +9,12 @@ classdef PlaneCollider < Collider
         Normal = [0;0;1];
     end
     methods
+        function [this] = PlaneCollider()
+            % CONSTRUCTOR - Generate a plane-collider with a normal.
+
+            % Create a collider
+            [this] = this@Collider();            
+        end
         function [points] = TestCollision(this,transformA,colliderB,transformB)
             % Test for collision between this collider and a variable
             % second collider.
