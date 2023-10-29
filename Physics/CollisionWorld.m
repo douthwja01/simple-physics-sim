@@ -7,6 +7,9 @@ classdef CollisionWorld < handle
         Colliders;
         Solvers;
         Callback = function_handle.empty;
+        % Variables
+        Collisions = Collision.empty;
+        Triggers = Collision.empty;
     end
 
     % Main
@@ -26,83 +29,62 @@ classdef CollisionWorld < handle
             assert(isnumeric(dt),"Expecting a valid numeric time-step.");
 
             % Collision container
-            triggers = [];
-            collisions = [];
-            cache = [];
+            this.Triggers = Collision.empty;
+            this.Collisions = Collision.empty;
+%             cache = [];
             
             % This function solves the inter-particle collisions (brute force)             
             for i = 1:numel(this.Colliders)
                 collider_i = this.Colliders(i);
-                uuid_i = collider_i.Entity.Uuid;
+                uuid_i = collider_i.Cid;
 
                 for j = i+1:numel(this.Colliders)
                     collider_j = this.Colliders(j);
-                    uuid_j = collider_j.Entity.Uuid;
+                    uuid_j = collider_j.Cid;
 
                     % Check if assessing self-collision
                     if (uuid_i == uuid_j)
                         continue
                     end
 
-                    % Only check if both objects have colliders
-                    if isempty(collider_i) || isempty(collider_j)
-                        continue
-                    end
-
                     % Get the transforms
-                    tf_i = collider_i.Entity.GetElement("Transform");
-                    tf_j = collider_j.Entity.GetElement("Transform");
+                    transform_i = collider_i.Entity.GetElement("Transform");
+                    transform_j = collider_j.Entity.GetElement("Transform");
 
-                    if numel(tf_i) > 1 || numel(tf_j) > 1
-                        warning("Shouldn't happen.");
-                    end
-
-                    % Test collisions with their respective colliders.
-                    points = collider_i.TestCollision( ...
-                        tf_i, ...
-                        collider_j, ...
-                        tf_j);
-
-                    % If not colliding, skip
-                    if ~points.IsColliding
-                        continue
-                    end
-
-                    cache = vertcat(cache,[uuid_i,uuid_j]);
-
-                    % Collision description
-                    collision = Collision(collider_i,collider_j,points);
-
-                    % If either are triggers
-                    if collider_i.IsTrigger || collider_j.IsTrigger
-                        triggers = vertcat(triggers,collision);
-                    else
-                        collisions = vertcat(collisions,collision);
-                    end
+                    % Evaluate if there has been a collision for the pair.
+                    [points] = this.TestCollision( ...
+                        transform_i, ...
+                        collider_i, ...
+                        transform_j, ...
+                        collider_j);
                 end
             end
             
             % No collisions occurred
-            if isempty(collisions)
+            if isempty(this.Collisions)
                 return;
             end
 
             % Remove all symmetrical collisions
-            [collisions] = this.RemoveSymmetricalCollisions(collisions,cache);
+%             [collisions] = this.RemoveSymmetricalCollisions(collisions,cache);
 
             % Resolve the collisions
-            this.SolveCollisions(collisions,dt);
+            this.SolveCollisions(dt);
             % Issue collision and trigger event callbacks
-            this.SendCollisionCallbacks(collisions,dt);
-            this.SendCollisionCallbacks(triggers,dt);
+            this.SendCollisionCallbacks(this.Collisions,dt);
+            this.SendTriggerCallbacks(this.Triggers,dt);
         end
         % Managing collision objects
         function [this] = AddCollider(this,collider)
-            if isempty(collider)
-                return;
-            end
+            % Allow the addition of a collider element to the collision
+            % world
+
+            % Add the collision object from the world
+            assert(isa(collider,"Collider"),"Expecting a valid 'Collider' element.");
             % Add a given object to the collision object list.
-            this.Colliders = vertcat(this.Colliders,collider);
+            if ~isempty(collider)
+                this.Colliders = vertcat(this.Colliders,collider);
+            end
         end
         function [this] = RemoveCollider(this,collider)
             if isempty(collider)
@@ -141,33 +123,66 @@ classdef CollisionWorld < handle
     end
     % Utilties
     methods (Access = private)
-        function [this] = SolveCollisions(this,collisions,dt)
+        function [points] = TestCollision(this,transform_i,collider_i,transform_j,collider_j)
+            % Evaluate an individual collision instance
+
+            % Test collisions with their respective colliders.
+            points = collider_i.TestCollision( ...
+                transform_i, ...
+                collider_j, ...
+                transform_j);
+
+            % If not colliding, skip
+            if ~points.IsColliding
+                return
+            end
+
+%             cache = vertcat(cache,[uuid_i,uuid_j]);
+
+            % Collision description
+            manifold = Collision(collider_i,collider_j,points);
+            % If either are triggers
+            if collider_i.IsTrigger || collider_j.IsTrigger
+                this.Triggers = vertcat(this.Triggers,manifold);
+            else
+                this.Collisions = vertcat(this.Collisions,manifold);
+            end
+        end
+        function [this] = SolveCollisions(this,dt)
             % This function solves the set of identified collisions by
             % invoking the collision solvers.
 
             % Sanity check
             assert(isnumeric(dt),"Expecting a valid time step.");
 
-            if isempty(collisions)
+            if isempty(this.Collisions) || numel(this.Collisions) < 1
                 return;
             end
 
             for i = 1:numel(this.Solvers)
                 % Solve the collisions
-                this.Solvers(i).Solve(collisions,dt);
+                this.Solvers(i).Solve(this.Collisions,dt);
             end
         end
-        function [this] = SendCollisionCallbacks(this,collisions,dt)
-            % Send the collision callbacks.
 
-            for i = 1:numel(collisions)
-                collision = collisions(i);
-                % Notify the collider
-                notify(collision.ColliderA,"OnCollision");
-            end
-        end
     end
     methods (Static,Access = private)
+        function SendTriggerCallbacks(instances,dt)
+            % Send the collision callbacks.
+            
+            % Notify the collider
+            for i = 1:numel(instances)
+                notify(instances(i).ColliderA,"OnTrigger");
+            end
+        end
+        function SendCollisionCallbacks(instances,dt)
+            % Send the collision callbacks.
+            
+            % Notify the collider
+            for i = 1:numel(instances)
+                notify(instances(i).ColliderA,"OnCollision");
+            end
+        end
         function [collisions] = RemoveSymmetricalCollisions(collisions,cache)
             % This function moves through all collisions and removes
             % symmetrical/duplicate incidences.

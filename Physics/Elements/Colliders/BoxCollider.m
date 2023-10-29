@@ -32,20 +32,9 @@ classdef BoxCollider < Collider
                  case ColliderCode.OBB
                     % The second collider is a plane
                     points = Collider.FindOBBOBBCollisionPoints(transformA,this,transformB,colliderB);
-                    % Swap points
-                    points = points.SwapPoints();
                 otherwise
                     error("Collider type not recognised.");
             end
         end
-
-%         function [mesh] = GetGeometry(this)
-%             % This function gets the transformed collision mesh
-% 
-%             % Get the transformation
-%             transformElement = this.Entity.GetElement("Transform");
-%             % Transform the mesh
-%             mesh = this.Mesh.TransformBy(transformElement.transform);
-%         end
     end
 end

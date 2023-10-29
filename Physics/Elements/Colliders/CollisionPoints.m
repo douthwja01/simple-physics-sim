@@ -25,14 +25,14 @@ classdef CollisionPoints
             this.Depth = d;
             this.IsColliding = isColliding;
         end
-    end
-    methods (Static)
-        function [out] = Swap(points)
+        function [out] = Swap(this)
             % Swap the points 
-            out = points;
-            out.A = points.B;               % Set the points of A as B
-            out.B = points.A;               % Set the points of B as A
-            out.Normal = -points.Normal;    % Also change the direction
+            out = CollisionPoints();
+            out.A = this.B;                     % Set the points of A as B
+            out.B = this.A;                     % Set the points of B as A
+            out.Normal = -this.Normal;          % Also change the direction
+            out.Depth = this.Depth;             % Same scalar distance
+            out.IsColliding = this.IsColliding; % Still colliding
         end
     end
 end
