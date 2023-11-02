@@ -30,8 +30,8 @@ classdef PositionSolver < Solver
                 delta_a = resolution * (1 - isStaticA);
                 delta_b = resolution * (1 - isStaticB);
                 % Modify the positions
-                transformA.position =  transformA.position - delta_a;
-                transformB.position =  transformB.position + delta_b;
+                transformA.position =  transformA.position + delta_a;
+                transformB.position =  transformB.position - delta_b;
             end
         end
     end

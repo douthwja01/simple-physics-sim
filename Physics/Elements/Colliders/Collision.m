@@ -5,7 +5,7 @@ classdef Collision
     properties
         ColliderA = Collider.empty;         % The first collisionbject
         ColliderB = Collider.empty;         % The second collision object
-        Points = CollisionPoints.empty;    % The points defining the collision
+        Points = CollisionPoints.empty;     % The points defining the collision
     end
     
     methods

@@ -31,19 +31,16 @@ classdef CollisionWorld < handle
             % Collision container
             this.Triggers = Collision.empty;
             this.Collisions = Collision.empty;
-%             cache = [];
             
             % This function solves the inter-particle collisions (brute force)             
             for i = 1:numel(this.Colliders)
                 collider_i = this.Colliders(i);
-                uuid_i = collider_i.Cid;
-
+ 
                 for j = i+1:numel(this.Colliders)
                     collider_j = this.Colliders(j);
-                    uuid_j = collider_j.Cid;
-
+ 
                     % Check if assessing self-collision
-                    if (uuid_i == uuid_j)
+                    if (collider_i.Cid == collider_j.Cid)
                         continue
                     end
 
@@ -52,7 +49,7 @@ classdef CollisionWorld < handle
                     transform_j = collider_j.Entity.GetElement("Transform");
 
                     % Evaluate if there has been a collision for the pair.
-                    [points] = this.TestCollision( ...
+                    this.TestCollision( ...
                         transform_i, ...
                         collider_i, ...
                         transform_j, ...
@@ -66,7 +63,8 @@ classdef CollisionWorld < handle
             end
 
             % Remove all symmetrical collisions
-%             [collisions] = this.RemoveSymmetricalCollisions(collisions,cache);
+            %             [collisions] = this.RemoveSymmetricalCollisions(collisions,cache);
+%             this.RemoveSymmetricalCollisions();
 
             % Resolve the collisions
             this.SolveCollisions(dt);
@@ -164,7 +162,6 @@ classdef CollisionWorld < handle
                 this.Solvers(i).Solve(this.Collisions,dt);
             end
         end
-
     end
     methods (Static,Access = private)
         function SendTriggerCallbacks(instances,dt)

@@ -129,9 +129,9 @@ classdef (Abstract) Collider < Element
             [largestVertexProjection] = max(vertexProjections);
             
             % Resolve 
-            toResolve = axisRay.Magnitude - (largestVertexProjection + sCollider.Radius);
+            toResolve = (largestVertexProjection + sCollider.Radius) - axisRay.Magnitude;
             % No collision is occuring
-            isColliding = toResolve < 0;
+            isColliding = toResolve > 0;
             if ~isColliding
                 points = CollisionPoints();
                 return;
@@ -176,6 +176,7 @@ classdef (Abstract) Collider < Element
             [smallestVertexProjection,minIndex] = min(vertexProjections);
             % No collision is occuring
             isColliding = smallestVertexProjection < 0; 
+
             if ~isColliding
                 points = CollisionPoints();
                 return;
@@ -184,8 +185,9 @@ classdef (Abstract) Collider < Element
             deepestPointOfAInB = collisionMesh.Vertices(minIndex,:)';
             % The point on the plane closet to the vertex
             deepestPointOfBInA = pTransform.position - centerToPlaneHeight*axisRay.Direction;
-            % -ve depth to be resolved
-            toResolve = smallestVertexProjection;
+            % +ve depth to be resolved
+            toResolve = abs(smallestVertexProjection);
+
             % Create the points
             points = CollisionPoints( ...
                 deepestPointOfAInB, ...
@@ -229,9 +231,9 @@ classdef (Abstract) Collider < Element
             [maxBProjection] = max(vertexProjectionsB);
 
             % CHECK IF THIS EXCEEDS THE SEPARATION OF THE TWO OBJECTS
-            seperation = axisRay.Magnitude - (maxAProjection + maxBProjection);
+            depth = (maxAProjection + maxBProjection) - axisRay.Magnitude;
             % Is colliding
-            isColliding = seperation < 0;
+            isColliding = depth > 0;
             if ~isColliding
                 points = CollisionPoints();
                 return;
@@ -239,13 +241,13 @@ classdef (Abstract) Collider < Element
             % Get the points violating the opposing geometry
             deepestPointOfAInB = Ray.ProjectDistance(axisRay,maxAProjection);
             deepestPointOfBInA = Ray.ProjectDistance(reverseAxisRay,maxBProjection);
-            toResolve = seperation;
+
             % Create the points
             points = CollisionPoints( ...
                 deepestPointOfAInB, ...
                 deepestPointOfBInA, ...
-                axisRay.Direction,...
-                toResolve,...
+                reverseAxisRay.Direction,...
+                depth,...
                 isColliding);
         end
     end

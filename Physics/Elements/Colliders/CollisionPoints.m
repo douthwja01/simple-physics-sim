@@ -19,6 +19,8 @@ classdef CollisionPoints
                 return;
             end
 
+            assert(d > 0,"Expecting a positive depth value")
+
             this.A = a;
             this.B = b;
             this.Normal = n;
