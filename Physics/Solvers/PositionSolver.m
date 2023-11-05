@@ -22,7 +22,7 @@ classdef PositionSolver < Solver
                 transformB = entityB.GetElement("Transform");
                 isStaticB = transformB.IsStatic;
 
-                fprintf("Resolving collision between %s and %s.\n",entityA.Name,entityB.Name);
+%                 fprintf("Resolving collision between %s and %s.\n",entityA.Name,entityB.Name);
 
                 % Calculate the resolution
                 resolution = manifold.Normal * manifold.Depth / max(1, isStaticA + isStaticB);

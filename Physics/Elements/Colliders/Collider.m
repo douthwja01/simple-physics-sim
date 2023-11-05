@@ -22,29 +22,32 @@ classdef (Abstract) Collider < Element
 
             % Create a random colliderId
             this.Cid = RandIntOfLength(6);
-            % Register for collision feedback
-            addlistener(this,"OnCollision",@(src,evnt)OnCollisionOccured(this));
         end
         function [this] = SetTrigger(this,isTrigger)
             assert(islogical(isTrigger),"Expecting a boolean trigger.");
             this.IsTrigger = isTrigger;
         end
     end
-    methods (Access = private)
-        function [this] = OnCollisionOccured(this)
-            % On collision has occurred.
 
-            % Do something
+    methods %(Access = private)
+        function [this] = OnCollision(this,collision)
+            % When the on-collision event is triggered by the world.            
+
+            fprintf("Collider '%s', collided with '%s'.\n", ...
+                collision.ColliderA.Entity.Name, ...
+                collision.ColliderB.Entity.Name);
         end
-    end
+        function [this] = OnTrigger(this,trigger)
+            % When the on-collision event is triggered by the world.
 
-    events
-        OnCollision; % We want to register a callback when a collision occurs.
+            fprintf("Trigger '%s', triggered by '%s'\n.", ...
+                trigger.ColliderA.Entity.Name, ...
+                trigger.ColliderB.Entity.Name);
+        end
     end
 
     % Collider Utilities
     methods (Static)
-        % Sphere
         function [points] = FindSphereSphereCollisionPoints(sTransformA,sColliderA,sTransformB,sColliderB)
             % Find the collision points between two spheres.
 

@@ -6,10 +6,12 @@ classdef CollisionWorld < handle
     properties (SetAccess = private)
         Colliders;
         Solvers;
-        Callback = function_handle.empty;
         % Variables
         Collisions = Collision.empty;
         Triggers = Collision.empty;
+        % Simulation callbacks
+        CollisionCallback = function_handle.empty;
+        TriggerCallback = function_handle.empty;
     end
 
     % Main
@@ -19,6 +21,11 @@ classdef CollisionWorld < handle
             
             % Add a solver
             this.AddSolver(PositionSolver());
+%             this.AddSolver(ImpulseSolver());
+
+            % Internal event loop-backs
+            addlistener(this,"CollisionFeedback",@(src,evnt)this.OnInternalCollisionLoopback(evnt));
+            addlistener(this,"TriggerFeedback",@(src,evnt)this.OnInternalTriggerLoopback(evnt));
         end
         % Resolve world Collisions
         function [this] = ResolveCollisions(this,dt)
@@ -62,34 +69,28 @@ classdef CollisionWorld < handle
                 return;
             end
 
-            % Remove all symmetrical collisions
-            %             [collisions] = this.RemoveSymmetricalCollisions(collisions,cache);
-%             this.RemoveSymmetricalCollisions();
-
             % Resolve the collisions
             this.SolveCollisions(dt);
             % Issue collision and trigger event callbacks
-            this.SendCollisionCallbacks(this.Collisions,dt);
-            this.SendTriggerCallbacks(this.Triggers,dt);
+            this.SendCollisionCallbacks(this.Collisions);
+            this.SendTriggerCallbacks(this.Triggers);
         end
         % Managing collision objects
         function [this] = AddCollider(this,collider)
-            % Allow the addition of a collider element to the collision
-            % world
+            % Add a given collider to the collison world.
 
-            % Add the collision object from the world
+            % Sanity check 
             assert(isa(collider,"Collider"),"Expecting a valid 'Collider' element.");
-            % Add a given object to the collision object list.
-            if ~isempty(collider)
-                this.Colliders = vertcat(this.Colliders,collider);
-            end
+            % Add to set
+            this.Colliders = vertcat(this.Colliders,collider);
         end
         function [this] = RemoveCollider(this,collider)
-            if isempty(collider)
-                return;
-            end
-            % Delete the collision object from the world
+            % Remove a collider from the collision world.
+
+            % Sanity check 
             assert(isa(collider,"Collider"),"Expecting a valid 'Collider' element.");
+            % Unregister world from collider feedback
+%             removelistener
             % Remove a given solver from the array of collisions solvers.
             this.Colliders = this.Colliders(this.Colliders ~= collider);
         end
@@ -116,9 +117,16 @@ classdef CollisionWorld < handle
             % This function allows the setting of a collision callback
             % method.
             assert(isa(eventHandle,"function_handle"),"Expecting valid function handle.");
-            this.Callback = eventHandle;
+            this.CollisionCallback = addlistener(this,"Collision",eventHandle);
+        end
+        function [this] = SetTriggerCallback(this,eventHandle)
+            % This function allows the setting of a collision callback
+            % method.
+            assert(isa(eventHandle,"function_handle"),"Expecting valid function handle.");
+            this.TriggerCallback = addlistener(this,"Trigger",eventHandle);
         end
     end
+    
     % Utilties
     methods (Access = private)
         function [points] = TestCollision(this,transform_i,collider_i,transform_j,collider_j)
@@ -134,8 +142,6 @@ classdef CollisionWorld < handle
             if ~points.IsColliding
                 return
             end
-
-%             cache = vertcat(cache,[uuid_i,uuid_j]);
 
             % Collision description
             manifold = Collision(collider_i,collider_j,points);
@@ -162,46 +168,54 @@ classdef CollisionWorld < handle
                 this.Solvers(i).Solve(this.Collisions,dt);
             end
         end
-    end
-    methods (Static,Access = private)
-        function SendTriggerCallbacks(instances,dt)
+        % Send the callbacks for all collisions & triggers
+        function SendTriggerCallbacks(this,instances)
             % Send the collision callbacks.
-            
-            % Notify the collider
-            for i = 1:numel(instances)
-                notify(instances(i).ColliderA,"OnTrigger");
-            end
-        end
-        function SendCollisionCallbacks(instances,dt)
-            % Send the collision callbacks.
-            
-            % Notify the collider
-            for i = 1:numel(instances)
-                notify(instances(i).ColliderA,"OnCollision");
-            end
-        end
-        function [collisions] = RemoveSymmetricalCollisions(collisions,cache)
-            % This function moves through all collisions and removes
-            % symmetrical/duplicate incidences.
 
-            % Remove duplicate (symmetrical checks)
-            cacheSize = size(cache,1);
-            logicals = true(cacheSize,1);
-            for i = 1:cacheSize
-                %pair = cache(i);
-                for j = i+1:cacheSize
-                    
-                    if cache(j,1) ~= cache(i,2)
-                        continue;
-                    end
-                    if cache(j,2) ~= cache(i,1)
-                        continue;
-                    end
-                    % Flag the duplicate
-                    logicals(j) = false;
-                end
+            % Notify the collider
+            for i = 1:numel(instances)
+                notify(this,"TriggerFeedback",instances(i));
             end
-            collisions = collisions(logicals);
         end
+        function SendCollisionCallbacks(this,instances)
+            % Send the collision callbacks.
+           
+            % Notify the object's collider that it has collided
+            for i = 1:numel(instances)
+                notify(this,"CollisionFeedback",instances(i));
+            end
+        end
+    end
+    % Collision and trigger loop-backs to colliders
+    methods (Static, Access = private)
+        function OnInternalTriggerLoopback(triggerEvent)
+            % This method provides a local loop-back for all trigger
+            % events that informs the object-collider (from the general
+            % event) that they can enact their 'OnTrigger'.
+
+%             fprintf("Trigger '%s', triggered by '%s'\n.", ...
+%                 triggerEvent.ColliderA.Entity.Name, ...
+%                 triggerEvent.ColliderB.Entity.Name);
+
+            % Call the corresponding (local) collision callback
+            triggerEvent.ColliderA.OnTrigger(triggerEvent);
+        end
+        function OnInternalCollisionLoopback(collisionEvent)
+            % This method provides a local loop-back for all collision
+            % events that informs the object-collider (from the general
+            % event) that they can enact their 'OnCollision'.
+
+%             fprintf("Object '%s' collided with '%s'.\n", ...
+%                 collisionEvent.ColliderA.Entity.Name, ...
+%                 collisionEvent.ColliderB.Entity.Name);
+
+            % Call the corresponding (local) collision callback
+            collisionEvent.ColliderA.OnCollision(collisionEvent);
+        end
+    end
+
+    events (NotifyAccess = private)
+        CollisionFeedback;
+        TriggerFeedback;
     end
 end

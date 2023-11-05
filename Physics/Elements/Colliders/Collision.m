@@ -1,4 +1,4 @@
-classdef Collision
+classdef Collision < event.EventData
     %COLLISION is a simple helper class the provides the data on a
     %collision between two bodies.
     
@@ -12,6 +12,7 @@ classdef Collision
         function [this] = Collision(a,b,points)
             % COLLISION Construct an instance of a collision.
             
+            % Sanity check
             assert(isa(a,"Collider"),"Expecting a valid first collider.");
             assert(isa(b,"Collider"),"Expecting a valid second collider.");
 

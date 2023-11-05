@@ -32,6 +32,10 @@ classdef Simulator < handle
 
             % Initialise the physics world with substeps
             this.Physics.Initialise(this.PhysicsSubSteps);
+
+            addlistener(this.Physics,"CollisionFeedback",@(src,evnt)this.OnCollisionCallback(src,evnt));
+            addlistener(this.Physics,"TriggerFeedback",@(src,evnt)this.OnTriggerCallback(src,evnt));
+
             % Initialise the graphics
             [ax] = this.InitialiseGraphics();
 
@@ -58,7 +62,7 @@ classdef Simulator < handle
             if ~isempty(cl)
                 this.Physics.AddCollider(cl);
             end
-            % Add Rigid-body        
+            % Add Rigid-body
             rb = entity.GetElement("RigidBody");
             if ~isempty(rb)
                 this.Physics.AddRigidBody(rb);
@@ -76,7 +80,7 @@ classdef Simulator < handle
             if ~isempty(cl)
                 this.Physics.RemoveCollider(cl);
             end
-            % Add Rigid-body        
+            % Add Rigid-body
             rb = entity.GetElement("RigidBody");
             if ~isempty(rb)
                 this.Physics.RemoveRigidBody(rb);
@@ -85,37 +89,18 @@ classdef Simulator < handle
             % Delete the entity from the world
             if isnumeric(entity)
                 % Temporary index
-                vec = 1:1:numel(this.Entities);     
-                % Remove the object 
+                vec = 1:1:numel(this.Entities);
+                % Remove the object
                 this.Entities = this.Entities(vec ~= entity);
             else
                 assert(isa(entity,"Entity"),"Expecting a valid 'Entity' object.");
                 % Remove the object from the set
                 this.Entities = this.Entities(this.Object ~= entity);
             end
-        end      
-    end
-
-    % Graphics
-    methods (Access = private)
-        function [this] = UpdateGraphics(this,ax)
-            % This function updates the graphical handles of all the
-            % objects.
-
-            for i = 1:numel(this.Entities)
-                % Get the renderer frome the entity
-                renderer_i = this.Entities(i).GetElement("MeshRenderer");
-                if isempty(renderer_i)
-                    continue;
-                end
-                % Entities
-                renderer_i.Update(ax);
-            end
-            drawnow;
         end
     end
 
-    % Setup
+    % Graphics
     methods (Access = private)
         function [ax,this] = InitialiseGraphics(this)
             % Draw the state of the world
@@ -135,9 +120,34 @@ classdef Simulator < handle
             ylim(ax,[-axisLimits,axisLimits]);
             zlim(ax,[0,axisLimits]);
             % Register for key presses
-            set(fig,'KeyPressFcn',@(src,evnt)KeyPressCallback(this,src,evnt));
+            set(fig,'KeyPressFcn',@(src,evnt)OnKeyPressCallback(this,src,evnt));
         end
-        function KeyPressCallback(this,src,event)
+        function [this] = UpdateGraphics(this,ax)
+            % This function updates the graphical handles of all the
+            % objects.
+
+            for i = 1:numel(this.Entities)
+                % Get the renderer frome the entity
+                renderer_i = this.Entities(i).GetElement("MeshRenderer");
+                if isempty(renderer_i)
+                    continue;
+                end
+                % Entities
+                renderer_i.Update(ax);
+            end
+            drawnow;
+        end
+    end
+
+    % Callbacks
+    methods (Access = private)
+        function [this] = OnCollisionCallback(this,source,event)
+            % Do nothing when a collision occurs.
+        end
+        function [this] = OnTriggerCallback(this,source,event)
+            % Do nothing when a trigger occurs.
+        end
+        function [this] = OnKeyPressCallback(this,source,event)
             % This function is called on key press withthe active figure.
             % disp(event.Key);
 
