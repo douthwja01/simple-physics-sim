@@ -1,6 +1,8 @@
-
 classdef PositionSolver < Solver
-
+    % This basic collision solver resolves collisions simply by resolving
+    % the minimum seperation between the two colliders by directly setting
+    % the position of the two objects via their transforms.
+    
     methods
         function [this] = Solve(this,collisions,dt)
             % Sanity check

@@ -18,7 +18,7 @@ classdef (Abstract) Collider < Element
 
     methods
         function [this] = Collider()
-            % CONSTRUCTOR - Collider
+            % CONSTRUCTOR - Base definition of colliders.
 
             % Create a random colliderId
             this.Cid = RandIntOfLength(6);

@@ -20,8 +20,7 @@ classdef CollisionWorld < handle
             % Collision world constructor.
             
             % Add a solver
-            this.AddSolver(PositionSolver());
-%             this.AddSolver(ImpulseSolver());
+%             this.AddSolver(PositionSolver());
 
             % Internal event loop-backs
             addlistener(this,"CollisionFeedback",@(src,evnt)this.OnInternalCollisionLoopback(evnt));

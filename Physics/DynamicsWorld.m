@@ -19,6 +19,9 @@ classdef DynamicsWorld < CollisionWorld
             
             % Collision world
             this = this@CollisionWorld(varargin{:});
+            
+            % Add impulse collision solver
+            this.AddSolver(ImpulseSolver());
         end
         % Get/sets
         function set.Integrator(this,int)
@@ -54,16 +57,17 @@ classdef DynamicsWorld < CollisionWorld
                 this.SubStep(this.TimeDelta);
             end
             
-            if this.EnableSubStepping
-                for s = 1:this.SubSteps
-                    this.ResolveCollisions(subTimeDelta);
-                end
-            else
-                this.ResolveCollisions(dt);
-            end
+%             if this.EnableSubStepping
+%                 for s = 1:this.SubSteps
+%                     this.ResolveCollisions(subTimeDelta);
+%                 end
+%             else
+%                 this.ResolveCollisions(dt);
+%             end
         end
         % Add/remove rigidbodies
         function [this] = AddRigidBody(this,body)
+            % Sanity check
             assert(isa(body,"RigidBody"),"Expecting a valid RigidBody object.");
             % Add a given body to the list of objects.
             this.Bodies = vertcat(this.Bodies,body);
@@ -92,16 +96,11 @@ classdef DynamicsWorld < CollisionWorld
         function [this] = SubStep(this,dt)
             % The step procedure
             this.ApplyGravity();
+            % Solve the collisions
+            this.ResolveCollisions(dt);
             % Update the changes of everything
-            this.UpdateAccelerations();
-            % Integrate at the end of the step
-            this.Integrate(dt);
+            this.MoveObjects(dt);
         end        
-        function [this] = Integrate(this,dt)
-            % Use the integrator components to integrate
-            this.Integrator.Integrate(this.Bodies,dt);
-        end
-
         function [this] = ApplyGravity(this)
             % This function applies gravity to all particles
 
@@ -115,7 +114,7 @@ classdef DynamicsWorld < CollisionWorld
                 body_i.Accelerate(this.Gravity);
             end
         end
-        function [this] = UpdateAccelerations(this)
+        function [this] = MoveObjects(this,dt)
             % Update the physics properties of the world and recalculate
             % the acceleration properties of all objects based on their
             % instantaneous kinematic configurations.
@@ -124,6 +123,8 @@ classdef DynamicsWorld < CollisionWorld
             for i = 1:numel(this.Bodies)
                 this.Bodies(i).Update();
             end
+            % Use the integrator components to integrate
+            this.Integrator.Integrate(this.Bodies,dt);
         end
 
         % Constraints
