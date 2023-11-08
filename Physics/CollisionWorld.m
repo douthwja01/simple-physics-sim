@@ -16,12 +16,9 @@ classdef CollisionWorld < handle
 
     % Main
     methods
-        function [this] = CollisionWorld()
+        function [this] = CollisionWorld(varargin)
             % Collision world constructor.
             
-            % Add a solver
-%             this.AddSolver(PositionSolver());
-
             % Internal event loop-backs
             addlistener(this,"CollisionFeedback",@(src,evnt)this.OnInternalCollisionLoopback(evnt));
             addlistener(this,"TriggerFeedback",@(src,evnt)this.OnInternalTriggerLoopback(evnt));

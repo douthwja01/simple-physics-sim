@@ -19,9 +19,6 @@ classdef DynamicsWorld < CollisionWorld
             
             % Collision world
             this = this@CollisionWorld(varargin{:});
-            
-            % Add impulse collision solver
-            this.AddSolver(ImpulseSolver());
         end
         % Get/sets
         function set.Integrator(this,int)
