@@ -22,9 +22,8 @@ classdef Simulator < handle
             % CONSTRUCTOR for simulators.
 
             this.Physics = DynamicsWorld();
-
-            % Add a solver
-            this.Physics.AddSolver(PositionSolver());
+            % Add impulse collision solver
+            this.Physics.AddSolver(PositionSolver()); 
         end
         function [this] = Simulate(this,duration)
             % This function executes the simulation sequence
