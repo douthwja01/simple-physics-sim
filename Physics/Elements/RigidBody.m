@@ -2,20 +2,33 @@
 classdef RigidBody < Element
     properties (SetAccess = private)
         Force = zeros(3,1);
-        
         Mass = 1;
+        InverseMass = 1;
+        Inertia = 1;
+
+        
+
+        Gravity = -9.81;            % Local value of gravity (viable between instances)
+        TakesGravity = true;        % Uses world gravity
+        
+        StaticFriction = 0.6;       % Static friction coefficient
+        DynamicFriction = 0.25;      % Dynamic friction coefficient
+        Restitution = 0.5;          % Elasticity of collisions 
+
+
+% 		, AxisLock(0.f)
+% 		, IsAxisLocked(0.f)
+% 		SimGravity(true)
         IsDynamic = true;
-        % Gravity
-        gravity;                % Local value of gravity (viable between instances)
-        takesGravity = true;    % Uses world gravity
-        staticFriction = 0;     % Static friction coefficient
-        dynamicFriction = 0;    % Dynamic friction coefficient
-        restitution = 0.5;      % Elasticity of collisions 
+		IsSimulated = true; %(isKinematic)
     end
 
     properties (Access = private)
         transform;
         acceleration = zeros(3,1);
+
+        NetForce = zeros(3,1);
+        NetTorque = zeros(3,1);
     end
 
     methods
@@ -38,9 +51,23 @@ classdef RigidBody < Element
         end
 
         % Get/sets
-        function [this] = SetDynamic(this,isDynamic)
+        function set.IsDynamic(this,isDynamic)
             assert(islogical(isDynamic),"Expecting a boolean is dynamic.");
             this.IsDynamic = isDynamic;
+        end
+    end
+
+    methods
+        function [this] = ApplyForce(this,p,f)
+            % Apply a force 'f' at position 'p' on the body.
+            assert(IsColumn(p,3),"Expecting a valid 3D position vector.");
+            assert(IsColumn(f,3),"Expecting a valid 3D force vector.");
+            this.NetForce = this.NetForce + f;
+            this.ApplyTorque(cross(p,f));
+        end
+        function [this] = ApplyTorque(this,tau)
+            assert(IsColumn(tau,3),"Expecting a valid 3D torque vector.");
+            this.NetTorque = this.NetTorque + tau;
         end
         function [this] = Accelerate(this,a)
             % Calcuate the acceleration
@@ -48,18 +75,3 @@ classdef RigidBody < Element
         end
     end
 end
-
-%         function [this] = PhysicsUpdate(this,dt)
-%             % Update the physics 
-%             this.Force = this.Force + this.Mass * g;
-% 
-%             % Get the cache
-%             if isempty(this.transform)
-%                this.transform = this.Entity.GetElement("Transform"); 
-%             end
-%             % Update the physics
-%             tf = this.transform;
-%             tf.Acceleration = this.Force / this.Mass;
-%             tf.Velocity = tf.Velocity + dt;
-%             tf.Position = tf.Position + tf.Velocity * dt;
-%         end

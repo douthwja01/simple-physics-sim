@@ -11,19 +11,15 @@ addpath("Physics/Elements/Colliders/");
 sim = Simulator();
 
 numberOfObjects = 15;
-for i = 1:numberOfObjects
-    % Spawn positions
-    if (i == 1)
-        spawnPosition = [0;0;5];
-    else
-        spawnPosition = spawnPosition + RandZero(3); %+ [RandZero(2);0]*2;
-    end
+numberPerColumn = 5;
+gridPoints = CreateGrid([0;0;5],numberOfObjects,numberPerColumn,1.1);
 
+for i = 1:numberOfObjects
     % Place the object
     entity_i = Entity();
     entity_i.AddElement(RigidBody());
     transform_i = entity_i.GetElement("Transform");
-    transform_i.position = spawnPosition;
+    transform_i.position = gridPoints(:,i);
     entity_i.Name = sprintf("Object %d (Box)",i);
     entity_i.AddElement(BoxCollider());  
     renderer = MeshRenderer();

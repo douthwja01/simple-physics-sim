@@ -19,9 +19,6 @@ classdef DynamicsWorld < CollisionWorld
             
             % Collision world
             this = this@CollisionWorld(varargin{:});
-            
-            % Add impulse collision solver
-            this.AddSolver(ImpulseSolver());
         end
         % Get/sets
         function set.Integrator(this,int)
@@ -126,7 +123,6 @@ classdef DynamicsWorld < CollisionWorld
             % Use the integrator components to integrate
             this.Integrator.Integrate(this.Bodies,dt);
         end
-
         % Constraints
         function [this] = ApplyLinks(this)
             % This function applys the set of link constraints to the
