@@ -123,7 +123,6 @@ classdef DynamicsWorld < CollisionWorld
             % Use the integrator components to integrate
             this.Integrator.Integrate(this.Bodies,dt);
         end
-
         % Constraints
         function [this] = ApplyLinks(this)
             % This function applys the set of link constraints to the

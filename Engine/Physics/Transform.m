@@ -9,7 +9,9 @@ classdef Transform < Element
         scale = ones(3,1);
         % Kinematics
         Velocity = zeros(3,1);
+		AngularVelocity = zeros(3,1); 
         Acceleration = zeros(3,1);
+        AngularAcceleration = zeros(3,1);
     end
     properties (Dependent)
         rotation;
