@@ -1,4 +1,4 @@
-classdef Collision < event.EventData
+classdef Manifold < event.EventData
     %COLLISION is a simple helper class the provides the data on a
     %collision between two bodies.
     
@@ -9,7 +9,7 @@ classdef Collision < event.EventData
     end
     
     methods
-        function [this] = Collision(a,b,points)
+        function [this] = Manifold(a,b,points)
             % COLLISION Construct an instance of a collision.
             
             % Sanity check
@@ -19,7 +19,9 @@ classdef Collision < event.EventData
             % Capture the properties
             this.ColliderA = a;
             this.ColliderB = b;
-            this.Points = points;
+            if nargin > 2
+                this.Points = points;
+            end
         end
     end
 end
