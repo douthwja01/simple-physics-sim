@@ -1,5 +1,5 @@
 classdef Manifold < event.EventData
-    %COLLISION is a simple helper class the provides the data on a
+    %MANIFOLD is a simple helper class the provides the data on a
     %collision between two bodies.
     
     properties
@@ -19,6 +19,7 @@ classdef Manifold < event.EventData
             % Capture the properties
             this.ColliderA = a;
             this.ColliderB = b;
+            % If manifold defines points
             if nargin > 2
                 this.Points = points;
             end

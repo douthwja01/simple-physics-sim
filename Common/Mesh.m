@@ -12,6 +12,7 @@ classdef Mesh < handle
     end
     properties (Dependent)
         NumberOfVertices;
+        NumberOfFaces;
     end
     % Main
     methods
@@ -39,6 +40,9 @@ classdef Mesh < handle
         end
         function [n] = get.NumberOfVertices(this)
             n = size(this.Vertices,1);
+        end
+        function [n] = get.NumberOfFaces(this)
+            n = size(this.Faces,1);
         end
     end
     % Utilities
