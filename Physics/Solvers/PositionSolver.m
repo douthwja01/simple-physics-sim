@@ -6,7 +6,7 @@ classdef PositionSolver < Solver
     methods
         function [this] = Solve(this,collisions,dt)
             % Sanity check
-            assert(isa(collisions,"Collision"),"Expecting an array of collisions objects.");
+            assert(isa(collisions,"Manifold"),"Expecting an array of collisions objects.");
             assert(isnumeric(dt),"Expecting an array of collisions objects.");
 
             for i = 1:numel(collisions) %Manifold& manifold : manifolds)

@@ -12,7 +12,7 @@ sim = Simulator();
 
 numberOfObjects = 15;
 numberPerColumn = 5;
-gridPoints = CreateGrid([0;0;5],numberOfObjects,numberPerColumn,1.1);
+gridPoints = CreateGrid([-1.5;0;5],numberOfObjects,numberPerColumn,1.1);
 
 for i = 1:numberOfObjects
     % Place the object

@@ -7,8 +7,8 @@ classdef CollisionWorld < handle
         Colliders;
         Solvers;
         % Variables
-        Collisions = Collision.empty;
-        Triggers = Collision.empty;
+        Collisions = Manifold.empty;
+        Triggers = Manifold.empty;
         % Simulation callbacks
         CollisionCallback = function_handle.empty;
         TriggerCallback = function_handle.empty;
@@ -32,8 +32,8 @@ classdef CollisionWorld < handle
             assert(isnumeric(dt),"Expecting a valid numeric time-step.");
 
             % Collision container
-            this.Triggers = Collision.empty;
-            this.Collisions = Collision.empty;
+            this.Triggers = Manifold.empty;
+            this.Collisions = Manifold.empty;
             
             % This function solves the inter-particle collisions (brute force)             
             for i = 1:numel(this.Colliders)
@@ -140,7 +140,7 @@ classdef CollisionWorld < handle
             end
 
             % Collision description
-            manifold = Collision(collider_i,collider_j,points);
+            manifold = Manifold(collider_i,collider_j,points);
             % If either are triggers
             if collider_i.IsTrigger || collider_j.IsTrigger
                 this.Triggers = vertcat(this.Triggers,manifold);
@@ -189,10 +189,6 @@ classdef CollisionWorld < handle
             % events that informs the object-collider (from the general
             % event) that they can enact their 'OnTrigger'.
 
-%             fprintf("Trigger '%s', triggered by '%s'\n.", ...
-%                 triggerEvent.ColliderA.Entity.Name, ...
-%                 triggerEvent.ColliderB.Entity.Name);
-
             % Call the corresponding (local) collision callback
             triggerEvent.ColliderA.OnTrigger(triggerEvent);
         end
@@ -200,11 +196,7 @@ classdef CollisionWorld < handle
             % This method provides a local loop-back for all collision
             % events that informs the object-collider (from the general
             % event) that they can enact their 'OnCollision'.
-
-%             fprintf("Object '%s' collided with '%s'.\n", ...
-%                 collisionEvent.ColliderA.Entity.Name, ...
-%                 collisionEvent.ColliderB.Entity.Name);
-
+            
             % Call the corresponding (local) collision callback
             collisionEvent.ColliderA.OnCollision(collisionEvent);
         end
