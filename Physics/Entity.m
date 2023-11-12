@@ -42,13 +42,13 @@ classdef Entity < matlab.mixin.Heterogeneous & handle
         function [element] = AddElement(this,element)
             assert(isa(element,"Element"),"Expecting a valid entity 'Element'.");
             % Associate
-            element.AddToEntity(this);
+            element.AssignEntity(this);
             this.Elements = vertcat(this.Elements,element);
         end
         function [this] = RemoveElement(this,element)
             assert(isa(element,"Element"),"Expecting a valid entity 'Element'.");
             % Disassociate
-            element.RemoveFromEntity(this);
+            element.UnassignEntity(this);
             this.Elements = this.Elements(this.Elements ~= element);
         end
     end

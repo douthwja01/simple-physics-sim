@@ -1,13 +1,12 @@
 
-classdef BoxCollider < Collider
-    % A sphere collider primitive
+classdef BoxCollider < MeshCollider
+    % An Object-Aligned Bounding Box (OBB) collider primitive
     
     properties (Constant)
         Code = ColliderCode.OBB;
     end
     properties
         Center = zeros(3,1);
-        Mesh;
     end
 
     methods

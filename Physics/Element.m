@@ -7,11 +7,12 @@ classdef (Abstract) Element < matlab.mixin.Heterogeneous & handle
     end
     
     methods
-        function [this] = AddToEntity(this,entity)
+        function [this] = AssignEntity(this,entity)
+            assert(isa(entity,"Entity"),"Expecting a valid entity.");
             this.Entity = entity;
         end
-        function [this] = RemoveFromEntity(this)
-            this.Entity = [];
+        function [this] = UnassignEntity(this)
+            this.Entity = Entity.empty;
         end
     end
 end

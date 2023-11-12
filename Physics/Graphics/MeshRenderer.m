@@ -47,7 +47,8 @@ classdef MeshRenderer < Element
             end
 
             % Transform plot
-            set(this.Handle,"Matrix",this.Transform.transform);
+            m = this.Transform.transform*Transform.Scale(this.Transform.scale);
+            set(this.Handle,"Matrix",m);
         end
     end
     % Utilities

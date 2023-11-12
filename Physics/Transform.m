@@ -102,7 +102,8 @@ classdef Transform < Element
                 set(th,"Matrix",eye(4));
             else
                 % Attempt to get numeric instance of this transform
-                set(th,"Matrix",this.transform);                
+                m = this.transform * Transform.Scale(this.scale);
+                set(th,"Matrix",m);                
             end
 
             % Draw a triad at the location
