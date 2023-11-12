@@ -10,7 +10,7 @@ addpath("Physics/Collision");
 
 sim = Simulator();
 
-numberOfObjects = 15;
+numberOfObjects = 18;
 numberPerColumn = 5;
 gridPoints = CreateGrid([-1.5;0;5],numberOfObjects,numberPerColumn,1.1);
 
