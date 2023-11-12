@@ -5,15 +5,21 @@ classdef (Abstract) Collider < Element
     properties (Abstract,Constant)
         Code;
     end
-    properties (SetAccess = private)
+    properties
         IsTrigger = false;
         Cid;
     end
+    properties (SetAccess = protected)
+        AABB = AABB.empty;  % Limits structure
+    end
 
     methods (Abstract)
-        % Provide a way to evaluate collision with
-        % this and a second collider.
+        % Evaluate collision between this and another collider primitive.
         [points] = TestCollision(transformA,colliderB,transformB);
+    end
+    methods (Abstract, Access = protected)
+        % Provide a means to recalculate the AABB primitive.
+        [this] = RecalculateAABB(this);
     end
 
     methods
@@ -23,9 +29,14 @@ classdef (Abstract) Collider < Element
             % Create a random colliderId
             this.Cid = RandIntOfLength(6);
         end
-        function [this] = SetTrigger(this,isTrigger)
+        % Get/sets
+        function set.IsTrigger(this,isTrigger)
             assert(islogical(isTrigger),"Expecting a boolean trigger.");
             this.IsTrigger = isTrigger;
+        end
+        function set.Cid(this,cid)
+            assert(isnumeric(cid),"Expecting a valid integer cid.");
+            this.Cid = int32(cid);
         end
     end
 
@@ -45,9 +56,38 @@ classdef (Abstract) Collider < Element
                 trigger.ColliderB.Entity.Name);
         end
     end
-
     % Collider Utilities
     methods (Static)
+        function [points] = FindAABBAABBCollisionPoints(transformA,colliderA,transformB,colliderB)
+            
+            % Calculate the transformed axis intervals
+            aMinimums = transformA.position + transformA.scale.*colliderA.Minimums;
+            aMaximums = transformA.position + transformA.scale.*colliderA.Maximums;
+            bMinimums = transformB.position + transformB.scale.*colliderB.Minimums;
+            bMaximums = transformB.position + transformB.scale.*colliderB.Maximums;
+
+            % x-axis
+            if aMinimums(1) > bMaximums(1) || aMaximums(1) < bMinimums(1)
+                % No collision possible
+                points = CollisionPoints();
+                return;
+            end
+            % y-axis
+            if aMinimums(2) > bMaximums(2) || aMaximums(2) < bMinimums(2)
+                % No collision possible
+                points = CollisionPoints();
+                return;
+            end
+            % z-axis
+            if aMinimums(3) > bMaximums(3) || aMaximums(3) < bMinimums(3)
+                % No collision possible
+                points = CollisionPoints();
+                return;
+            end
+            % Return the collision points 
+            % TO-DO - Need to calculate overlap points directly.
+            points = CollisionPoints(zeros(3,1),zeros(3,1),normal,depth,true);
+        end
         function [points] = FindSphereSphereCollisionPoints(sTransformA,sColliderA,sTransformB,sColliderB)
             % Find the collision points between two spheres.
 
@@ -73,7 +113,6 @@ classdef (Abstract) Collider < Element
                 return;
             end
 
-            %depth = depth/2;
             % Collision points
             points = CollisionPoints(a,b,normal,depth,isColliding);
         end

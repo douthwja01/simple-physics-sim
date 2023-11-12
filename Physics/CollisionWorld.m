@@ -4,11 +4,14 @@ classdef CollisionWorld < handle
     % properties of the simulation.
 
     properties (SetAccess = private)
+        % Collidables
         Colliders;
-        Solvers;
+        % Broad-phase
+        BroadPhaseSolver = SweepAndPrune();
+        NarrowPhaseSolvers;
         % Variables
-        Collisions = Collision.empty;
-        Triggers = Collision.empty;
+        Collisions = Manifold.empty;
+        Triggers = Manifold.empty;
         % Simulation callbacks
         CollisionCallback = function_handle.empty;
         TriggerCallback = function_handle.empty;
@@ -18,7 +21,7 @@ classdef CollisionWorld < handle
     methods
         function [this] = CollisionWorld(varargin)
             % Collision world constructor.
-            
+
             % Internal event loop-backs
             addlistener(this,"CollisionFeedback",@(src,evnt)this.OnInternalCollisionLoopback(evnt));
             addlistener(this,"TriggerFeedback",@(src,evnt)this.OnInternalTriggerLoopback(evnt));
@@ -31,35 +34,30 @@ classdef CollisionWorld < handle
             % Sanity check
             assert(isnumeric(dt),"Expecting a valid numeric time-step.");
 
+            % --- BROAD PHASE ---
+            % This routine completes a broad-phase collision check
+            [manifolds] = this.BroadPhaseSolver.ResolveManifolds(this.Colliders);
+
+            % --- NARROW PHASE ---
+            % This routine solves the inter-particle collisions (brute force)   
+
             % Collision container
-            this.Triggers = Collision.empty;
-            this.Collisions = Collision.empty;
-            
+            this.Triggers = Manifold.empty;
+            this.Collisions = Manifold.empty;
             % This function solves the inter-particle collisions (brute force)             
-            for i = 1:numel(this.Colliders)
-                collider_i = this.Colliders(i);
- 
-                for j = i+1:numel(this.Colliders)
-                    collider_j = this.Colliders(j);
- 
-                    % Check if assessing self-collision
-                    if (collider_i.Cid == collider_j.Cid)
-                        continue
-                    end
-
-                    % Get the transforms
-                    transform_i = collider_i.Entity.GetElement("Transform");
-                    transform_j = collider_j.Entity.GetElement("Transform");
-
-                    % Evaluate if there has been a collision for the pair.
-                    this.TestCollision( ...
-                        transform_i, ...
-                        collider_i, ...
-                        transform_j, ...
-                        collider_j);
-                end
+            for i = 1:numel(manifolds)
+                manifolds_i = manifolds(i);
+                % Get the transform property
+                transformA = manifolds_i.ColliderA.Entity.GetElement("Transform");
+                transformB = manifolds_i.ColliderB.Entity.GetElement("Transform");
+                % Evaluate if there has been a collision for the pair.
+                this.TestCollision( ...
+                    transformA, ...
+                    manifolds_i.ColliderA, ...
+                    transformB, ...
+                    manifolds_i.ColliderB);
             end
-            
+
             % No collisions occurred
             if isempty(this.Collisions)
                 return;
@@ -90,22 +88,22 @@ classdef CollisionWorld < handle
             % Remove a given solver from the array of collisions solvers.
             this.Colliders = this.Colliders(this.Colliders ~= collider);
         end
-        % Managing collision Solvers
+        % Managing collision NarrowPhaseSolvers
         function [this] = AddSolver(this,solver)
             % Add a given solver to the array of collision solvers.
-            this.Solvers = vertcat(this.Solvers,solver);
+            this.NarrowPhaseSolvers = vertcat(this.NarrowPhaseSolvers,solver);
         end
         function [this] = DeleteSolver(this,solver)
             % Delete the object from the world
             if isnumeric(solver)
                 % Temporary index
-                vec = 1:1:numel(this.Solvers);
+                vec = 1:1:numel(this.NarrowPhaseSolvers);
                 % Remove the object
-                this.Solvers = this.Solvers(vec ~= solver);
+                this.NarrowPhaseSolvers = this.NarrowPhaseSolvers(vec ~= solver);
             else
                 assert(isa(solver,"Solver"),"Expecting a valid 'Solver' object.");
                 % Remove a given solver from the array of collisions solvers.
-                this.Solvers = this.Solvers(this.Solvers ~= solver);
+                this.NarrowPhaseSolvers = this.NarrowPhaseSolvers(this.NarrowPhaseSolvers ~= solver);
             end
         end
         % Callbacks
@@ -140,7 +138,7 @@ classdef CollisionWorld < handle
             end
 
             % Collision description
-            manifold = Collision(collider_i,collider_j,points);
+            manifold = Manifold(collider_i,collider_j,points);
             % If either are triggers
             if collider_i.IsTrigger || collider_j.IsTrigger
                 this.Triggers = vertcat(this.Triggers,manifold);
@@ -159,9 +157,9 @@ classdef CollisionWorld < handle
                 return;
             end
 
-            for i = 1:numel(this.Solvers)
+            for i = 1:numel(this.NarrowPhaseSolvers)
                 % Solve the collisions
-                this.Solvers(i).Solve(this.Collisions,dt);
+                this.NarrowPhaseSolvers(i).Solve(this.Collisions,dt);
             end
         end
         % Send the callbacks for all collisions & triggers
@@ -189,10 +187,6 @@ classdef CollisionWorld < handle
             % events that informs the object-collider (from the general
             % event) that they can enact their 'OnTrigger'.
 
-%             fprintf("Trigger '%s', triggered by '%s'\n.", ...
-%                 triggerEvent.ColliderA.Entity.Name, ...
-%                 triggerEvent.ColliderB.Entity.Name);
-
             % Call the corresponding (local) collision callback
             triggerEvent.ColliderA.OnTrigger(triggerEvent);
         end
@@ -200,16 +194,12 @@ classdef CollisionWorld < handle
             % This method provides a local loop-back for all collision
             % events that informs the object-collider (from the general
             % event) that they can enact their 'OnCollision'.
-
-%             fprintf("Object '%s' collided with '%s'.\n", ...
-%                 collisionEvent.ColliderA.Entity.Name, ...
-%                 collisionEvent.ColliderB.Entity.Name);
-
+            
             % Call the corresponding (local) collision callback
             collisionEvent.ColliderA.OnCollision(collisionEvent);
         end
     end
-
+    % Simulation hooks
     events (NotifyAccess = private)
         CollisionFeedback;
         TriggerFeedback;

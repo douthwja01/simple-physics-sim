@@ -5,14 +5,14 @@ addpath("Common");
 addpath("Physics");
 addpath("Physics/Integrators");
 addpath("Physics/Solvers");
-addpath("Physics/Elements");
-addpath("Physics/Elements/Colliders/");
+addpath("Physics/Graphics");
+addpath("Physics/Collision");
 
 sim = Simulator();
 
 numberOfObjects = 15;
 numberPerColumn = 5;
-gridPoints = CreateGrid([0;0;5],numberOfObjects,numberPerColumn,1.1);
+gridPoints = CreateGrid([-1.5;0;5],numberOfObjects,numberPerColumn,1.1);
 
 for i = 1:numberOfObjects
     % Place the object
@@ -56,9 +56,11 @@ sim.AddEntity(fixed);
 ground = Entity("Ground");
 tf_ground = ground.GetElement("Transform");
 tf_ground.IsStatic = true;
+tf_ground.scale = [20;20;1];
+
 ground.AddElement(PlaneCollider());
 renderer = MeshRenderer();
-renderer.Mesh = MeshGenerator.Plane(zeros(3,1),[0;0;1],20,20);
+renderer.Mesh = MeshGenerator.Plane(zeros(3,1),[0;0;1],1,1);
 renderer.Colour = "g";
 ground.AddElement(renderer);
 sim.AddEntity(ground);

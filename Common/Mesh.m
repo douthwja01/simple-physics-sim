@@ -12,6 +12,7 @@ classdef Mesh < handle
     end
     properties (Dependent)
         NumberOfVertices;
+        NumberOfFaces;
     end
     % Main
     methods
@@ -30,15 +31,18 @@ classdef Mesh < handle
         function set.Vertices(this,v)
             assert(size(v,2) == 3,"Expecting an array of vertex coordinates.");
             this.Vertices = v;
-            this.Normals = this.CalculateNormals(this.Faces,this.Vertices);
+            this.UpdateNormals();
         end
         function set.Faces(this,f)
             assert(size(f,2) == 3,"Expecting an array of face-vertex indices.");
             this.Faces = f;
-            this.Normals = this.CalculateNormals(this.Faces,this.Vertices);
+            this.UpdateNormals();
         end
         function [n] = get.NumberOfVertices(this)
             n = size(this.Vertices,1);
+        end
+        function [n] = get.NumberOfFaces(this)
+            n = size(this.Faces,1);
         end
     end
     % Utilities
@@ -79,33 +83,63 @@ classdef Mesh < handle
             tf = eye(4)*[width,depth,height;0];
             mesh = this.TransformBy(tf);
         end
-        function [h] = Draw(this,container)
+        function [h] = Draw(this,container,colour)
             % Draw this mesh to a given graphical container
+            if nargin < 3
+                colour = 'b';
+            end
             if nargin < 2
                 container = gca;
             end
             % Generate patch
             h = patch(container,'Vertices',this.Vertices,'Faces',this.Faces);        
+            set(h,"FaceColor",colour);
         end
     end
-    methods (Static,Access = private)
-        function [normals] = CalculateNormals(f,v)
+    methods (Access = private)
+        function [this] = UpdateNormals(this)
             % This function computes the normals of all the mesh faces.
 
             % Sanity check
-            if size(f,2) ~= 3 || size(v,2) ~= 3
-                normals = [];
+            if size(this.Faces,2) ~= 3 || size(this.Vertices,2) ~= 3
                 return
             end
 
             % Calculate the normals
-            normals= zeros(size(f,1),3);
-            for i = 1:size(f,1)
-                face = f(i,:);
-                points = v(face,:);
+            normals = zeros(size(this.Faces,1),3);
+            for i = 1:size(this.Faces,1)
+                face = this.Faces(i,:);
+                points = this.Vertices(face,:);
                 % Calculate the point faces
                 normals(i,:) = TripleProduct(points(1,:),points(2,:),points(3,:));
             end
+            this.Normals = normals;
+        end
+    end
+    % Mesh Tools
+    methods (Static)
+        function [mesh] = EnclosingCube(mesh)
+            % This function generates an cuboid mesh representing the
+            % min-max's of the provided mesh (a minimal enclosing volume).
+
+            [xlim,ylim,zlim] = Mesh.Extents(mesh);
+            % Reformat
+            minimums = [xlim(1);ylim(1);zlim(1)];
+            maximums = [xlim(2);ylim(2);zlim(2)];
+            % Generate the cuboid reference mesh
+            mesh = MeshGenerator.CuboidFromExtents(minimums,maximums);
+        end
+        function [xlim,ylim,zlim] = Extents(mesh)
+            % This function simply extracts the dimensional min-max's from
+            % the arbitrarily complex mesh.
+
+            assert(isa(mesh,"Mesh"),"Expecting a valid mesh")
+
+            % Extract the dimensional limits
+            v = mesh.Vertices;
+            xlim = [min(v(:,1)),max(v(:,1))];
+            ylim = [min(v(:,2)),max(v(:,2))];
+            zlim = [min(v(:,3)),max(v(:,3))];
         end
     end
 end
