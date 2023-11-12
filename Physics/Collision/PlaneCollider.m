@@ -23,17 +23,17 @@ classdef PlaneCollider < Collider
             this.Normal = n;
             this.RecalculateAABB();
         end
-        function [points] = TestCollision(this,transformA,colliderB,transformB)
+        function [points] = TestCollision(this,colliderB)
             % Test for collision between this collider and a variable
             % second collider.
             
             switch colliderB.Code
                 case ColliderCode.Sphere
                     % The second collider is sphere
-                    points = Collider.FindSpherePlaneCollisionPoints(transformB,colliderB,transformA,this);
+                    points = Collider.FindSpherePlaneCollisionPoints(colliderB,this);
                 case ColliderCode.OBB
                     % The second collider is an OBB box
-                    points = Collider.FindPlaneOBBCollisionPoints(transformA,this,transformB,colliderB);
+                    points = Collider.FindPlaneOBBCollisionPoints(this,colliderB);
                 otherwise
                     error("Collider type not recognised.");
             end

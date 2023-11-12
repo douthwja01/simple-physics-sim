@@ -9,7 +9,7 @@ classdef MeshRenderer < Element
         Alpha = 0.5;
     end
     properties (Access = private)
-        Transform;
+%         Transform;
         Handle = gobjects(1);
         MeshHandle = gobjects(1);
     end
@@ -25,16 +25,12 @@ classdef MeshRenderer < Element
         function set.Colour(this,colorString)
             assert(isstring(colorString),"Expecting a valid color code string (i.e 'r').");
             this.Colour = colorString;
-            if ~isa(this.Handle,"matlab.graphics.GraphicsPlaceholder")
-                set(this.MeshHandle,"FaceColor",this.Colour);
-            end
+            this.RenderPropertiesUpdated();
         end
         function set.Alpha(this,alpha)
             assert(isscalar(alpha),"Expecting a valid alpha value.");
             this.Alpha = alpha;
-            if ~isa(this.Handle,"matlab.graphics.GraphicsPlaceholder")
-                set(this.MeshHandle,"FaceAlpha",this.Alpha);
-            end
+            this.RenderPropertiesUpdated();
         end
     end
 
@@ -56,10 +52,8 @@ classdef MeshRenderer < Element
         function [this] = Initialise(this,ax)
             % Initialise the renderer.
 
-            this.Transform = this.Entity.GetElement("Transform");
-
             % Plot the handle
-            h_data = this.Transform.Plot(ax);
+            this.Handle = this.Transform.Plot(ax);
 
             % Sanity check
             if isempty(this.Mesh)
@@ -68,11 +62,23 @@ classdef MeshRenderer < Element
             end
 
             % Plot the mesh to the handle
-            this.MeshHandle = this.Mesh.Draw(h_data);
-            % Set the colour
-            set(this.MeshHandle,"FaceColor",this.Colour);
+            this.MeshHandle = this.Mesh.Draw(this.Handle);
+            % Render property assignment
+            this.RenderPropertiesUpdated();
+%             % Return the handle
+%             this.Handle = h_data;
+        end
+        function [this] = RenderPropertiesUpdated(this)
+            % Update any 'one-time' mesh properties against the active mesh
+            % handle if there is one.
+            
+            % If mesh-handle present
+            if isa(this.Handle,"matlab.graphics.GraphicsPlaceholder")
+                return;
+            end
+            % Update any 'one-time' properties associated with the mesh
             set(this.MeshHandle,"FaceAlpha",this.Alpha);
-            this.Handle = h_data;
+            set(this.MeshHandle,"FaceColor",this.Colour);
         end
     end
 end

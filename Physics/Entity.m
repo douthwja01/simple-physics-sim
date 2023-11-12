@@ -7,6 +7,7 @@ classdef Entity < matlab.mixin.Heterogeneous & handle
         Uuid;
     end
     properties (SetAccess = private)
+        Transform = Transform.empty;
         Elements = Element.empty;
     end
     methods
@@ -21,9 +22,10 @@ classdef Entity < matlab.mixin.Heterogeneous & handle
 
             % Generate a random integer 
             this.Uuid = RandIntOfLength(6);
-            
-            % Add the transform
-            this.AddElement(Transform(zeros(3,1),eye(3)));
+            % Add the transform (special-case)
+            this.Transform = Transform(zeros(3,1),eye(3));
+            % Also add it to the elements (so it can be found)
+            this.AddElement(this.Transform);
         end
         % Element interaction
         function [element] = GetElement(this,className)

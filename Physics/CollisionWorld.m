@@ -47,14 +47,9 @@ classdef CollisionWorld < handle
             % This function solves the inter-particle collisions (brute force)             
             for i = 1:numel(manifolds)
                 manifolds_i = manifolds(i);
-                % Get the transform property
-                transformA = manifolds_i.ColliderA.Entity.GetElement("Transform");
-                transformB = manifolds_i.ColliderB.Entity.GetElement("Transform");
                 % Evaluate if there has been a collision for the pair.
                 this.TestCollision( ...
-                    transformA, ...
-                    manifolds_i.ColliderA, ...
-                    transformB, ...
+                    manifolds_i.ColliderA, ....
                     manifolds_i.ColliderB);
             end
 
@@ -123,14 +118,11 @@ classdef CollisionWorld < handle
     
     % Utilties
     methods (Access = private)
-        function [points] = TestCollision(this,transform_i,collider_i,transform_j,collider_j)
+        function [points] = TestCollision(this,collider_i,collider_j)
             % Evaluate an individual collision instance
 
             % Test collisions with their respective colliders.
-            points = collider_i.TestCollision( ...
-                transform_i, ...
-                collider_j, ...
-                transform_j);
+            points = collider_i.TestCollision(collider_j);
 
             % If not colliding, skip
             if ~points.IsColliding

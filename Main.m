@@ -16,13 +16,12 @@ gridPoints = CreateGrid([-1.5;0;5],numberOfObjects,numberPerColumn,1.1);
 
 for i = 1:numberOfObjects
     % Place the object
-    entity_i = Entity();
+    entity_i = Entity(sprintf("Object %d (Box)",i));
+    entity_i.Transform.position = gridPoints(:,i);
+    % Add elements
     entity_i.AddElement(RigidBody());
-    transform_i = entity_i.GetElement("Transform");
-    transform_i.position = gridPoints(:,i);
-    entity_i.Name = sprintf("Object %d (Box)",i);
-    entity_i.AddElement(BoxCollider());  
-    renderer = MeshRenderer();
+    entity_i.AddElement(BoxCollider());
+    renderer = entity_i.AddElement(MeshRenderer());
     extents = 0.5*[1;1;1];
     renderer.Mesh = MeshGenerator.CuboidFromExtents(-extents,extents);
     renderer.Alpha = 0.2;
@@ -31,39 +30,34 @@ for i = 1:numberOfObjects
     else
         renderer.Colour = "c";
     end
-    entity_i.AddElement(renderer);
-
     % Assign the object
     sim.AddEntity(entity_i);
 end
 
+% Add an obstacle
 fixed = Entity("Obstacle");
+fixed.Transform.position = [0;0;2];
+fixed.Transform.IsStatic = true;
+% Add elements
 fixed.AddElement(RigidBody())
 fixed.AddElement(SphereCollider());
-
-transform_f = fixed.GetElement("Transform");
-transform_f.position = [0;0;2];
-transform_f.IsStatic = true;
-
-renderer = MeshRenderer();
+renderer = fixed.AddElement(MeshRenderer());
 renderer.Mesh = MeshGenerator.Sphere(zeros(3,1),1);
 renderer.Colour = "r";
-fixed.AddElement(renderer);
 % Add the fix object
 sim.AddEntity(fixed);
 
 % Add the ground plane
 ground = Entity("Ground");
-tf_ground = ground.GetElement("Transform");
-tf_ground.IsStatic = true;
-tf_ground.scale = [20;20;1];
-
+ground.Transform.IsStatic = true;
+ground.Transform.scale = [20;20;1];
+% Add elements
 ground.AddElement(PlaneCollider());
-renderer = MeshRenderer();
+renderer = ground.AddElement(MeshRenderer());
 renderer.Mesh = MeshGenerator.Plane(zeros(3,1),[0;0;1],1,1);
 renderer.Colour = "g";
-ground.AddElement(renderer);
 sim.AddEntity(ground);
 
 % Simulate
+sim.PhysicsSubSteps = 10;
 sim.Simulate(inf);

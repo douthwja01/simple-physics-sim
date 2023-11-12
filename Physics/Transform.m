@@ -110,6 +110,23 @@ classdef Transform < Element
             hTri = Graphics.DrawTriad(gizmoParams.scale);                                                        
             set(hTri,'Parent',th);
         end
+        function [this] = Reset(this)
+            % Reset to default transform
+            this.transform = eye(4);
+        end
+        function [s] = WorldScale(this)
+            % This scale multiplied by all the parent scales
+
+            % [To fix after parentage]
+            s = this.scale;
+        end
+        function [p] = WorldPosition(this)
+            % This transform multiplied by all its parents
+            
+            % [To fix after parentage]
+            p = this.position;
+        end
+        % Rotation conventions
         function [eta] = GetEulers(this)
             % Get the equivalent euler rotations
             eta = Euler.FromRotationMatrix(this.rotation);
@@ -125,23 +142,6 @@ classdef Transform < Element
         function [this] = SetQuaternion(this,q)
             % Set the transform via a quaternion
             this.rotation = Quaternion.ToRotation(q);
-        end
-        function [this] = Reset(this)
-            % Reset to default transform
-            this.transform = eye(4);
-        end
-
-        function [s] = WorldScale(this)
-            % This scale multiplied by all the parent scales
-
-            % [To fix after parentage]
-            s = 1;
-        end
-        function [p] = WorldPosition(this)
-            % This transform multiplied by all its parents
-            
-            % [To fix after parentage]
-            p = this.position;
         end
     end
 
@@ -241,17 +241,17 @@ classdef Transform < Element
     %% Conventions
     methods (Static)
         % Adjoint matrix of a transform
-        function [adT] = Adjoint(T)
+        function [adT] = Adjoint(tMatrix)
             % Sanity check
-            assert(IsSquare(T,4),"Expecting a [4x4] transformation matrix");
-            p = Transform.ToPosition(T);
-            R = Transform.ToRotation(T);
+            assert(IsSquare(tMatrix,4),"Expecting a [4x4] transformation matrix");
+            p = Transform.ToPosition(tMatrix);
+            R = Transform.ToRotation(tMatrix);
             % Create the adjoint representation of the transformation matrix
             %adT = [ R, zeros(3); Skew(p)*R, R]; % [6x6]
             adT = [ R, Skew(p)*R; zeros(3), R]; % [6x6]
         end
         % Scale a transform
-        function [Ts] = Scale(s)
+        function [tMatrix] = Scale(s)
             % This function creates a transformation matrix that preforms a scaling
             % multiplication by the value(s) provided.
 
@@ -269,7 +269,7 @@ classdef Transform < Element
                     error("Expecting either a scalar or [3x1] vector of scaling values.");
             end
             % Create the scaling matrix
-            Ts = [S(1),0,0,0; 0,S(2),0,0; 0,0,S(3),0; 0,0,0,1];
+            tMatrix = [S(1),0,0,0; 0,S(2),0,0; 0,0,S(3),0; 0,0,0,1];
         end
         % Normalise a transform
         function [Tn] = Normalise(T)
@@ -293,7 +293,7 @@ classdef Transform < Element
             s = sym("q%d",[6,1],"real");
             Tsym = Transform.FromScalars(s(1),s(2),s(3),s(4),s(5),s(6));
         end
-        function [T] = MDH(d,theta,a,alpha)
+        function [tMatrix] = MDH(d,theta,a,alpha)
             % A Modified Denavit-Hartenberg transform
             % This difference between the classical 'dh' and the modified 'mdh'
             % transformation matrix is the position of the coordinate system. Under the
@@ -319,12 +319,12 @@ classdef Transform < Element
             ct = cos(theta);
 
             % modified DH
-            T = [   ct,     -st,    0,      a;
+            tMatrix = [   ct,     -st,    0,      a;
                 st*ca,   ct*ca,   -sa, -sa*d;
                 st*sa,   ct*sa,    ca,  ca*d;
                 0,       0,     0,     1];
         end
-        function [T] = DH(theta,a,d,alpha)
+        function [tMatrix] = DH(theta,a,d,alpha)
             % A Denavit-Hartenberg transform
             % INPUTS:
             % d     - Offset along previous z to the common normal
@@ -345,7 +345,7 @@ classdef Transform < Element
             ct = cos(theta);
 
             % Standard DH transform
-            T = [ct, -st*ca,   st*sa, a*ct;
+            tMatrix = [ct, -st*ca,   st*sa, a*ct;
                 st,  ct*ca,  -ct*sa, a*st;
                 0,     sa,      ca,    d;
                 0,      0,       0,    1];

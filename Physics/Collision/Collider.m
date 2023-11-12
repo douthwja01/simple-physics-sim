@@ -15,16 +15,22 @@ classdef (Abstract) Collider < Element
 
     methods (Abstract)
         % Evaluate collision between this and another collider primitive.
-        [points] = TestCollision(transformA,colliderB,transformB);
+        [points] = TestCollision(colliderB);
     end
     methods (Abstract, Access = protected)
         % Provide a means to recalculate the AABB primitive.
         [this] = RecalculateAABB(this);
     end
 
+    % Main
     methods
-        function [this] = Collider()
+        function [this] = Collider(entity)
             % CONSTRUCTOR - Base definition of colliders.
+
+            % Allow immediate assignment to an entity
+            if nargin > 1
+                this.AssignEntity(entity);
+            end
 
             % Create a random colliderId
             this.Cid = RandIntOfLength(6);
@@ -40,6 +46,7 @@ classdef (Abstract) Collider < Element
         end
     end
 
+    % Callbacks
     methods %(Access = private)
         function [this] = OnCollision(this,collision)
             % When the on-collision event is triggered by the world.            
@@ -58,52 +65,24 @@ classdef (Abstract) Collider < Element
     end
     % Collider Utilities
     methods (Static)
-        function [points] = FindAABBAABBCollisionPoints(transformA,colliderA,transformB,colliderB)
-            
-            % Calculate the transformed axis intervals
-            aMinimums = transformA.position + transformA.scale.*colliderA.Minimums;
-            aMaximums = transformA.position + transformA.scale.*colliderA.Maximums;
-            bMinimums = transformB.position + transformB.scale.*colliderB.Minimums;
-            bMaximums = transformB.position + transformB.scale.*colliderB.Maximums;
-
-            % x-axis
-            if aMinimums(1) > bMaximums(1) || aMaximums(1) < bMinimums(1)
-                % No collision possible
-                points = CollisionPoints();
-                return;
-            end
-            % y-axis
-            if aMinimums(2) > bMaximums(2) || aMaximums(2) < bMinimums(2)
-                % No collision possible
-                points = CollisionPoints();
-                return;
-            end
-            % z-axis
-            if aMinimums(3) > bMaximums(3) || aMaximums(3) < bMinimums(3)
-                % No collision possible
-                points = CollisionPoints();
-                return;
-            end
-            % Return the collision points 
-            % TO-DO - Need to calculate overlap points directly.
-            points = CollisionPoints(zeros(3,1),zeros(3,1),normal,depth,true);
-        end
-        function [points] = FindSphereSphereCollisionPoints(sTransformA,sColliderA,sTransformB,sColliderB)
+        function [points] = FindSphereSphereCollisionPoints(sColliderA,sColliderB)
             % Find the collision points between two spheres.
 
             % Sanity check
-            assert(isa(sTransformA,"Transform"),"Expecting a valid first transform object.");
             assert(sColliderA.Code == ColliderCode.Sphere,"First collider must be a sphere collider.");
-            assert(isa(sTransformB,"Transform"),"Expecting a valid second transform object.");
             assert(sColliderB.Code == ColliderCode.Sphere,"Second collider must be a sphere collider.");
+            
+            % Pull out the world positions
+            positionA = sColliderA.Transform.WorldPosition();
+            positionB = sColliderB.Transform.WorldPosition();
 
             % Separation axis
-            collisionAxis = sTransformA.position - sTransformB.position;
+            collisionAxis = positionA - positionB;
             distance = norm(collisionAxis);
             normal = collisionAxis/distance;
             % Points furthest towards each other
-            a = sTransformA.position + normal*sColliderA.Radius;
-            b = sTransformB.position - normal*sColliderB.Radius;
+            a = positionA + normal*sColliderA.Radius;
+            b = positionB - normal*sColliderB.Radius;
             % The overlap distance
             depth = distance - (sColliderA.Radius + sColliderB.Radius);
             isColliding = ~(depth > 0);
@@ -116,14 +95,17 @@ classdef (Abstract) Collider < Element
             % Collision points
             points = CollisionPoints(a,b,normal,depth,isColliding);
         end
-        function [points] = FindSpherePlaneCollisionPoints(sTransform,sCollider,pTransform,pCollider)
+        function [points] = FindSpherePlaneCollisionPoints(sCollider,pCollider)
             % Find the collisions points between a sphere and a plane.
 
             % Sanity check
-            assert(isa(sTransform,"Transform"),"Expecting a valid first transform object.");
             assert(sCollider.Code == ColliderCode.Sphere,"First collider must be a sphere collider.");
-            assert(isa(pTransform,"Transform"),"Expecting a valid second transform object.");
             assert(pCollider.Code == ColliderCode.Plane,"Second collider must be a plane collider.");
+
+            % Pull out the transforms
+            sTransform = sCollider.Transform;
+            % Origin positions in the world
+            pWorldPosition = pCollider.Transform.WorldPosition();
 
             % Sphere properties
 		    aCenter = sCollider.Center + sTransform.WorldPosition();
@@ -131,7 +113,7 @@ classdef (Abstract) Collider < Element
             axis = pCollider.Normal/norm(pCollider.Normal);
 
             % Planar projection
-            distance = dot(aCenter - pTransform.position,axis);
+            distance = dot(aCenter - pWorldPosition,axis);
             
             % Is it colliding
             isColliding = ~(distance > aRadius);
@@ -146,17 +128,22 @@ classdef (Abstract) Collider < Element
             % Return the collision points
             points = CollisionPoints(pDepth,sDepth,axis,toResolve,isColliding);
         end     
-        function [points] = FindSphereOBBCollisionPoints(sTransform,sCollider,bTransform,bCollider)
+        function [points] = FindSphereOBBCollisionPoints(sCollider,bCollider)
             % Find the collision points between a sphere and an OBB box.
 
             % Sanity check
-            assert(isa(bTransform,"Transform"),"Expecting a valid first transform object.");
             assert(bCollider.Code == ColliderCode.OBB,"First collider must be a box collider.");
-            assert(isa(sTransform,"Transform"),"Expecting a valid second transform object.");
             assert(sCollider.Code == ColliderCode.Sphere,"Second collider must be a sphere collider.");
 
+            % Pull out the transforms
+            sTransform = sCollider.Transform;
+            bTransform = bCollider.Transform;
+            % Origin positions in the world
+            sWorldPosition = sTransform.WorldPosition();
+            bWorldPosition = bTransform.WorldPosition();
+
             % Seperation axis (box to sphere)
-            axisRay = Ray.FromPoints(bTransform.position,sTransform.position);
+            axisRay = Ray.FromPoints(bWorldPosition,sWorldPosition);
 
             % Get the collider mesh
             collisionMesh = bCollider.Mesh.TransformBy(bTransform.transform);
@@ -179,8 +166,8 @@ classdef (Abstract) Collider < Element
                 return;
             end
             % The points along the ray
-            spherePointInBox = sTransform.position - sCollider.Radius*axisRay.Direction; 
-            boxPointInSphere = bTransform.position + largestVertexProjection*axisRay.Direction;
+            spherePointInBox = sWorldPosition - sCollider.Radius*axisRay.Direction; 
+            boxPointInSphere = bWorldPosition + largestVertexProjection*axisRay.Direction;
             
             % Return the points
             points = CollisionPoints( ...
@@ -190,19 +177,24 @@ classdef (Abstract) Collider < Element
                 toResolve, ...
                 isColliding);
         end
-        function [points] = FindPlaneOBBCollisionPoints(pTransform,pCollider,bTransform,bCollider)
+        function [points] = FindPlaneOBBCollisionPoints(pCollider,bCollider)
             % Find the collision points between an OBB box and a plane.
 
             % Sanity check
-            assert(isa(bTransform,"Transform"),"Expecting a valid first transform object.");
             assert(bCollider.Code == ColliderCode.OBB,"First collider must be a box collider.");
-            assert(isa(pTransform,"Transform"),"Expecting a valid second transform object.");
             assert(pCollider.Code == ColliderCode.Plane,"Second collider must be a plane collider.");
 
+            % Pull out the transforms
+            pTransform = pCollider.Transform;
+            bTransform = bCollider.Transform;
+            % Origin positions in the world
+            pWorldPosition = pTransform.WorldPosition();
+            bWorldPosition = bTransform.WorldPosition();
+
             % Create a ray using the plane origin
-            axisRay = Ray.FromVector(pTransform.position,pCollider.Normal);    
+            axisRay = Ray.FromVector(pWorldPosition,pCollider.Normal);    
             % Height of the box center above the plane
-            centerToPlaneHeight = Ray.PointProjection(axisRay,bTransform.position);
+            centerToPlaneHeight = Ray.PointProjection(axisRay,bWorldPosition);
             
             % Get the collider mesh
             collisionMesh = bCollider.Mesh.TransformBy(bTransform.transform);
@@ -226,7 +218,7 @@ classdef (Abstract) Collider < Element
             % The penetrating vertex
             deepestPointOfAInB = collisionMesh.Vertices(minIndex,:)';
             % The point on the plane closet to the vertex
-            deepestPointOfBInA = pTransform.position - centerToPlaneHeight*axisRay.Direction;
+            deepestPointOfBInA = pWorldPosition - centerToPlaneHeight*axisRay.Direction;
             % +ve depth to be resolved
             toResolve = abs(smallestVertexProjection);
 
@@ -238,18 +230,23 @@ classdef (Abstract) Collider < Element
                 toResolve,...
                 isColliding);
         end
-        function [points] = FindOBBOBBCollisionPoints(transformA,colliderA,transformB,colliderB)
+        function [points] = FindOBBOBBCollisionPoints(colliderA,colliderB)
             % Find the collision points between two OBB boxes.
 
             % Sanity check
-            assert(isa(transformA,"Transform"),"Expecting a valid first transform object.");
             assert(colliderA.Code == ColliderCode.OBB,"First collider must be a box collider.");
-            assert(isa(transformB,"Transform"),"Expecting a valid second transform object.");
             assert(colliderB.Code == ColliderCode.OBB,"Second collider must be a box collider.");
 
+            % Pull out the transforms
+            transformA = colliderA.Transform;
+            transformB = colliderB.Transform;
+            % Origin positions in the world
+            aWorldPosition = transformA.WorldPosition();
+            bWorldPosition = transformB.WorldPosition();
+
             % Create a ray using the plane origin
-            axisRay = Ray.FromPoints(transformA.position,transformB.position); 
-            reverseAxisRay = Ray.FromPoints(transformB.position,transformA.position); 
+            axisRay = Ray.FromPoints(aWorldPosition,bWorldPosition); 
+            reverseAxisRay = Ray.FromPoints(bWorldPosition,aWorldPosition); 
             % Get the orientated collision meshes
             collisionMeshA = colliderA.Mesh.TransformBy(transformA.transform);
             collisionMeshB = colliderB.Mesh.TransformBy(transformB.transform);
