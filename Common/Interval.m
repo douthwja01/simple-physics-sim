@@ -3,6 +3,9 @@ classdef Interval
         Min = 0;
         Max = 1;
     end
+    properties (Dependent)
+        Range;
+    end
     methods
         function [this] = Interval(min,max)
             if nargin > 1
@@ -13,6 +16,10 @@ classdef Interval
                 this.Min = min(1);
                 this.Max = min(2);
             end
+        end
+        % Get/sets
+        function [r] = get.Range(this)
+            r = [this.Min,this.Max];
         end
         % Operators
         function [r] = plus(obj1,obj2)
@@ -55,6 +62,20 @@ classdef Interval
 
             if isa(obj1,"Interval") && isa(obj2,"Interval")
                 r = Interval(obj1.Min - obj2.Max,obj1.Max - obj2.Min);
+            end
+        end
+        function [r] = mtimes(obj1,obj2)
+            % How addition is done with intervals.
+            if isa(obj1,"Interval")
+                assert(isnumeric(obj2),"Expecting a second numeric input.");
+                r = Interval(obj2*obj1.Min,obj2*obj1.Max);
+                return;
+            end
+
+            if isa(obj2,"Interval")
+                assert(isnumeric(obj1),"Expecting a first numeric input.");
+                r = Interval(obj1 * obj2.Min,obj1*obj2.Max);
+                return;
             end
         end
     end

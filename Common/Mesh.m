@@ -83,13 +83,17 @@ classdef Mesh < handle
             tf = eye(4)*[width,depth,height;0];
             mesh = this.TransformBy(tf);
         end
-        function [h] = Draw(this,container)
+        function [h] = Draw(this,container,colour)
             % Draw this mesh to a given graphical container
+            if nargin < 3
+                colour = 'b';
+            end
             if nargin < 2
                 container = gca;
             end
             % Generate patch
             h = patch(container,'Vertices',this.Vertices,'Faces',this.Faces);        
+            set(h,"FaceColor",colour);
         end
     end
     methods (Access = private)
@@ -137,6 +141,5 @@ classdef Mesh < handle
             ylim = [min(v(:,2)),max(v(:,2))];
             zlim = [min(v(:,3)),max(v(:,3))];
         end
-        
     end
 end
