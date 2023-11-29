@@ -34,6 +34,10 @@ classdef CollisionWorld < handle
             % Sanity check
             assert(isnumeric(dt),"Expecting a valid numeric time-step.");
 
+            % Reset containers
+            this.Triggers = Manifold.empty;
+            this.Collisions = Manifold.empty;
+
             % --- BROAD PHASE ---
             % This routine completes a broad-phase collision check
             [manifolds] = this.BroadPhaseSolver.ResolveManifolds(this.Colliders);
@@ -41,9 +45,6 @@ classdef CollisionWorld < handle
             % --- NARROW PHASE ---
             % This routine solves the inter-particle collisions (brute force)   
 
-            % Collision container
-            this.Triggers = Manifold.empty;
-            this.Collisions = Manifold.empty;
             % This function solves the inter-particle collisions (brute force)             
             for i = 1:numel(manifolds)
                 manifolds_i = manifolds(i);
@@ -52,6 +53,7 @@ classdef CollisionWorld < handle
                     manifolds_i.ColliderA, ....
                     manifolds_i.ColliderB);
             end
+            % --------------------
 
             % No collisions occurred
             if isempty(this.Collisions)

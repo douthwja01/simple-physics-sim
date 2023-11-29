@@ -5,9 +5,9 @@ addpath("Engine");
 
 sim = Simulator();
 
-numberOfObjects = 18;
-numberPerColumn = 5;
-gridPoints = CreateGrid([-1.5;0;5],numberOfObjects,numberPerColumn,1.1);
+numberOfObjects = 12;
+numberPerColumn = 3;
+gridPoints = CreateGrid([-1.5;0;4],numberOfObjects,numberPerColumn,1.1);
 
 for i = 1:numberOfObjects
     % Place the object

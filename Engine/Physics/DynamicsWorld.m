@@ -53,14 +53,6 @@ classdef DynamicsWorld < CollisionWorld
             else
                 this.SubStep(this.TimeDelta);
             end
-            
-%             if this.EnableSubStepping
-%                 for s = 1:this.SubSteps
-%                     this.ResolveCollisions(subTimeDelta);
-%                 end
-%             else
-%                 this.ResolveCollisions(dt);
-%             end
         end
         % Add/remove rigidbodies
         function [this] = AddRigidBody(this,body)

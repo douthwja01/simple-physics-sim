@@ -5,15 +5,16 @@ classdef ImpulseSolver < Solver
 
     methods
         function [this] = Solve(this,collisions,dt)
+            % Solve the set of collisions using the impulse solvers.
 
             for i = 1:numel(collisions)
                 % Replaces non dynamic objects with default values.
 
                 manifold = collisions(i);
                 % Get the corresponding elements from each member entity
-                transformA = manifold.ColliderA.Entity.GetElement("Transform");
+                transformA = manifold.ColliderA.Transform;
                 rigidBodyA = manifold.ColliderA.Entity.GetElement("RigidBody");
-                transformB = manifold.ColliderB.Entity.GetElement("Transform");
+                transformB = manifold.ColliderB.Transform;
                 rigidBodyB = manifold.ColliderB.Entity.GetElement("RigidBody");
                 % Logicals
                 aHasRigidBody = ~isempty(rigidBodyA);
@@ -39,12 +40,15 @@ classdef ImpulseSolver < Solver
                     m_b = 0;
                 end
                 
+                % Ratio of reactionary force
                 massRatioA = 2*m_b/(m_a + m_b);
                 massRatioB = 2*m_a/(m_a + m_b);
 
-                p_ab = -manifold.Points.Normal; %p_a - p_b;
+                p_ab = manifold.Points.Normal; %p_a - p_b;
                 v_ab = v_a - v_b;
+                
                 tempA = dot(v_ab,p_ab)/norm(p_ab);
+                
                 if tempA <= 0
                     continue;
                 end
