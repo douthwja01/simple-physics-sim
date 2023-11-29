@@ -148,11 +148,10 @@ classdef Simulator < handle
 
             % Get the path to this file
             [repoPath,~] = fileparts(mfilename('fullpath'));
-            % Check if the files are on the path already
-            commonPath = strcat(repoPath,"\Common");
-            addpath(commonPath);
+            % Gaurantee the common is always added
+            addpath(strcat(repoPath,"\Common"));
             % If elements are not on the path, add them
-            if ~Path.IsOnPath(commonPath)
+            if ~Path.IsOnPath(strcat(repoPath,"\Physics"))
                 Path.AddAllSubfolders(repoPath);
             end
         end
