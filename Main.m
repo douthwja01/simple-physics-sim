@@ -1,12 +1,7 @@
 
 clear all;
 close all;
-addpath("Common");
-addpath("Physics");
-addpath("Physics/Integrators");
-addpath("Physics/Solvers");
-addpath("Physics/Graphics");
-addpath("Physics/Collision");
+addpath("Engine");
 
 sim = Simulator();
 

@@ -21,6 +21,8 @@ classdef Simulator < handle
         function [this] = Simulator()
             % CONSTRUCTOR for simulators.
 
+            this.AddEnginePaths;
+
             this.Physics = DynamicsWorld();
             % Add impulse collision solver
             this.Physics.AddSolver(PositionSolver()); 
@@ -31,6 +33,8 @@ classdef Simulator < handle
             % Sanity check
             assert(isscalar(duration) && duration > 0,"Expecting a scalar duration greater than zero.");
             assert(~isempty(this.Physics),"Expecting a valid 'DynamicsWorld' managing physics.");
+            
+            this.AddEnginePaths();
 
             % Initialise the physics world with substeps
             this.Physics.Initialise(this.PhysicsSubSteps);
@@ -102,7 +106,7 @@ classdef Simulator < handle
         end
     end
 
-    % Graphics
+    % Internals
     methods (Access = private)
         function [ax,this] = InitialiseGraphics(this)
             % Draw the state of the world
@@ -138,6 +142,19 @@ classdef Simulator < handle
                 renderer_i.Update(ax);
             end
             drawnow;
+        end
+        function [this] = AddEnginePaths(this)
+            % Confirm all subdirectories are on the path.
+
+            % Get the path to this file
+            [repoPath,~] = fileparts(mfilename('fullpath'));
+            % Check if the files are on the path already
+            commonPath = strcat(repoPath,"\Common");
+            addpath(commonPath);
+            % If elements are not on the path, add them
+            if ~Path.IsOnPath(commonPath)
+                Path.AddAllSubfolders(repoPath);
+            end
         end
     end
 
