@@ -15,17 +15,19 @@ classdef PositionSolver < NarrowPhaseSolver
                 manifold = collision.Points;       
 
                 % Party one
-                transformA = collision.ColliderA.Transform;
+                entityA = collision.ColliderA.Entity;
+                transformA = entityA.GetElement("Transform");
                 isStaticA = transformA.IsStatic;
 
                 % Party two
-                transformB = collision.ColliderB.Transform;
+                entityB = collision.ColliderB.Entity;
+                transformB = entityB.GetElement("Transform");
                 isStaticB = transformB.IsStatic;
+
+%                 fprintf("Resolving collision between %s and %s.\n",entityA.Name,entityB.Name);
 
                 % Calculate the resolution
                 resolution = manifold.Normal * manifold.Depth / max(1, isStaticA + isStaticB);
-                % Ensure 
-                resolution = resolution/2;
                 % Modify the positions
                 delta_a = resolution * (1 - isStaticA);
                 delta_b = resolution * (1 - isStaticB);
