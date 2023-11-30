@@ -5,22 +5,16 @@ classdef RigidBody < Element
         Mass = 1;
         InverseMass = 1;
         Inertia = 1;
-
-        
-
         Gravity = -9.81;            % Local value of gravity (viable between instances)
         TakesGravity = true;        % Uses world gravity
-        
         StaticFriction = 0.6;       % Static friction coefficient
-        DynamicFriction = 0.25;      % Dynamic friction coefficient
+        DynamicFriction = 0.8;      % Dynamic friction coefficient
         Restitution = 0.5;          % Elasticity of collisions 
-
-
 % 		, AxisLock(0.f)
 % 		, IsAxisLocked(0.f)
 % 		SimGravity(true)
-        IsDynamic = true;
-		IsSimulated = true; %(isKinematic)
+        IsDynamic = true;           % Has dynamic reactions
+		IsSimulated = true;         % Is capable of movement
     end
 
     properties (Access = private)

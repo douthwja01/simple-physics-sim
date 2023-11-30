@@ -4,168 +4,110 @@ classdef ImpulseSolver < Solver
     % by the next time-step.
 
     methods
-        function [this] = Solve(this,collisions,dt)
+        function [this] = Solve(this,manifolds,dt)
             % Solve the set of collisions using the impulse solvers.
 
-            for i = 1:numel(collisions)
+            for i = 1:numel(manifolds)
                 % Replaces non dynamic objects with default values.
+                manifold = manifolds(i);
 
-                manifold = collisions(i);
-                % Get the corresponding elements from each member entity
-                transformA = manifold.ColliderA.Transform;
-                rigidBodyA = manifold.ColliderA.Entity.GetElement("RigidBody");
-                transformB = manifold.ColliderB.Transform;
-                rigidBodyB = manifold.ColliderB.Entity.GetElement("RigidBody");
-                % Logicals
-                aHasRigidBody = ~isempty(rigidBodyA);
-                bHasRigidBody = ~isempty(rigidBodyB);
+                bodyA = manifold.ColliderA.Entity.GetElement("RigidBody");
+                hasRigidBodyA = ~isempty(bodyA);
+                tfA = manifold.ColliderA.Transform;
 
-                p_b = transformB.position;
-                p_a = transformA.position;
+                bodyB = manifold.ColliderB.Entity.GetElement("RigidBody");
+                hasRigidBodyB = ~isempty(bodyB);
+                tfB = manifold.ColliderB.Transform;
 
-                if aHasRigidBody
-                    fprintf("boop A\n.");
-                    v_a = transformA.Velocity;
-                    m_a = rigidBodyA.Mass;
+                collisionNormal = -manifold.Points.Normal;
+
+                % Object velocities
+                velocityA = tfA.Velocity;
+                velocityB = tfB.Velocity;
+                relativeVelocity = velocityB - velocityA;
+                % Scalar speed
+                relativeSpeed = dot(relativeVelocity, collisionNormal);
+
+                % Extract dynamic properties
+                if hasRigidBodyA
+                    inverseMassA = bodyA.InverseMass;
+                    resitutionA = bodyA.Restitution;
+                    staticFrictionA = bodyA.StaticFriction;
+                    dynamicFrictionA = bodyA.DynamicFriction;
                 else
-                    v_a = zeros(3,1);
-                    m_a = 0;
+                    inverseMassA = 1;
+                    resitutionA = 1;
+                    staticFrictionA = 0;
+                    dynamicFrictionA = 0;
                 end
-                if bHasRigidBody
-                    fprintf("boop B\n.");
-                    v_b = transformB.Velocity;
-                    m_b = rigidBodyB.Mass;
-                else
-                    v_b = zeros(3,1);
-                    m_b = 0;
-                end
-                
-                % Ratio of reactionary force
-                massRatioA = 2*m_b/(m_a + m_b);
-                massRatioB = 2*m_a/(m_a + m_b);
 
-                p_ab = manifold.Points.Normal; %p_a - p_b;
-                v_ab = v_a - v_b;
-                
-                tempA = dot(v_ab,p_ab)/norm(p_ab);
-                
-                if tempA <= 0
+                if hasRigidBodyB
+                    inverseMassB = bodyB.InverseMass;
+                    resitutionB = bodyB.Restitution;
+                    staticFrictionB = bodyB.StaticFriction;
+                    dynamicFrictionB = bodyB.DynamicFriction;
+                else
+                    inverseMassB = 1;
+                    resitutionB = 1;
+                    staticFrictionB = 0;
+                    dynamicFrictionB = 0;
+                end
+
+                % --- Impulse
+
+                % This is important for convergence
+                % a negative impulse would drive the objects closer together
+                if relativeSpeed >= 0
                     continue;
                 end
-                v_a = v_a - massRatioA * tempA * p_ab/norm(p_ab);
 
-                p_ba = manifold.Points.Normal; %p_b - p_a;
-                v_ba = v_b - v_a;
-                tempB = dot(v_ba,p_ba)/norm(p_ba);
-                if tempB <= 0
-                    continue;
+                % Impulse
+                impulse = -(1 + resitutionA*resitutionB) * relativeSpeed / (inverseMassA + inverseMassB);
+                % Impulse vector
+                impulseVector = impulse * collisionNormal;
+
+                % Apply the velocity modification to the first body
+                if hasRigidBodyA && bodyA.IsSimulated
+                    velocityA = velocityA - impulseVector * inverseMassA;
                 end
-                v_b = v_b - massRatioB * tempB * (p_ba)/norm(p_ba);
+                % Apply the velocity modification to the second body
+                if hasRigidBodyB && bodyB.IsSimulated
+                    velocityB = velocityB + impulseVector * inverseMassB;
+                end
 
-                transformA.Velocity = v_a;
-                transformB.Velocity = v_b;
+                % --- Friction
 
+                % Recalulate the relative velocity
+                relativeVelocity = velocityB - velocityA;
+                relativeSpeed = dot(relativeVelocity, collisionNormal);
 
-%                 % aBody and bBody are Rigidbody;
-%                 if aHasRigidBody
-%                     velocityA = transformA.Velocity;
-%                     aInvMass = rigidBodyA.InverseMass;
-%                     a_e = rigidBodyA.Restitution;
-%                 else
-%                     velocityA = zeros(3,1);
-%                     aInvMass = 1;
-%                     a_e = 1;
-%                 end
-% 
-%                 if bHasRigidBody
-%                     velocityB = transformB.Velocity;
-%                     bInvMass = rigidBodyB.InverseMass;
-%                     b_e = rigidBodyB.Restitution;
-%                 else
-%                     velocityB = zeros(3,1);
-%                     bInvMass = 1;
-%                     b_e = 1;
-%                 end
-% 
-%                 collisionNormal = manifold.Points.Normal;
-% 
-%                 rVel = velocityB - velocityA;
-%                 nSpd = dot(rVel, collisionNormal);
-% 
-%                 % === Impulse ===
-% 
-%                 % This is important for convergence
-%                 % a negative impulse would drive the objects closer together
-%                 if nSpd <= 0
-%                     continue;
-%                 end
-%                 % Resitution magnitude
-%                 e = a_e*b_e;
-%                 j = -(1 + e) * nSpd / (aInvMass + bInvMass);
-%                 % Impulse along the collision axis
-%                 impluse = j * collisionNormal;
-% 
-%                 if aHasRigidBody && rigidBodyA.IsSimulated
-%                     velocityA = velocityA - impluse * aInvMass;
-%                 end
-% 
-%                 if bHasRigidBody && rigidBodyB.IsSimulated
-%                     velocityB = velocityB + impluse * bInvMass;
-%                 end
-% 
-%                 % ==== Friction ====
-%                 rVel = velocityB - velocityA;
-%                 nSpd = dot(rVel,collisionNormal);
-% 
-%                 % Recalculate the relative speed 
-%                 if nSpd <= 0
-%                     continue;
-%                 end
-% 
-%                 % The vector along the surface
-%                 tangent = rVel - nSpd * collisionNormal;
-%                 
-%                 % Normalise the tangent vector
-%                 if norm(tangent) > 0.0001  
-%                     tangent = tangent/norm(tangent);
-%                 end
-% 
-%                 fVel = dot(rVel, tangent);
-% 
-%                 if aHasRigidBody
-%                     aSF = rigidBodyA.StaticFriction;
-%                     aDF = rigidBodyA.DynamicFriction;
-%                 else
-%                     aSF = 0;
-%                     aDF = 0;
-%                 end
-% 
-%                 if bHasRigidBody
-%                     bSF = rigidBodyB.StaticFriction;
-%                     bDF = rigidBodyB.DynamicFriction;
-%                 else
-%                     bSF = 0;
-%                     bDF = 0;
-%                 end
-%                 %
-%                 mu = norm([aSF,bSF]); %(scalar)glm::vec2(aSF, bSF).length();
-% 
-%                 f = - fVel / (aInvMass + bInvMass);
-%                 if abs(f) < j * mu
-%                     friction = f * tangent;
-%                 else
-%                     mu = norm([aDF, bDF]);
-%                     friction = -j * tangent * mu;
-%                 end
-%                 % Exert friction on A
-%                 if aHasRigidBody && rigidBodyA.IsSimulated
-%                     transformA.Velocity = velocityA - friction * aInvMass;
-%                 end
-%                 % Exert friction on B
-%                 if bHasRigidBody && rigidBodyB.IsSimulated
-%                     transformB.Velocity = velocityB + friction * bInvMass;
-%                 end
+                % Tangent vector
+                tangent = relativeVelocity - relativeSpeed * collisionNormal;
+                % Safe normalize
+                n_tangent = norm(tangent);
+                if n_tangent > 1E-5
+                    tangent = tangent/n_tangent;
+                end
 
+                mu = norm([staticFrictionA;staticFrictionB]);
+                % Calculate the effective friction force
+                friction = - dot(relativeVelocity, tangent) / (inverseMassA + inverseMassB);
+                if abs(friction) < impulse * mu
+                    frictionVector = friction * tangent;
+                else
+                    mu = norm([dynamicFrictionA;dynamicFrictionB]);
+                    frictionVector = -impulse * tangent * mu;
+                end
+
+                % If the first body can have friction applied and is simulated.
+                if hasRigidBodyA && bodyA.IsSimulated
+                    tfA.Velocity = velocityA - frictionVector * inverseMassA;
+                end
+
+                % If the second body can have friction applied and is simulated.
+                if hasRigidBodyB && bodyB.IsSimulated
+                    tfB.Velocity = velocityB - frictionVector * inverseMassB;
+                end
             end
         end
     end
