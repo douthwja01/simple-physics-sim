@@ -7,8 +7,8 @@ classdef CollisionWorld < handle
         % Collidables
         Colliders;
         % Broad-phase
-        BroadPhaseSolver = SweepAndPrune();
-        NarrowPhaseSolvers;
+        BroadPhaseSolver = BroadPhaseSolver.empty(0,1);
+        NarrowPhaseSolvers = NarrowPhaseSolver.empty(0,1);
         % Variables
         Collisions = Manifold.empty;
         Triggers = Manifold.empty;
@@ -21,6 +21,8 @@ classdef CollisionWorld < handle
     methods
         function [this] = CollisionWorld(varargin)
             % Collision world constructor.
+
+            this.BroadPhaseSolver = SweepAndPrune();
 
             % Internal event loop-backs
             addlistener(this,"CollisionFeedback",@(src,evnt)this.OnInternalCollisionLoopback(evnt));
@@ -85,8 +87,15 @@ classdef CollisionWorld < handle
             % Remove a given solver from the array of collisions solvers.
             this.Colliders = this.Colliders(this.Colliders ~= collider);
         end
+        % Broad-phase
+        function set.BroadPhaseSolver(this,s)
+            assert(isa(s,"BroadPhaseSolver"),"Expecting a valid broad-phase solver.");
+            this.BroadPhaseSolver = s;
+        end        
         % Managing collision NarrowPhaseSolvers
         function [this] = AddSolver(this,solver)
+            assert(isa(solver,"NarrowPhaseSolver"),"Expecting a valid narrow-phase collision solver.");
+            
             % Add a given solver to the array of collision solvers.
             this.NarrowPhaseSolvers = vertcat(this.NarrowPhaseSolvers,solver);
         end

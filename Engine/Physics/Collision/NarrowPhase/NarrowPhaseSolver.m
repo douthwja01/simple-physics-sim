@@ -1,4 +1,4 @@
-classdef (Abstract) NarrowPhaseSolver < Solver
+classdef (Abstract) NarrowPhaseSolver < CollisionSolver
     % NARROWPHASESOLVER is a class to resolve collision occurance with
     % higher accuracy that the broad-phase solvers. The usage of
     % narrow-phase collision solves typically follows a broad-phase solver.
