@@ -5,22 +5,20 @@ classdef AABB < Boundary
         Code = ColliderCode.AABB;
     end
     properties (Dependent) 
-        Center;
         Min;
         Max;
-        Range;
     end  
     properties
         Parent = Collider.empty;
     end
-    % Intervals relative to center
+    % Intervals in each dimensions
     properties (Access = private)
         xBoundary = Interval.empty;
         yBoundary = Interval.empty;
         zBoundary = Interval.empty;
     end
     methods
-        function [this] = AABB(center,xRange,yRange,zRange)
+        function [this] = AABB(xRange,yRange,zRange)
             % CONSTRUCTOR - Generate a box- collider with unitary axial
             % limits.
             % center - 3D center position.
@@ -30,38 +28,24 @@ classdef AABB < Boundary
 
             % Input check
             if nargin < 1
-                center = zeros(3,1);
-            end
-            if nargin < 2
                 xRange = [-1;1];
             end
-            if nargin < 3
+            if nargin < 2
                 yRange = [-1;1];
             end
-            if nargin < 4
+            if nargin < 3
                 zRange = [-1;1];
             end
 
             % Parameterise
-            this.xBoundary = Interval(center(1),xRange(1),xRange(2));
-            this.yBoundary = Interval(center(2),yRange(1),yRange(2));
-            this.zBoundary = Interval(center(3),zRange(1),zRange(2));
+            this.xBoundary = Interval(xRange(1),xRange(2));
+            this.yBoundary = Interval(yRange(1),yRange(2));
+            this.zBoundary = Interval(zRange(1),zRange(2));
         end
         % Get/sets
         function set.Parent(this,p)
             assert(isa(p,"Collider"),"Expecting a valid parent collider.");
             this.Parent = p;
-        end
-        function [p] = get.Center(this)
-            p = [this.xBoundary.Center;
-                this.yBoundary.Center;
-                this.zBoundary.Center];
-        end
-        function set.Center(this,p)
-            assert(numel(p) == 3,"Expecting a valid 3D point.");
-            this.xBoundary.Center = p(1);
-            this.yBoundary.Center = p(2);
-            this.zBoundary.Center = p(3);
         end
         function [m] = get.Min(this)
             m = [this.xBoundary.Min;
@@ -84,11 +68,6 @@ classdef AABB < Boundary
             this.xBoundary.Max = m(1);
             this.yBoundary.Max = m(2);
             this.zBoundary.Max = m(3);
-        end
-        function [r] = get.Range(this)
-            r = [this.xBoundary.Range;
-                this.yBoundary.Range;
-                this.zBoundary.Range];
         end
         % Operators
         function [r] = plus(obj1,obj2)
@@ -289,7 +268,6 @@ classdef AABB < Boundary
             maxs = [aabb.xBoundary.Max;aabb.yBoundary.Max;aabb.zBoundary.Max];
             % Create the mesh
             mesh = MeshGenerator.CuboidFromExtents(mins,maxs);
-            mesh.Origin = aabb.Center;
         end
         function [aabb] = EncloseMesh(mesh)
             % This function creates an axis-aligned-bounding box from a
@@ -298,7 +276,7 @@ classdef AABB < Boundary
             % Simply extract the extents
             [xlimits,ylimits,zlimits] = Mesh.Extents(mesh);
             % Create the primitive
-            aabb = AABB(mesh.Origin,xlimits,ylimits,zlimits);
+            aabb = AABB(xlimits,ylimits,zlimits);
         end
     end
 end
