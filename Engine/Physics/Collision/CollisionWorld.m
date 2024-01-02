@@ -19,10 +19,10 @@ classdef CollisionWorld < handle
 
     % Main
     methods
-        function [this] = CollisionWorld(varargin)
+        function [this] = CollisionWorld(worldSize)
             % Collision world constructor.
 
-            this.BroadPhaseSolver = SweepAndPrune();
+            this.BroadPhaseSolver = OctreeSolver(worldSize); %SweepAndPrune();
 
             % Internal event loop-backs
             addlistener(this,"CollisionFeedback",@(src,evnt)this.OnInternalCollisionLoopback(evnt));

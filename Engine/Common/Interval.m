@@ -1,23 +1,37 @@
-classdef Interval
+classdef Interval < Boundary
+    % A 1D boundary constraint
+    
+    properties (Constant)
+        Code = ColliderCode.Line;
+    end
     properties
-        Min = 0;
+        Center = 0;
+        Min = -1;
         Max = 1;
     end
     properties (Dependent)
         Range;
     end
     methods
-        function [this] = Interval(min,max)
-            if nargin > 1
+        function [this] = Interval(center,min,max)
+            if (nargin > 0)
+                this.Center = center;
+            end
+            if (nargin > 1)
                 this.Min = min;
+            end
+            if (nargin > 2)
                 this.Max = max;
-            elseif nargin > 0
-                assert(numel(min) == 2,"Expecting a valid vector [min,max].");
-                this.Min = min(1);
-                this.Max = min(2);
             end
         end
         % Get/sets
+        function set.Center(this,c)
+            if ~this.Contains(c)
+                this.Min = this.Min + c;
+                this.Max = this.Max + c;
+            end
+            this.Center = c;
+        end
         function [r] = get.Range(this)
             r = [this.Min,this.Max];
         end
@@ -79,11 +93,27 @@ classdef Interval
             end
         end
     end
-    methods (Static)
-        function [flag] = TestIntersection(a,b)
+
+    % Utilities
+    methods
+        function [flag] = Intersects(this,other)
             % Test two intervals for intersection
+            oMax = other.Center + other.Max;
+            oMin = other.Center + other.Min;
+            tMax = this.Center + this.Max;
+            tMin = this.Center + this.Min;
+
             flag = true;
-            if a.Min > b.Max || a.Max < b.Min
+            if tMin > oMax || tMax < oMin
+                flag = false;
+            end
+        end
+        function [flag] = Contains(this,value)
+            % Test if the interval contains a coordinate
+            tMax = this.Center + this.Max;
+            tMin = this.Center + this.Min;
+            flag = true;
+            if tMin > value || tMax < value
                 flag = false;
             end
         end

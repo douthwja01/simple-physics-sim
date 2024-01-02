@@ -23,7 +23,7 @@ classdef Simulator < handle
 
             this.AddEnginePaths;
 
-            this.Physics = DynamicsWorld();
+            this.Physics = DynamicsWorld(this.WorldSize);
             % Add impulse collision solver
 %             this.Physics.AddSolver(PositionSolver()); 
             this.Physics.AddSolver(ImpulseSolver());
@@ -122,10 +122,10 @@ classdef Simulator < handle
             xlabel(ax,"X (m)");
             ylabel(ax,"Y (m)");
             zlabel(ax,"Z (m)");
-            axisLimits = this.WorldSize/2;
-            xlim(ax,[-axisLimits,axisLimits]);
-            ylim(ax,[-axisLimits,axisLimits]);
-            zlim(ax,[0,axisLimits]);
+%             axisLimits = this.WorldSize/2;
+%             xlim(ax,[-axisLimits,axisLimits]);
+%             ylim(ax,[-axisLimits,axisLimits]);
+%             zlim(ax,[0,axisLimits]);
             % Register for key presses
             set(fig,'KeyPressFcn',@(src,evnt)OnKeyPressCallback(this,src,evnt));
         end

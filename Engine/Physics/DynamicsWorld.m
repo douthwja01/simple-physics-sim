@@ -14,11 +14,11 @@ classdef DynamicsWorld < CollisionWorld
     end
     % Main
     methods
-        function [this] = DynamicsWorld(varargin)
+        function [this] = DynamicsWorld(worldSize)
             % Physics world constructor.
             
             % Collision world
-            this = this@CollisionWorld(varargin{:});
+            this = this@CollisionWorld(worldSize);
         end
         % Get/sets
         function set.Integrator(this,int)

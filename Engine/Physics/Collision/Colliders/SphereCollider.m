@@ -51,7 +51,7 @@ classdef SphereCollider < Collider
 
             % Recompute AABB
             r = this.Radius;
-            this.AABB = AABB([-r,r],[-r,r],[-r,r]);
+            this.AABB = AABB(this.Center,[-r,r],[-r,r],[-r,r]);
             this.AABB.Parent = this;
         end
     end
