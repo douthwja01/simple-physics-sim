@@ -49,9 +49,13 @@ classdef SphereCollider < Collider
             % AABB comparison, a primitive must be constructed any way to
             % represent this radius.
 
-            % Recompute AABB
+            % Recompute extents 
             r = this.Radius;
-            this.AABB = AABB(this.Center,[-r,r],[-r,r],[-r,r]);
+            xLims = this.Center + [-r,r];
+            yLims = this.Center + [-r,r];
+            zLims = this.Center + [-r,r];
+            % Create the AABB
+            this.AABB = AABB(xLims,yLims,zLims);
             this.AABB.Parent = this;
         end
     end

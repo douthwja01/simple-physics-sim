@@ -39,24 +39,70 @@ classdef Octree < handle
         function [flag] = InsertCollider(this,collider)
             % Insert a complete collider into the root node.
             
-        end
-        function [flag] = InsertPoint(this,point)
-            % Insert a simple point into the octree.
+            % We need to insert a mesh
+            if isa(collider,"MeshCollider")
 
-            octPoint = OctreePoint(point,[]);
-            % Insert the point into the root node
+                v = collider.Mesh.Vertices;
+                for i = 1:collider.Mesh.NumberOfVertices
+                    vertex = v(i,:)';
+                    % Insert a point with reference to the collider
+                    octPoint = OctreePoint(vertex,collider);
+                    % Insert the vertex
+                    if ~this.InsertPoint(octPoint)
+                        flag = false;
+                        return;
+                    end
+                end
+                flag = true;
+                return
+            end
+
+            if isa(collider,"SphereCollider")
+                position = collider.Center;
+                octPoint = OctreePoint(position,collider);
+                % [Test] Insert the center as a vertex
+                if ~this.InsertPoint(octPoint)
+                    flag = false;
+                    return;
+                end
+                flag = true;
+                return 
+            end
+
+            flag = true;
+        end
+        function [flag] = InsertPoint(this,octPoint)
+            % Insert a simple point into the octree.
             flag = this.Root.InsertPoint(octPoint);
         end
         function [n] = GetNumberOfNodes(this)
             n = this.Root.GetNumberOfChildren();
         end
-        function [h] = Draw(this,container)
-            % Draw the complete Octree.
-
-            if (nargin < 2)
+        function [h] = DrawNodes(this,container,colour)
+            % Draw the complete set of Octree-nodes within the Octree.
+            
+            % Input parsing
+            if nargin < 2
                 container = gca;
             end
-            h = this.Root.Draw(container);
+            if nargin < 3
+                colour = 'c';
+            end
+            % Draw all nodes within the tree
+            h = this.Root.Draw(container,colour);
+        end
+        function [h] = DrawPoints(this,container,colour)
+            % Draw all Octree-points withing the octree.
+            
+            % Input parsing
+            if nargin < 2
+                container = gca;
+            end
+            if nargin < 3
+                colour = 'k';
+            end
+            % As the root to draw its points
+            h = this.Root.DrawPoints(container,colour);
         end
     end
 end

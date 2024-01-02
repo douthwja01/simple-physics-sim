@@ -23,50 +23,72 @@ classdef OctreeSolver < BroadPhaseSolver
             % Sanity check
             assert(isa(colliders,"Collider"),"Expecting a list of 'collider' objects.");
         
+            [~,ah] = Graphics.FigureTemplate("Octree View");
+            view(ah,[45,45]);
+            axis vis3d;
+
             % 1. Build the Octree (by inserting all points)
             worldExtents = this.MaxSize*[-1;1];
-            worldBoundary = AABB([0;0;0.5]*this.MaxSize,worldExtents,worldExtents,worldExtents/2);
+            worldBoundary = AABB(worldExtents,worldExtents,worldExtents/2);
             % Create the Octree
             this.Tree = Octree(worldBoundary,1);
 
             for i = 1:numel(colliders)
-                % Insert all colliders
-                %this.Root.InsertCollider(colliders(i));
-
-                % Simple case (use their centers)
-                if ~this.Tree.InsertPoint(colliders(i).Transform.position)
+                % Insert the collider into the tree
+                if ~this.Tree.InsertCollider(colliders(i))
                     warning("\n Something went wrong, didn't insert Collider %d",colliders(i).Cid);
                 end
+%                 % Simple case (use their centers)
+%                 if ~this.Tree.InsertPoint(colliders(i).Transform.position)
+%                     warning("\n Something went wrong, didn't insert Collider %d",colliders(i).Cid);
+%                 end
             end
 
             fprintf("\n Total nodes '%d'.",this.Tree.GetNumberOfNodes());
-            this.Tree.Draw();
+            this.Tree.DrawNodes(ah);
+            this.Tree.DrawPoints(ah);
 
             % 2. Query the Octree against each collider
-            manifolds = Manifold.empty;
+            octreePoints = OctreePoint.empty;
             for i = 1:numel(colliders)
                 % We need to decide (based on the objects geometries, what
                 % the minimal viable query range can be). Ideally, this
                 % would only seach where d = 2*r; 
 
                 % Build the query box/bounds
-                queryPosition = colliders(i).Transform.position;
+                p = colliders(i).Transform.position;
                 extents = 2*[-1;1];
-                queryBounds = AABB(queryPosition,extents,extents,extents);
-
-                mesh = AABB.CreateMesh(queryBounds);
                 
-                h = mesh.Draw(gca,"r");
+                % Construct the boundary to query
+                queryBounds = AABB(...
+                    extents + p(1), ...
+                    extents + p(2), ...
+                    extents + p(3));
+
+                % Create a representative mesh
+                mesh = AABB.CreateMesh(queryBounds);
+                h = mesh.Draw(ah,"r");
                 set(h,"FaceAlpha",0.2);
                 
                 % Query the octree with a range
                 results = this.Tree.Query(queryBounds);
 
                 % Append
-                manifolds = vertcat(manifolds,results);
+                octreePoints = vertcat(octreePoints,results);
+            end
+
+            fprintf("\nTotal Octree-points '%d'.",length(octreePoints));
+
+            manifolds = Manifold.empty;
+            for i = 1:length(octreePoints)
+
+
+                % Append
+%                 manifolds = vertcat(manifolds,results);
             end
 
             fprintf("\nTotal Manifolds '%d'.",length(manifolds));
+
 
             % Reset the tree
             this.Tree = [];

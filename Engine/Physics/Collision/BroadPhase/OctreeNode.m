@@ -10,6 +10,9 @@ classdef OctreeNode < handle
         Boundary = AABB.empty();
         HasDivided = false;
     end
+    properties
+        NumberOfPoints;
+    end
 
     methods
         function [this] = OctreeNode(boundary,capacity)
@@ -21,6 +24,9 @@ classdef OctreeNode < handle
         function set.Points(this,p)
             assert(isa(p,"OctreePoint"),"Expecting a valid Octree-point.");
             this.Points = p;
+        end
+        function [n] = get.NumberOfPoints(this)
+            n = length(this.Points);
         end
         % Main Methods
         function [data] = Query(this,region)
@@ -35,7 +41,7 @@ classdef OctreeNode < handle
             end
 
             % Check all points in the node against the boundary.
-            for i = 1:numel(this.Points)
+            for i = 1:this.NumberOfPoints
                 octPoint = this.Points(i);
 
                 if ~region.Contains(octPoint.Position)
@@ -63,8 +69,7 @@ classdef OctreeNode < handle
             end
             
             % 2. Check if this node is at capacity
-            currentOccupancy = numel(this.Points);
-            if this.Capacity > currentOccupancy
+            if this.Capacity > this.NumberOfPoints
                 % Add the point to the array
                 this.Points = vertcat(this.Points,octPoint); 
                 flag = true;
@@ -93,23 +98,47 @@ classdef OctreeNode < handle
                 n = n + ni;
             end
         end
-        function [h] = Draw(this,container)
+        function [h] = Draw(this,container,colour)
             % Allow drawing of the octree node.
 
             if nargin < 2
                 container = gca;
             end
-            
-            % Draw the cuboid
-            plot3(container,this.Boundary.Center(1),this.Boundary.Center(2),this.Boundary.Center(3),"ro");
-            min = this.Boundary.Center + this.Boundary.Min;
-            max = this.Boundary.Center + this.Boundary.Max;
-            mesh = MeshGenerator.CuboidFromExtents(min,max);
-            h = mesh.Draw(container,'c');
+            if nargin < 3
+                colour = "r";
+            end
+
+            % Plot the boundary from its extents
+            mesh = MeshGenerator.CuboidFromExtents( ...
+                this.Boundary.Min, ...
+                this.Boundary.Max);
+            h = mesh.Draw(container,colour);
             set(h,"FaceAlpha",0.2);
 
+            % Ask all children to draw themselves
             for i = 1:numel(this.Children)
-                this.Children(i).Draw(container);
+                this.Children(i).Draw(container,colour);
+            end
+        end
+        function [h] = DrawPoints(this,container,colour)
+            % Draw all the points within the tree
+            if nargin < 2
+                container = gca;
+            end
+            if nargin < 3
+                colour = "r";
+            end
+
+            % Draw all my points
+            h = [];
+            for i = 1:this.NumberOfPoints
+                this.Points(i).Draw(container,colour);
+            end
+
+            % Ask children to draw all their points
+            for i = 1:numel(this.Children)
+                this.Children(i).DrawPoints(container,colour);
+%                 h = vertcat(h,ch);
             end
         end
     end
@@ -119,8 +148,8 @@ classdef OctreeNode < handle
             % current node.
 
             % Calculate new ranges, zero'd around the child position
-            qSpan = (this.Boundary.Max - this.Boundary.Min)/4;
-            c = this.Boundary.Center;
+            quaterRanges = this.Boundary.Span/4;
+            nodeCenter = this.Boundary.GetMidPoint();
 
             unitaryCuboid = [
                 1, 1, 1;
@@ -131,17 +160,18 @@ classdef OctreeNode < handle
                 -1, 1,-1;
                  1,-1,-1;
                 -1,-1,-1];
-            centroids = unitaryCuboid.*qSpan';
+
+            % Child centroids
+            childCenters = unitaryCuboid.*quaterRanges' + nodeCenter';
 
             for i = 1:8
                 % Position the child centers
-                childCenter = c + centroids(i,:)';
+                childCenter_i = childCenters(i,:)';
                 % Create the new sub-boundary
                 childBoundary = AABB( ...
-                    childCenter, ...
-                    [-1,1]*qSpan(1), ...
-                    [-1,1]*qSpan(2), ...
-                    [-1,1]*qSpan(3));
+                    [-1,1]*quaterRanges(1) + childCenter_i(1), ...
+                    [-1,1]*quaterRanges(2) + childCenter_i(2), ...
+                    [-1,1]*quaterRanges(3) + childCenter_i(3));
                 % Assign the new child
                 this.Children(i) = OctreeNode(childBoundary,this.Capacity);
             end

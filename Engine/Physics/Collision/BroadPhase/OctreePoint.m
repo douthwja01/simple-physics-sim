@@ -20,6 +20,19 @@ classdef OctreePoint < handle
             assert(IsColumn(p,3),"Expecting a valid cartesian point [3x1].");
             this.Position = p;
         end
+
+        function [h] = Draw(this,container,colour)
+            % Plot the octree-point to a graphical container.
+            if nargin < 2
+                container = gca;
+            end
+            if nargin < 3
+                colour = "k";
+            end
+            % Plot the position coordinate
+            pi = this.Position;
+            h = plot3(container,pi(1),pi(2),pi(3),colour);
+        end
     end
 end
 
