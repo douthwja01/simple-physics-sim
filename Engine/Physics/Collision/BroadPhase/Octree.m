@@ -1,6 +1,7 @@
 classdef Octree < handle
-    %OCTTREE Summary of this class goes here
-    %   Detailed explanation goes here
+    % OCTREE - This class defines an oct-tree hierarchical data structure.
+    % While developed for solving 3D collision problems, the implementation
+    % is generic and can be executed against similar problems.
     
     properties
         Root = OctreeNode.empty;
@@ -30,16 +31,21 @@ classdef Octree < handle
             % Allow the octree to be queried with an boundary to find
             % points within it.
 
-
-            data = [];
+            assert(isa(queryBounds,"AABB"),"Expecting a valid query boundary.");
+            
+            % Recursively seearch for intersections
+            data = this.Root.Query(queryBounds);
         end
         function [flag] = InsertCollider(this,collider)
             % Insert a complete collider into the root node.
             
         end
         function [flag] = InsertPoint(this,point)
+            % Insert a simple point into the octree.
+
+            octPoint = OctreePoint(point,[]);
             % Insert the point into the root node
-            flag = this.Root.InsertPoint(point);
+            flag = this.Root.InsertPoint(octPoint);
         end
         function [n] = GetNumberOfNodes(this)
             n = this.Root.GetNumberOfChildren();
@@ -53,6 +59,5 @@ classdef Octree < handle
             h = this.Root.Draw(container);
         end
     end
-
 end
 

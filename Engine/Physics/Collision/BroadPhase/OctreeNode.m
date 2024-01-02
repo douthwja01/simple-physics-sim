@@ -4,7 +4,7 @@ classdef OctreeNode < handle
     properties
         Capacity = 4;
         Children = OctreeNode.empty;
-        Points = {};
+        Points = OctreePoint.empty;
     end
     properties (SetAccess = private)
         Boundary = AABB.empty();
@@ -18,22 +18,47 @@ classdef OctreeNode < handle
             this.Boundary = boundary;
             this.Capacity = capacity;
         end
+        function set.Points(this,p)
+            assert(isa(p,"OctreePoint"),"Expecting a valid Octree-point.");
+            this.Points = p;
+        end
         % Main Methods
-        function [this] = Query(this,boundary)
-            assert(isa(boundary,"AABB"),"Expecting a valid AABB query region.");
+        function [data] = Query(this,region)
+            % This function takes a AABB query and determines the complete
+            % set of points that exist within it.
 
-            if ~this.Boundary.Intersects(boundary)
+            data = {};
+            
+            % If the query doesn't intersect this region, abort. 
+            if ~this.Boundary.Intersects(region)
                 return;
             end
 
-            
+            % Check all points in the node against the boundary.
+            for i = 1:numel(this.Points)
+                octPoint = this.Points(i);
+
+                if ~region.Contains(octPoint.Position)
+                    continue
+                end
+                % Append the contained point
+                data = vertcat(data,octPoint);
+            end
+
+            if ~this.HasDivided
+                return
+            end
+
+            for i = 1:numel(this.Children)
+                c_data = this.Children(i).Query(region);
+            end
         end
-        function [flag] = InsertPoint(this,point)
+        function [flag] = InsertPoint(this,octPoint)
             % Allow the insertion of a given point into the octreeNode.
  
             % 1. Check if the point is applicable to this node at all.
             flag = false;
-            if ~this.Boundary.Contains(point)
+            if ~this.Boundary.Contains(octPoint.Position)
                 return
             end
             
@@ -41,7 +66,7 @@ classdef OctreeNode < handle
             currentOccupancy = numel(this.Points);
             if this.Capacity > currentOccupancy
                 % Add the point to the array
-                this.Points = vertcat(this.Points,point); 
+                this.Points = vertcat(this.Points,octPoint); 
                 flag = true;
                 return;
             end
@@ -53,7 +78,7 @@ classdef OctreeNode < handle
 
             for i=1:numel(this.Children)
                 % Attempt insertion in each child-node
-                if this.Children(i).InsertPoint(point)
+                if this.Children(i).InsertPoint(octPoint)
                     flag = true;
                     return
                 end
