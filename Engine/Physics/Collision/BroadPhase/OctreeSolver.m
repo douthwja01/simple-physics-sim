@@ -4,7 +4,7 @@ classdef OctreeSolver < BroadPhaseSolver
     
     properties (Access = private)
         Tree = Octree.empty;
-        MaxSize = 100;
+        MaxSize = 10;
     end
     methods 
         function [this] = OctreeSolver(maxSize)
@@ -28,8 +28,8 @@ classdef OctreeSolver < BroadPhaseSolver
             axis vis3d;
 
             % 1. Build the Octree (by inserting all points)
-            worldExtents = this.MaxSize*[-1;1];
-            worldBoundary = AABB(worldExtents,worldExtents,worldExtents/2);
+            worldExtents = this.MaxSize*[-1;1] + [0.5;0.5];
+            worldBoundary = AABB(worldExtents,worldExtents,worldExtents);
             % Create the Octree
             this.Tree = Octree(worldBoundary,1);
 
@@ -38,14 +38,10 @@ classdef OctreeSolver < BroadPhaseSolver
                 if ~this.Tree.InsertCollider(colliders(i))
                     warning("\n Something went wrong, didn't insert Collider %d",colliders(i).Cid);
                 end
-%                 % Simple case (use their centers)
-%                 if ~this.Tree.InsertPoint(colliders(i).Transform.position)
-%                     warning("\n Something went wrong, didn't insert Collider %d",colliders(i).Cid);
-%                 end
             end
 
             fprintf("\n Total nodes '%d'.",this.Tree.GetNumberOfNodes());
-            this.Tree.DrawNodes(ah);
+            this.Tree.DrawNodes(ah,"c",true);
             this.Tree.DrawPoints(ah);
 
             % 2. Query the Octree against each collider
@@ -65,7 +61,7 @@ classdef OctreeSolver < BroadPhaseSolver
                     extents + p(2), ...
                     extents + p(3));
 
-                % Create a representative mesh
+                % Create a representative query mesh
                 mesh = AABB.CreateMesh(queryBounds);
                 h = mesh.Draw(ah,"r");
                 set(h,"FaceAlpha",0.2);

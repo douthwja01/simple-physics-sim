@@ -3,11 +3,13 @@ classdef CollisionWorld < handle
     % Collision world primitive responsible for managing the collision
     % properties of the simulation.
 
+    properties
+        % Broad-phase collision solver
+        BroadPhaseSolver = SweepAndPrune();
+    end
     properties (SetAccess = private)
         % Collidables
         Colliders;
-        % Broad-phase
-        BroadPhaseSolver = SweepAndPrune();
         NarrowPhaseSolvers = NarrowPhaseSolver.empty(0,1);
         % Variables
         Collisions = Manifold.empty;
@@ -26,6 +28,15 @@ classdef CollisionWorld < handle
             addlistener(this,"CollisionFeedback",@(src,evnt)this.OnInternalCollisionLoopback(evnt));
             addlistener(this,"TriggerFeedback",@(src,evnt)this.OnInternalTriggerLoopback(evnt));
         end
+        % Get/sets
+        function set.BroadPhaseSolver(this,s)
+            assert(isa(s,"BroadPhaseSolver"),"Expecting a valid broad-phase solver.");
+            this.BroadPhaseSolver = s;
+        end        
+    end
+    
+    % Interactions
+    methods
         % Resolve world Collisions
         function [this] = ResolveCollisions(this,dt)
             % This function builds the lists of 'detected' collisions and
@@ -82,12 +93,7 @@ classdef CollisionWorld < handle
 %             removelistener
             % Remove a given solver from the array of collisions solvers.
             this.Colliders = this.Colliders(this.Colliders ~= collider);
-        end
-        % Broad-phase
-        function set.BroadPhaseSolver(this,s)
-            assert(isa(s,"BroadPhaseSolver"),"Expecting a valid broad-phase solver.");
-            this.BroadPhaseSolver = s;
-        end        
+        end     
         % Managing collision NarrowPhaseSolvers
         function [this] = AddSolver(this,solver)
             assert(isa(solver,"NarrowPhaseSolver"),"Expecting a valid narrow-phase collision solver.");
@@ -123,7 +129,7 @@ classdef CollisionWorld < handle
         end
     end
     
-    % Utilties
+    % Internals
     methods (Access = private)
         function [points] = TestCollision(this,collider_i,collider_j)
             % Evaluate an individual collision instance

@@ -56,4 +56,5 @@ sim.AddEntity(ground);
 % Simulate
 sim.Physics.SubSteps = 10;
 sim.Physics.Integrator = EulerIntegrator();
+sim.Physics.BroadPhaseSolver = OctreeSolver();
 sim.Simulate(inf);

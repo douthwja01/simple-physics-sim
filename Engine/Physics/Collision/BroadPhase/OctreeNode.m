@@ -2,13 +2,12 @@
 classdef OctreeNode < handle
 
     properties
-        Capacity = 4;
+        Capacity = 2;
         Children = OctreeNode.empty;
         Points = OctreePoint.empty;
     end
     properties (SetAccess = private)
         Boundary = AABB.empty();
-        HasDivided = false;
     end
     properties
         NumberOfPoints;
@@ -51,7 +50,8 @@ classdef OctreeNode < handle
                 data = vertcat(data,octPoint);
             end
 
-            if ~this.HasDivided
+            % If it has not divided
+            if numel(this.Children) == 0
                 return
             end
 
@@ -62,6 +62,9 @@ classdef OctreeNode < handle
         function [flag] = InsertPoint(this,octPoint)
             % Allow the insertion of a given point into the octreeNode.
  
+            % Sanity check
+            assert(isa(octPoint,"OctreePoint"),"Expecting a valid octree point.");
+
             % 1. Check if the point is applicable to this node at all.
             flag = false;
             if ~this.Boundary.Contains(octPoint.Position)
@@ -77,7 +80,7 @@ classdef OctreeNode < handle
             end
 
             % If we are at capacity, we need to divide
-            if ~this.HasDivided
+            if numel(this.Children) == 0
                 this.SubDivide();
             end
 
@@ -98,7 +101,7 @@ classdef OctreeNode < handle
                 n = n + ni;
             end
         end
-        function [h] = Draw(this,container,colour)
+        function [h] = Draw(this,container,colour,onlyifPopulated)
             % Allow drawing of the octree node.
 
             if nargin < 2
@@ -107,17 +110,25 @@ classdef OctreeNode < handle
             if nargin < 3
                 colour = "r";
             end
+            if nargin < 4
+                onlyifPopulated = false;
+            end
+
+            h = [];
+            if this.NumberOfPoints < 1 && onlyifPopulated
+                return
+            end
 
             % Plot the boundary from its extents
             mesh = MeshGenerator.CuboidFromExtents( ...
                 this.Boundary.Min, ...
                 this.Boundary.Max);
             h = mesh.Draw(container,colour);
-            set(h,"FaceAlpha",0.2);
+            set(h,"FaceAlpha",0.1);
 
             % Ask all children to draw themselves
             for i = 1:numel(this.Children)
-                this.Children(i).Draw(container,colour);
+                this.Children(i).Draw(container,colour,onlyifPopulated);
             end
         end
         function [h] = DrawPoints(this,container,colour)
@@ -175,9 +186,6 @@ classdef OctreeNode < handle
                 % Assign the new child
                 this.Children(i) = OctreeNode(childBoundary,this.Capacity);
             end
- 
-            % Indicate we have divided
-            this.HasDivided = true;
         end
     end
 end

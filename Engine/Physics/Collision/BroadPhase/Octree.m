@@ -79,7 +79,7 @@ classdef Octree < handle
             n = this.Root.GetNumberOfChildren();
         end
         
-        function [h] = DrawNodes(this,container,colour)
+        function [h] = DrawNodes(this,container,colour,onlyifPopulated)
             % Draw the complete set of Octree-nodes within the Octree.
             
             % Input parsing
@@ -89,8 +89,11 @@ classdef Octree < handle
             if nargin < 3
                 colour = 'c';
             end
+            if nargin < 4
+                onlyifPopulated = false;
+            end
             % Draw all nodes within the tree
-            h = this.Root.Draw(container,colour);
+            h = this.Root.Draw(container,colour,onlyifPopulated);
         end
         function [h] = DrawPoints(this,container,colour)
             % Draw all Octree-points withing the octree.
