@@ -2,15 +2,16 @@
 classdef DynamicsWorld < CollisionWorld
     % Physics world primitive responsible for managing the dynamic
     % properties of the simulation.
-    
+
+    properties
+        Integrator = VerletIntegrator();    % Numerical integrators
+        SubSteps = 5;
+    end    
     properties (SetAccess = private)
         % Timing
         EnableSubStepping = true;
-        SubSteps = 5;
         Gravity = [0;0;-9.81];
         Bodies = RigidBody.empty;
-        % Numerical integrators
-        Integrator = VerletIntegrator();
     end
     % Main
     methods
@@ -25,22 +26,23 @@ classdef DynamicsWorld < CollisionWorld
             assert(isa(int,"Integrator"),"Expecting a valid integrator.");
             this.Integrator = int;
         end
+        function set.SubSteps(this,steps)
+            assert(mod(steps,1) == 0 && steps > 0,"Expecting an integer number of substeps.")
+            this.SubSteps = steps;
+        end
     end
 
     methods        
         % High-level
-        function [this] = Initialise(this,subSteps)
+        function [this] = Initialise(this)
             % Initialise the dynamic world.
 
-            % Sanity check
-            assert(mod(subSteps,1) == 0 && subSteps > 0,"Expecting an integer number of substeps.")
-
-            if subSteps > 1
+            % Validate substepping
+            if this.SubSteps > 1
                 this.EnableSubStepping = true;
             else
                 this.EnableSubStepping = false;
             end
-            this.SubSteps = subSteps;
         end
         function [this] = Step(this,dt)
             assert(isnumeric(dt),"Expecting a valid time step.");
@@ -96,7 +98,7 @@ classdef DynamicsWorld < CollisionWorld
             for i = 1:numel(this.Bodies)
                 body_i = this.Bodies(i);
                 % If this body is not effected by gravity
-                if (~body_i.IsDynamic)
+                if ~body_i.IsDynamic
                     continue;
                 end
                 % Apply gravity
@@ -112,8 +114,10 @@ classdef DynamicsWorld < CollisionWorld
             for i = 1:numel(this.Bodies)
                 this.Bodies(i).Update();
             end
+            % Extract only the transform
+            bodyTransforms = [this.Bodies.Transform];
             % Use the integrator components to integrate
-            this.Integrator.Integrate(this.Bodies,dt);
+            this.Integrator.Integrate(bodyTransforms,dt);
         end
         % Constraints
         function [this] = ApplyLinks(this)

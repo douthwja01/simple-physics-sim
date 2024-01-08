@@ -3,7 +3,6 @@ classdef Simulator < handle
 
     properties
         TimeDelta = 0.01;
-        PhysicsSubSteps = 5;
         Physics;
         % Contents
         g = [0;0;-9.81];
@@ -37,7 +36,7 @@ classdef Simulator < handle
             this.AddEnginePaths();
 
             % Initialise the physics world with substeps
-            this.Physics.Initialise(this.PhysicsSubSteps);
+            this.Physics.Initialise();
 
             addlistener(this.Physics,"CollisionFeedback",@(src,evnt)this.OnCollisionCallback(src,evnt));
             addlistener(this.Physics,"TriggerFeedback",@(src,evnt)this.OnTriggerCallback(src,evnt));
