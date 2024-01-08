@@ -7,7 +7,7 @@ classdef CollisionWorld < handle
         % Collidables
         Colliders;
         % Broad-phase
-        BroadPhaseSolver = BroadPhaseSolver.empty(0,1);
+        BroadPhaseSolver = SweepAndPrune();
         NarrowPhaseSolvers = NarrowPhaseSolver.empty(0,1);
         % Variables
         Collisions = Manifold.empty;
@@ -21,8 +21,6 @@ classdef CollisionWorld < handle
     methods
         function [this] = CollisionWorld(worldSize)
             % Collision world constructor.
-
-            this.BroadPhaseSolver = OctreeSolver(worldSize); %SweepAndPrune();
 
             % Internal event loop-backs
             addlistener(this,"CollisionFeedback",@(src,evnt)this.OnInternalCollisionLoopback(evnt));
@@ -46,8 +44,6 @@ classdef CollisionWorld < handle
 
             % --- NARROW PHASE ---
             % This routine solves the inter-particle collisions (brute force)   
-
-            % This function solves the inter-particle collisions (brute force)             
             for i = 1:numel(manifolds)
                 manifolds_i = manifolds(i);
                 % Evaluate if there has been a collision for the pair.

@@ -13,6 +13,9 @@ classdef Transform < Element
         Acceleration = zeros(3,1);
         AngularAcceleration = zeros(3,1);
     end
+    properties (Hidden)
+        PriorPosition = [];
+    end
     properties (Dependent)
         rotation;
         position;

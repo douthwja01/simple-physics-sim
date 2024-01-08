@@ -54,5 +54,6 @@ renderer.Colour = "g";
 sim.AddEntity(ground);
 
 % Simulate
-sim.PhysicsSubSteps = 10;
+sim.Physics.SubSteps = 10;
+sim.Physics.Integrator = EulerIntegrator();
 sim.Simulate(inf);
