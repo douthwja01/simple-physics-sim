@@ -71,14 +71,14 @@ classdef Mesh < handle
             % Sanity check
             assert(size(Tf,1) == 4 && size(Tf,2) == 4,"Expecting a valid transformation matrix [4x4].");
             % Transform the center
-            modifiedCenter = Tf*[this.Origin,1]';
+            modifiedCenter = Tf*[this.Origin;1];
             % Transform the vertices
             padding = ones(this.NumberOfVertices,1);
             modifiedVertices = Tf*[this.Vertices,padding]';
             modifiedVertices = modifiedVertices(1:3,:)';
             % Create the two component meshes
             mesh = Mesh(modifiedVertices,this.Faces);
-            mesh.Center = modifiedCenter(1:3)';
+            mesh.Origin = modifiedCenter(1:3)';
         end
         function [mesh] = ScaleBy(this,width,depth,height)
             % Scale the mesh by a set of dimensional values.

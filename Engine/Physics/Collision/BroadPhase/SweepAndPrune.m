@@ -58,7 +58,7 @@ classdef SweepAndPrune < BroadPhaseSolver
                     end
                     
                     % Compare x-bounds
-                    if ~this.AABBs(i).xInterval.Intersects(this.AABBs(j).xInterval)
+                    if ~this.AABBs(i).xBoundary.Intersects(this.AABBs(j).xBoundary)
                         continue
                     end
                     
@@ -77,7 +77,7 @@ classdef SweepAndPrune < BroadPhaseSolver
             logicalIndices = false(numberOfPairs,1);
             for i = 1:numberOfPairs
                 % Evaluate the intersection, logically select if true.
-                if pairs(i,1).yInterval.Intersects(pairs(i,2).yInterval)
+                if pairs(i,1).yBoundary.Intersects(pairs(i,2).yBoundary)
                    logicalIndices(i) = true; 
                 end
             end
@@ -94,7 +94,7 @@ classdef SweepAndPrune < BroadPhaseSolver
             logicalIndices = false(numberOfPairs,1);
             for i = 1:numberOfPairs
                 % Evaluate the intersection, logically select if true.
-                if pairs(i,1).zInterval.Intersects(pairs(i,2).zInterval)
+                if pairs(i,1).zBoundary.Intersects(pairs(i,2).zBoundary)
                    logicalIndices(i) = true; 
                 end
             end

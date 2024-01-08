@@ -78,6 +78,7 @@ classdef Octree < handle
         function [n] = GetNumberOfNodes(this)
             n = this.Root.GetNumberOfChildren();
         end
+        
         function [h] = DrawNodes(this,container,colour)
             % Draw the complete set of Octree-nodes within the Octree.
             

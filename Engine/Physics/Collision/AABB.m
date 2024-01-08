@@ -12,7 +12,7 @@ classdef AABB < Boundary
         Parent = Collider.empty;
     end
     % Intervals in each dimensions
-    properties (Access = private)
+    properties (SetAccess = private)
         xBoundary = Interval.empty;
         yBoundary = Interval.empty;
         zBoundary = Interval.empty;

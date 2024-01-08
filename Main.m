@@ -12,7 +12,7 @@ gridPoints = CreateGrid([-1.5;0;4],numberOfObjects,numberPerColumn,1.1);
 for i = 1:numberOfObjects
     % Place the object
     entity_i = Entity(sprintf("Object %d (Box)",i));
-    entity_i.Transform.position = gridPoints(:,i);
+    entity_i.Transform.position = [0;0;3] + 2*randn(3,1); %gridPoints(:,i);
     % Add elements
     entity_i.AddElement(RigidBody());
     entity_i.AddElement(BoxCollider());
