@@ -5,6 +5,7 @@ classdef OctreeSolver < BroadPhaseSolver
     properties (Access = private)
         Tree = Octree.empty;
         MaxSize = 10;
+        NodeCapacity = 1;
     end
     methods 
         function [this] = OctreeSolver(maxSize)
@@ -31,7 +32,7 @@ classdef OctreeSolver < BroadPhaseSolver
             worldExtents = this.MaxSize*[-1;1] + [0.5;0.5];
             worldBoundary = AABB(worldExtents,worldExtents,worldExtents);
             % Create the Octree
-            this.Tree = Octree(worldBoundary,1);
+            this.Tree = Octree(worldBoundary,this.NodeCapacity);
 
             for i = 1:numel(colliders)
                 % Insert the collider into the tree
@@ -55,6 +56,8 @@ classdef OctreeSolver < BroadPhaseSolver
                 p = colliders(i).Transform.position;
                 extents = 2*[-1;1];
                 
+                plot3(ah,p(1),p(2),p(3),"ro","MarkerFaceColor","r");
+
                 % Construct the boundary to query
                 queryBounds = AABB(...
                     extents + p(1), ...
@@ -62,9 +65,9 @@ classdef OctreeSolver < BroadPhaseSolver
                     extents + p(3));
 
                 % Create a representative query mesh
-                mesh = AABB.CreateMesh(queryBounds);
-                h = mesh.Draw(ah,"r");
-                set(h,"FaceAlpha",0.2);
+%                 mesh = AABB.CreateMesh(queryBounds);
+%                 h = mesh.Draw(ah,"r");
+%                 set(h,"FaceAlpha",0.2);
                 
                 % Query the octree with a range
                 results = this.Tree.Query(queryBounds);

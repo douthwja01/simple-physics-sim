@@ -31,8 +31,8 @@ classdef Octree < handle
             % Allow the octree to be queried with an boundary to find
             % points within it.
 
+            % Sanity check
             assert(isa(queryBounds,"AABB"),"Expecting a valid query boundary.");
-            
             % Recursively seearch for intersections
             data = this.Root.Query(queryBounds);
         end
@@ -42,8 +42,10 @@ classdef Octree < handle
             % We need to insert a mesh
             if isa(collider,"MeshCollider")
 
-                v = collider.Mesh.Vertices;
-                for i = 1:collider.Mesh.NumberOfVertices
+                worldMesh = collider.GetWorldMesh();
+                v = worldMesh.Vertices;
+                %v = collider.Mesh.Vertices;
+                for i = 1:worldMesh.NumberOfVertices
                     vertex = v(i,:)';
                     % Insert a point with reference to the collider
                     octPoint = OctreePoint(vertex,collider);
@@ -78,7 +80,9 @@ classdef Octree < handle
         function [n] = GetNumberOfNodes(this)
             n = this.Root.GetNumberOfChildren();
         end
-        
+    end
+    % Drawing methods
+    methods
         function [h] = DrawNodes(this,container,colour,onlyifPopulated)
             % Draw the complete set of Octree-nodes within the Octree.
             

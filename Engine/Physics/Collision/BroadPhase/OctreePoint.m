@@ -32,7 +32,7 @@ classdef OctreePoint < handle
             % Plot the position coordinate
             pi = this.Position;
             h = plot3(container,pi(1),pi(2),pi(3),colour);
-            set(h,"MarkerSize",10,"Marker","^");
+            set(h,"MarkerSize",10,"Marker","^","MarkerFaceColor",colour);
         end
     end
 end

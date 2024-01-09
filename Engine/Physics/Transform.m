@@ -131,6 +131,9 @@ classdef Transform < Element
             % [To fix after parentage]
             p = this.position;
         end
+        function [T] = WorldTransform(this)
+            T = this.transform;
+        end
         % Rotation conventions
         function [eta] = GetEulers(this)
             % Get the equivalent euler rotations

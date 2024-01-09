@@ -20,6 +20,13 @@ classdef (Abstract) MeshCollider < Collider
             % Update the AABB
             this.RecalculateAABB();
         end
+    
+        function [mesh] = GetWorldMesh(this)
+            
+            T = this.Transform.WorldTransform();
+
+            mesh = this.Mesh.TransformBy(T);
+        end
     end
     % Internals
     methods (Access = protected)
