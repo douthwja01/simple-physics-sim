@@ -8,7 +8,10 @@ classdef Entity < matlab.mixin.Heterogeneous & handle
     end
     properties (SetAccess = private)
         Transform = Transform.empty;
-        Elements = Element.empty;
+        RigidBody = Element.empty;
+        Visuals = Element.empty;
+        Collision = Element.empty;
+        Joints = Element.empty;
     end
     methods
         function [this] = Entity(name)
@@ -22,10 +25,8 @@ classdef Entity < matlab.mixin.Heterogeneous & handle
 
             % Generate a random integer 
             this.Uuid = RandIntOfLength(6);
-            % Add the transform (special-case)
+            % Create a transform
             this.Transform = Transform(zeros(3,1),eye(3));
-            % Also add it to the elements (so it can be found)
-            this.AddElement(this.Transform);
         end
         % Element interaction
         function [element] = GetElement(this,className)
@@ -39,19 +40,19 @@ classdef Entity < matlab.mixin.Heterogeneous & handle
         function [element] = GetElements(this,className)
             assert(isstring(className),"Expecting a string class name");
             % Get all elements that are a given 
-            element = this.Elements(IsClass(this.Elements,className));
+            element = this.Renderer(IsClass(this.Renderer,className));
         end
         function [element] = AddElement(this,element)
             assert(isa(element,"Element"),"Expecting a valid entity 'Element'.");
             % Associate
             element.AssignEntity(this);
-            this.Elements = vertcat(this.Elements,element);
+            this.Renderer = vertcat(this.Renderer,element);
         end
         function [this] = RemoveElement(this,element)
             assert(isa(element,"Element"),"Expecting a valid entity 'Element'.");
             % Disassociate
             element.UnassignEntity(this);
-            this.Elements = this.Elements(this.Elements ~= element);
+            this.Renderer = this.Renderer(this.Renderer ~= element);
         end
     end
 end
