@@ -10,6 +10,7 @@ classdef Transform < Element
     end
     % Kinematic properties (simple containers)
     properties
+        IsStatic = false;
         Velocity = zeros(3,1);
         AngularVelocity = zeros(3,1);
         Acceleration = zeros(3,1);
@@ -17,15 +18,6 @@ classdef Transform < Element
     end
     properties (Hidden)
         PriorPosition = [];
-    end
-    properties (Dependent)
-        %         rotation;
-        %         position;
-        %         state;
-        %         IsSymbolic;
-    end
-    properties
-        IsStatic = false;
     end
     methods
         % Constructor
@@ -61,23 +53,81 @@ classdef Transform < Element
         function set.Scale(this,s)
             assert(IsColumn(s,3),"Expecting a valid 3D scale vector [3x1].");
             this.Scale = s;
-        end       
+        end   
+        function set.IsStatic(this,s)
+            assert(islogical(s),"Expecting a valid logical IsStatic flag.");
+            this.IsStatic = s;
+        end
+        function set.Velocity(this,v)
+            assert(IsColumn(v,3),"Expecting a valid Cartesian linear velocity [3x1].");
+            this.Velocity = v;
+        end
+        function set.AngularVelocity(this,w)
+            assert(IsColumn(w,3),"Expecting a valid Cartesian angular velocity [3x1].");
+            this.AngularVelocity = w;
+        end 
+        function set.Acceleration(this,dv)
+            assert(IsColumn(dv,3),"Expecting a valid Cartesian linear acceleration [3x1].");
+            this.Acceleration = dv;
+        end  
+        function set.AngularAcceleration(this,dw)
+            assert(IsColumn(dw,3),"Expecting a valid Cartesian angular acceleration [3x1].");
+            this.AngularAcceleration = dw;
+        end 
     end
 
-    %% Support functions
+    %% Further accessors
     methods
+        % Parentage
+        function [s] = WorldScale(this)
+            % This scale multiplied by all the parent scales
+
+            % [To fix after parentage]
+            s = this.Scale;
+        end
+        function [p] = WorldPosition(this)
+            % This transform multiplied by all its parents
+
+            % [To fix after parentage]
+            p = this.position;
+        end
+        % Numeric representation
+        function [phi,theta,psi] = GetEulers(this)
+            % This function returns the current set of euler angles.
+            [phi,theta,psi] = PhysicsExtensions.QuaternionToEulers( ...
+                this.Quaternion);
+        end
+        function [this] = SetEulers(this,phi,theta,psi)
+            % This function assigns a given set of euler angles.
+            this.Quaternion = PhysicsExtensions.EulersToQuaternion( ...
+                phi,theta,psi);
+        end
         function [R] = GetRotation(this)
-            
+            % This function returns the current rotation matrix.
+            R = PhysicsExtensions.QuaternionToRotation( ...
+                this.Quaternion);
+        end
+        function [this] = SetRotation(this,R)
+            % This function assigns a given rotation matrix.
+            this.Quaternion = PhysicsExtensions.RotationToQuaternion(R);
         end
         function [T] = GetMatrix(this)
-            
+            % This function returns the current transformation matrix.
+            T = PhysicsExtensions.QuaternionTransform( ...
+                this.Position, ...
+                this.Quaternion);
+        end
+        function [this] = SetMatrix(this,T)
+            % This function assigns a given transformation matrix.
+            [this.Position,R] = PhysicsExtensions.TransformToPose(T);
+            this.Quaternion = PhysicsExtensions.RotationToQuaternion(R);
         end
         function [state] = GetState(this)
             % Return a representitive state vector sufficient to describe
             % the transform's pose.
             state = [this.Quaternion;this.Position];
         end
-        function [state] = SetState(this,state)
+        function [this] = SetState(this,state)
             % Return a representitive state vector sufficient to describe
             % the transform's pose.
 
@@ -86,12 +136,15 @@ classdef Transform < Element
             this.Quaternion = state(1:4,1);
             this.Position = state(5:7,1);
         end
+    end
+
+    %% Support functions
+    methods 
         function [this] = Zero(this)
             % Reset to default transform
             this.Quaternion = [1;0;0;0];
             this.Position = zeros(3,1);
         end
-        % Other
         function [flag] = IsSymbolic(this)
             % A simple check if the transform is symbolically defined.
             flag = isa(this.Position,"sym") || isa(this.Quaternion,"sym");
@@ -127,39 +180,6 @@ classdef Transform < Element
             % Draw a triad at the location
             hTri = Graphics.DrawTriad(gizmoParams.scale);
             set(hTri,'Parent',hand);
-        end
-    end
-
-    %% Tools (Instance)
-    methods
-        function [s] = WorldScale(this)
-            % This scale multiplied by all the parent scales
-
-            % [To fix after parentage]
-            s = this.Scale;
-        end
-        function [p] = WorldPosition(this)
-            % This transform multiplied by all its parents
-
-            % [To fix after parentage]
-            p = this.position;
-        end
-        % Rotation conventions
-        function [eta] = GetEulers(this)
-            % Get the equivalent euler rotations
-            eta = Euler.FromRotationMatrix(this.rotation);
-        end
-        function [this] = SetEulers(this,eta)
-            % Set the rotation by euler rotations
-            this.rotation = Eulers.ToRotation(eta);
-        end
-        function [q] = GetQuaternion(this)
-            % Get the equivalent quaternion rotation
-            q = Quaternion.FromRotation(this.rotation);
-        end
-        function [this] = SetQuaternion(this,q)
-            % Set the transform via a quaternion
-            this.rotation = Quaternion.ToRotation(q);
         end
     end
 

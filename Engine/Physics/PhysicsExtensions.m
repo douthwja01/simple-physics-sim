@@ -6,6 +6,224 @@ classdef PhysicsExtensions
         Property1
     end
 
+    %% Quaternion Extensions
+    methods (Static)
+        function [T] = QuaternionTransform(p,q)
+            % This function creates a quaternion transform
+            Rq = QuaternionToRotation(q);
+            % Create the equivalent transform
+            T = PoseToTransform(p,Rq);
+        end
+        function [q] = TransformToQuaternion(T)
+            R = TransformToRotation(T);
+            q = RotationToQuaternion(R);
+        end
+        function [R] = QuaternionToRotation(q)
+            % This function computes the rotation matrix of the quaternion
+            % variables describing the 3D rotations of 3D body.
+
+            % Input sanity check
+            if nargin < 1
+                q = sym('q%d',[4,1],'real');
+            end
+            assert(numel(q) == 4,'The quaternion must be of format [4x1]');
+            
+            isSym = false;
+            if isa(q,"sym")
+                isSym = true;
+            else
+                q = QuaternionPose.Unit(q);  % Normalise the quaternion
+            end
+
+            % Output container
+            R = zeros(3);
+            if isSym
+                R = sym(R);
+            end
+
+            % Define the quaternion rotation matrix
+            R(1,1) = q(1)^2 + q(2)^2 - q(3)^2 - q(4)^2;    
+            R(1,2) = 2*(q(2)*q(3) - q(1)*q(4));
+            R(1,3) = 2*(q(1)*q(3) + q(2)*q(4));
+            R(2,1) = 2*(q(2)*q(3) + q(1)*q(4));
+            R(2,2) = q(1)^2 - q(2)^2 + q(3)^2 - q(4)^2;
+            R(2,3) = 2*(q(3)*q(4) - q(1)*q(2));
+            R(3,1) = 2*(q(2)*q(4) - q(1)*q(3));
+            R(3,2) = 2*(q(1)*q(2) + q(3)*q(4));
+            R(3,3) = q(1)^2 - q(2)^2 - q(3)^2 + q(4)^2;
+
+            % Reduce where possible
+%             R = SymTools.Reduce(R);
+        end
+        function [q] = RotationToQuaternion(R)
+            % This function is designed to convert from a rotation matrix
+            % to an equivalent quaternion. This function is also parallel
+            % to "rotm2quat.m".
+
+            % Sanity check
+            assert(IsRotationMatrix(R),"Expecting a valid rotation matrix [3x3].");
+
+            % The trace
+            tr = R(1,1) + R(2,2) + R(3,3);
+
+            % Container
+            q = zeros(4,1);
+            if isa(R,"sym")
+                q = sym(q);
+                % Assume condition #1
+                S = sqrt(tr + 1.0) * 2; 
+                q(1) = 0.25 * S;
+                q(2) = (R(3,2) - R(2,3)) / S;
+                q(3) = (R(1,3) - R(3,1)) / S;
+                q(4) = (R(2,1) - R(1,2)) / S;
+                % Reduce if possible
+                q = SymTools.Reduce(q);
+                return
+            end
+
+            % OUTPUT Matches rotm2quat
+            if tr > 0 
+                S = sqrt(tr + 1.0) * 2; 
+                q(1) = 0.25 * S;
+                q(2) = (R(3,2) - R(2,3)) / S;
+                q(3) = (R(1,3) - R(3,1)) / S;
+                q(4) = (R(2,1) - R(1,2)) / S;
+                % is valid
+            elseif ((R(1,1) > R(2,2)) && (R(1,1) > R(3,3)))
+                S = sqrt(1.0 + R(1,1) - R(2,2) - R(3,3)) * 2; % S=4*q(2)
+                q(1) = (R(3,2) - R(2,3)) / S;
+                q(2) = 0.25 * S;
+                q(3) = (R(1,2) + R(2,1)) / S;
+                q(4) = (R(1,3) + R(3,1)) / S;
+                % is valid
+            elseif (R(2,2) > R(3,3))
+                S = sqrt(1.0 + R(2,2) - R(1,1) - R(3,3)) * 2; % S=4*q(3)
+                q(1) = (R(1,3) - R(3,1)) / S;
+                q(2) = (R(1,2) + R(2,1)) / S;
+                q(3) = 0.25 * S;
+                q(4) = (R(2,3) + R(3,2)) / S;
+                % to validate
+            else
+                S = sqrt(1.0 + R(3,3) - R(1,1) - R(2,2)) * 2; % S=4*q(4)
+                q(1) = (R(2,1) - R(1,2)) / S;
+                q(2) = (R(1,3) + R(3,1)) / S;
+                q(3) = (R(2,3) + R(3,2)) / S;
+                q(4) = 0.25 * S;
+                % to validate
+            end
+            % Reduce where possible
+%             q = SymTools.Reduce(q);
+        end
+        function [phi,theta,psi] = QuaternionToEulers(q)
+            % Sanity check
+            assert(numel(q) == 4,"Expecting quaternion vector [4x1].");
+
+            % Compute the euler rotation from a unit quaternion
+            phi = atan2(2*(q(1)*q(2) + q(3)*q(4)),(1 - 2*(q(2)^2 + q(3)^2)));
+            theta = asin(2*(q(1)*q(3) - q(4)*q(2)));
+            psi = atan2(2*(q(1)*q(4) + q(2)*q(3)),(1 - 2*(q(3)^2 + q(4)^2)));
+        end
+        function [q] = EulersToQuaternion(phi,theta,psi)
+            % Generate a quaternion of the equivalent euler angles.
+
+            % Abbreviations for the various angular functions
+            cy = cos(psi * 0.5);
+            sy = sin(psi * 0.5);
+            cp = cos(theta * 0.5);
+            sp = sin(theta * 0.5);
+            cr = cos(phi * 0.5);
+            sr = sin(phi * 0.5);
+
+            q = zeros(4,1);
+            q(1) = cr * cp * cy + sr * sp * sy;
+            q(2) = sr * cp * cy - cr * sp * sy;
+            q(3) = cr * sp * cy + sr * cp * sy;
+            q(4) = cr * cp * sy - sr * sp * cy;
+        end
+    end
+
+    %% Euler Extensions
+    methods (Static)
+        function [T] = EulerTransform(x,y,z,rx,ry,rz)
+            % Axis displacements -> Transform
+            % Sanity check
+            assert(isscalar(x),"Expecting a scalar x displacement.");
+            assert(isscalar(y),"Expecting a scalar y displacement.");
+            assert(isscalar(z),"Expecting a scalar z displacement.");
+            assert(isscalar(rx),"Expecting a scalar x rotation.");
+            assert(isscalar(ry),"Expecting a scalar y rotation.");
+            assert(isscalar(rz),"Expecting a scalar z rotation.");
+            % Define parameters
+            p = [x;y;z];                 % Translate about x,y,z
+            % The euler rotation
+            Re = EulersToRotation(rx,ry,rz);
+            % Compound transform
+            T = PoseToTransform(p,Re);
+        end
+        function [phi,theta,psi] = TransformToEulers(T)
+            % Rotation matrix -> Eulers
+            % Rotation of the fixed to the global pose
+
+            % Sanity check
+            assert(IsSquare(T,4),"Expecting a [4x4] transformation matrix.");
+
+            % Extract the rotation
+            R = TransformToRotation(T);
+            [phi,theta,psi] = RotationToEulers(R);
+        end
+        function [T] = EulersToTransform(phi,theta,psi)
+            % Eulers -> rotation matrix
+            % INPUTS
+            % phi   - Roll angle (x-axis)
+            % theta - Pitch angle (y-axis)
+            % psi   - Yaw angle (z-axis)
+            % OUTPUT
+            % Reta - Combined rotations about the zyx axes
+
+            % Input sanity check
+            if nargin == 3
+                eta = [phi;theta;psi];
+            elseif nargin == 1
+                eta = phi; % phi = [phi,theta,psi]
+            elseif nargin == 0
+                eta = [sym('phi_t','real');sym('theta_t','real');sym('psi_t','real')];
+            else
+                error('Please provide either a vector of Euler angle or a series of Euler angles.');
+            end
+
+            % Check the inputs
+            assert(numel(eta) == 3,'Euler angles must be provided by a vector [3x1].');
+            assert(isa(eta,'sym') || isnumeric(eta),'Euler angles must be a symbolic or numeric value.');
+
+            % Euler rotation
+            Re = EulersToRotation(eta(1),eta(2),eta(3));
+            % The transform
+            T = RotationToTransform(Re);
+        end
+        function [phi,theta,psi] = RotationToEulers(R)
+            % Calculate the euler rotations from a given rotation matrix.
+
+            % Sanity check
+            assert(IsRotationMatrix(R),"Expecting a valid rotation matrix.");
+ 
+            sy = sqrt(R(1,1) * R(1,1) +  R(2,1) * R(2,1));
+            singular = sy < 1e-6;
+            if ~singular
+                phi = atan2(R(2,1),R(1,1));
+                theta = atan2(-R(3,1),sy);
+                psi = atan2(R(3,2),R(3,3));                
+            else
+                phi = 0;
+                theta = atan2(-R(3,1),sy);
+                psi = atan2(-R(2,3),R(2,2));
+            end
+        end
+        function [R] = EulersToRotation(phi,theta,psi)
+            % Calculate the rotation matrix from euler representation
+            R = R_x(phi)*R_y(theta)*R_z(psi);
+        end
+    end
+
     %% Transform Extensions
     methods (Static)
         % Operations
@@ -75,40 +293,40 @@ classdef PhysicsExtensions
             v = v(1:3,1);
         end
         % Matrix operations
-        function [matrix] = Normalise(matrix)
+        function [T] = Normalise(T)
             % This function normalises the transform representation.
             
-            assert(IsSquare(matrix,4),"Expecting a valid 4x4 transform matrix.");
+            assert(IsSquare(T,4),"Expecting a valid 4x4 transform matrix.");
             
-            R = Transform.ToRotation(matrix);
-            p = Transform.ToPosition(matrix);
+            R = Transform.ToRotation(T);
+            p = Transform.ToPosition(T);
             j = R(1:3,2);
             k = R(1:3,3);
             % Recalculate perpendicular assets
             i = cross(j, k);         % N = O x A
             j = cross(k, i);         % O = A x N
             % Reassign rotation
-            matrix = Transform.FromPose(p,[Unit(i),Unit(j),Unit(k)]);
+            T = Transform.FromPose(p,[Unit(i),Unit(j),Unit(k)]);
         end
-        function [matrix] = DirectionOnly(matrix)
-            matrix(4,4) = 0;
+        function [T] = DirectionOnly(T)
+            T(4,4) = 0;
         end
-        function [matrix] = TranslationOnly(matrix)
-            matrix(4,4) = 0;
+        function [T] = TranslationOnly(T)
+            T(4,4) = 0;
         end
         % (Advanced) Matrix creation
-        function [adMatrix] = Adjoint(matrix)
+        function [M] = Adjoint(T)
             % Adjoint matrix of a transform
             
             % Sanity check
-            assert(IsSquare(matrix,4),"Expecting a [4x4] transformation matrix");
-            p = Transform.ToPosition(matrix);
-            R = Transform.ToRotation(matrix);
+            assert(IsSquare(T,4),"Expecting a [4x4] transformation matrix");
+            p = Transform.ToPosition(T);
+            R = Transform.ToRotation(T);
             % Create the adjoint representation of the transformation matrix
             %adT = [ R, zeros(3); Skew(p)*R, R]; % [6x6]
-            adMatrix = [ R, Skew(p)*R; zeros(3), R]; % [6x6]
+            M = [ R, Skew(p)*R; zeros(3), R]; % [6x6]
         end        
-        function [matrix] = MDHTransform(d,theta,a,alpha)
+        function [T] = MDHTransform(d,theta,a,alpha)
             % A Modified Denavit-Hartenberg transform
             % This difference between the classical 'dh' and the modified 'mdh'
             % transformation matrix is the position of the coordinate system. Under the
@@ -134,12 +352,12 @@ classdef PhysicsExtensions
             ct = cos(theta);
 
             % modified DH
-            matrix = [   ct,     -st,    0,      a;
+            T = [   ct,     -st,    0,      a;
                 st*ca,   ct*ca,   -sa, -sa*d;
                 st*sa,   ct*sa,    ca,  ca*d;
                 0,       0,     0,     1];
         end
-        function [matrix] = DHTransform(theta,a,d,alpha)
+        function [T] = DHTransform(theta,a,d,alpha)
             % A Denavit-Hartenberg transform
             % INPUTS:
             % d     - Offset along previous z to the common normal
@@ -160,12 +378,12 @@ classdef PhysicsExtensions
             ct = cos(theta);
 
             % Standard DH transform
-            matrix = [ct, -st*ca,   st*sa, a*ct;
+            T = [ct, -st*ca,   st*sa, a*ct;
                 st,  ct*ca,  -ct*sa, a*st;
                 0,     sa,      ca,    d;
                 0,      0,       0,    1];
         end
-        function [matrix] = ScaleTransform(s)
+        function [T] = ScaleTransform(s)
             % This function creates a transformation matrix that preforms a scaling
             % multiplication by the value(s) provided.
 
@@ -183,105 +401,27 @@ classdef PhysicsExtensions
                     error("Expecting either a scalar or [3x1] vector of scaling values.");
             end
             % Create the scaling matrix
-            matrix = [S(1),0,0,0; 0,S(2),0,0; 0,0,S(3),0; 0,0,0,1];
+            T = [S(1),0,0,0; 0,S(2),0,0; 0,0,S(3),0; 0,0,0,1];
         end
-        function [matrix] = SymbolicTransform()
+        function [T] = SymbolicTransform()
             % Generate a symbolic version of the transform.
             s = sym("q%d",[6,1],"real");
-            matrix = Transform.FromScalars(s(1),s(2),s(3),s(4),s(5),s(6));
+            T = Transform.FromScalars(s(1),s(2),s(3),s(4),s(5),s(6));
         end
         % (Standard) Matrix creation
-        function [T] = AxisAngle(axis,angle)
-            % Axis + angle -> Transform,  simply assume unit axes for now
-            assert(IsColumn(axis,3) && norm(axis) == 1,"Axis must be a unit vector.");
-            assert(isscalar(angle),"Angle must be scalar.");
-            T = Transform.FromEulers(axis*angle);
-        end
-        function [T] = FromAxisDisplacements(x,y,z,rx,ry,rz)
-            % Axis displacements -> Transform
-            % Sanity check
-            assert(numel(x) == 1,"Expecting a scalar x displacement.");
-            assert(numel(y) == 1,"Expecting a scalar y displacement.");
-            assert(numel(z) == 1,"Expecting a scalar z displacement.");
-            assert(numel(rx) == 1,"Expecting a scalar x rotation.");
-            assert(numel(ry) == 1,"Expecting a scalar y rotation.");
-            assert(numel(rz) == 1,"Expecting a scalar z rotation.");
-            % Define parameters
-            Pxyz = [x;y;z];                 % Translate about x,y,z
-            
-            Tr = Transform.FromEulers(rx,ry,rz);
-            Tp = Transform.FromPosition(Pxyz);
-            % Aggregate
-            T = Tp*Tr;
-        end
-        function [eulers] = ToEulers(T)
-            % Rotation matrix -> Eulers
-            % Rotation of the fixed to the global pose
-
-            % Sanity check
-            assert(IsSquare(T,4),"Expecting a [4x4] transformation matrix.");
-
-            % Extract the rotation
-            R = Transform.ToRotation(T);
-            sy = sqrt(R(1,1) * R(1,1) +  R(2,1) * R(2,1));
-            singular = sy < 1e-6;
-            if ~singular || isSym
-                x = atan2(R(2,1), R(1,1));
-                y = atan2(-R(3,1), sy);
-                z = atan2(R(3,2) , R(3,3));                
-            else
-                x = 0;
-                y = atan2(-R(3,1), sy);
-                z = atan2(-R(2,3), R(2,2));
-            end
-            % Collate
-            eulers = [x; y; z];
-        end
-        function [T] = FromEulers(phi,theta,psi)
-            % Eulers -> rotation matrix
-            % INPUTS
-            % phi   - Roll angle (x-axis)
-            % theta - Pitch angle (y-axis)
-            % psi   - Yaw angle (z-axis)
-            % OUTPUT
-            % Reta - Combined rotations about the zyx axes
-
-            % Input sanity check
-            if nargin == 3
-                eta = [phi;theta;psi];
-            elseif nargin == 1
-                eta = phi; % phi = [phi,theta,psi]
-            elseif nargin == 0
-                eta = [sym('phi_t','real');sym('theta_t','real');sym('psi_t','real')];
-            else
-                error('Please provide either a vector of Euler angle or a series of Euler angles.');
-            end
-
-            % Check the inputs
-            assert(numel(eta) == 3,'Euler angles must be provided by a vector [3x1].');
-            assert(isa(eta,'sym') || isnumeric(eta),'Euler angles must be a symbolic or numeric value.');
-
-            % Get the progressive rotation matrices
-            Rx = R_x(eta(1));
-            Ry = R_y(eta(2));
-            Rz = R_z(eta(3));
-            % Compute the rotations in Z-Y-X order
-            T = Transform.FromRotation(Rz*Ry*Rx);
-        end
-        function [p,R] = ToPose(T)
+        function [p,R] = TransformToPose(T)
             % Transform -> Position & Rotation
             assert(IsSquare(T,4),"Expecting a [4x4] transformation matrix.");
             p = Transform.ToPosition(T);
             R = Transform.ToRotation(T);
         end
-        % Position & Rotation -> Transform
-        function [T] = FromPose(p,R)
+        function [T] = PoseToTransform(p,R)
             assert(IsColumn(p,3),"Expecting a 3D Cartesian displacement [3x1].");
             assert(IsSquare(R,3),"Expecting a rotation matrix [3x3].");
             % Define the homogenous transformation matrix
             T = [R,p;0,0,0,1];
         end
-        function [R] = ToRotation(T)
+        function [R] = TransformToRotation(T)
             % Transform -> Rotation (SO(2) or SO(3))
             d = size(T);
             assert(d(1) == d(2), 'RTB:t2r:badarg', 'matrix must be square');
@@ -300,7 +440,7 @@ classdef PhysicsExtensions
                 end
             end
         end
-        function [T] = FromRotation(R)
+        function [T] = RotationToTransform(R)
             % Convert a rotation into a transformation matrix.
 
             % Rotation -> Transform
@@ -322,7 +462,7 @@ classdef PhysicsExtensions
                 end
             end
         end
-        function [p] = ToPosition(T)
+        function [p] = TransformToPosition(T)
             % Transform -> Position
             x = size(T);
             assert(IsSquare(T),'matrix must be square');
@@ -338,7 +478,7 @@ classdef PhysicsExtensions
                 error('The matrix has incompatable dimensions.');
             end
         end
-        function [T] = FromPosition(p)
+        function [T] = PositionToTransform(p)
             % Position -> Transform
             x = size(p);
             assert(x(2) == 1, 'The input must be a column vector.');
