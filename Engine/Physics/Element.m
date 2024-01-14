@@ -19,8 +19,8 @@ classdef (Abstract) Element < matlab.mixin.Heterogeneous & handle
             this.Transform = entity.Transform;
         end
         function [this] = UnassignEntity(this)
-            this.Entity = Entity.empty;
-            this.Transform = Transform.empty;
+            this.Entity = Element.empty;
+            this.Transform = Element.empty;
         end
     end
 end

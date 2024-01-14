@@ -11,7 +11,7 @@ classdef EulerIntegrator < Integrator
             
             % Compute the simple Forward-Euler step
             transform.Velocity = transform.Velocity + transform.Acceleration*dt;
-            transform.position = transform.position + transform.Velocity*dt;
+            transform.Position = transform.Position + transform.Velocity*dt;
         end
     end
 end

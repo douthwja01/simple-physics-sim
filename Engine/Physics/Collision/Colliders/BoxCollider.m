@@ -16,8 +16,7 @@ classdef BoxCollider < MeshCollider
             % Call the parent
             [this] = this@MeshCollider();
             % Generate a cuboid-mesh
-            extents = 0.5*[1;1;1];% ones(3,1);
-            this.Mesh = MeshGenerator.CuboidFromExtents(-extents,extents);
+            this.Mesh = MeshExtensions.UnitCube();
         end
         function [points] = TestCollision(this,colliderB)
             % Test for collision between this collider and a variable

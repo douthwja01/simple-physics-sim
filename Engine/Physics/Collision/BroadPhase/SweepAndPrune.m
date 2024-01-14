@@ -31,9 +31,9 @@ classdef SweepAndPrune < BroadPhaseSolver
             % Move through all colliders and construct/transform their
             % AABBs to be representive for this frame.
             for i = 1:numel(colliders)
-                tf_i = colliders(i).Entity.GetElement("Transform");
+                tf_i = colliders(i).Entity.Transform; %("Transform");
                 % Transform the AABB  for i
-                this.AABBs(i) = colliders(i).AABB*tf_i.scale + tf_i.position;
+                this.AABBs(i) = colliders(i).AABB*tf_i.Scale + tf_i.Position;
                 % Ensure the result retains the parent association
                 this.AABBs(i).Parent = colliders(i);
             end

@@ -18,29 +18,27 @@ classdef RigidBody < Element
     end
 
     properties (Access = private)
-        transform;
         acceleration = zeros(3,1);
-
         NetForce = zeros(3,1);
         NetTorque = zeros(3,1);
     end
 
     methods
-        function [this] = RigidBody(varargin)
+        function [this] = RigidBody(entity)
+
+            if nargin < 1
+                entity = Entity.empty;
+            end
+
             % Rigidbody object constructor
-            this = this@Element(varargin{:});
+            [this] = this@Element(entity);
         end
         
         function [this] = Update(this)
             % Update the object using the verlet method.
 
-            % Get the cache
-            if isempty(this.transform)
-               this.transform = this.Entity.GetElement("Transform"); 
-            end
-            
             % Update the physics
-            tf = this.transform;
+            tf = this.Entity.Transform;
             tf.Acceleration = this.acceleration;
         end
 

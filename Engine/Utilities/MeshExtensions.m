@@ -1,7 +1,19 @@
-classdef MeshGenerator
+classdef MeshExtensions
     %MESHGENERATOR Summary of this class goes here
     %   Detailed explanation goes here
     
+    methods (Static)
+        function [mesh] = UnitSphere()
+            % This function creates a unit sphere centered around zero.
+            mesh = MeshExtensions.Sphere(zeros(3,1),1);
+        end
+        function [mesh] = UnitCube()
+            % This function creates a unit cube centered around zero.
+            unitVertices = 0.5*ones(3,1);
+            mesh = MeshExtensions.CuboidFromExtents(-unitVertices,unitVertices);
+        end
+    end
+
     methods (Static)
         % Mass marker 
         function [major,minor] = MassMarker(center,scale)
@@ -60,8 +72,7 @@ classdef MeshGenerator
             major = Mesh([ v0,padding]*Ts + center',f1);
             minor = Mesh([-v0,padding]*Ts + center',f2);
         end
-        % Cylinder
-        function [mesh] = CylinderFromAxis(p0,p,radius)
+        function [mesh] = Cylinder(p0,p,radius)
             % This function generates a mesh as a cylinder between two
             % points with a defined radius
             
@@ -95,7 +106,6 @@ classdef MeshGenerator
             % Generate the mesh object
             mesh = Mesh(vertices,faces);
         end
-        % Triangles
         function [mesh] = Triangle(p0,p1,p2)
             % This function generates a triangular mesh from a set of
             % points.
@@ -110,7 +120,6 @@ classdef MeshGenerator
             % Generate the mesh object
             mesh = Mesh(vertices,faces);
         end
-        % Planes
         function [mesh] = Plane(center,normal,width,height)
             % Generates a planar mesh at a given position, with a provided
             % normal.
@@ -141,7 +150,6 @@ classdef MeshGenerator
             % Create the mesh object
             mesh = Mesh(vertices,faces);      
         end
-        % Cuboids
         function [mesh] = CuboidFromRadius(radius)
             % This function creates a set of vertices for a cube
             % encapsuated in a sphere of a given radius.
@@ -149,7 +157,7 @@ classdef MeshGenerator
             % Calculate extents from radius
             v = ones(3,1)*radius/1.7321;                                 	% Rate of dimensional expansion
             % Generate the equivalent extent-defined cuboid
-            mesh = MeshGenerator.CuboidFromExtents(-v,v);
+            mesh = MeshExtensions.CuboidFromExtents(-v,v);
         end
         function [mesh] = CuboidFromExtents(minExtents,maxExtents)
             % Return a matrix of point defining a cuboid scaled to that of
@@ -175,7 +183,6 @@ classdef MeshGenerator
             % Create a new mesh object
             mesh = Mesh(vertices,faces);
         end
-        % Spheres
         function [mesh] = Sphere(center,radius,faceNumber)
             % This function returns a sphere coordinate cloud at a given
             % position in space, of a given radius.

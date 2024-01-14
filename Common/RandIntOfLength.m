@@ -10,4 +10,5 @@ assert(n > 0,"Expecting a length greater than 0.");
 id = 10^(n - 1);
 % Add the base value to a random seed
 id = id + randi(10^(n) - id,1);
+id = int32(id);
 end

@@ -9,13 +9,18 @@ classdef MeshRenderer < Element
         Alpha = 0.5;
     end
     properties (Access = private)
-%         Transform;
         Handle = gobjects(1);
         MeshHandle = gobjects(1);
     end
     methods
-        function [this] = MeshRenderer()
+        function [this] = MeshRenderer(entity)
             % Constructor for a visual elements
+
+            % Assign the entity
+            [this] = this@Element(entity);
+
+            % Default to unit cuboid
+            this.Mesh = MeshExtensions.UnitCube(); 
         end
         % Get/sets
         function set.Mesh(this,m)
@@ -43,7 +48,7 @@ classdef MeshRenderer < Element
             end
 
             % Transform plot
-            m = this.Transform.transform*Transform.Scale(this.Transform.scale);
+            m = this.Entity.Transform.GetMatrix();
             set(this.Handle,"Matrix",m);
         end
     end
@@ -53,7 +58,7 @@ classdef MeshRenderer < Element
             % Initialise the renderer.
 
             % Plot the handle
-            this.Handle = this.Transform.Plot(ax);
+            this.Handle = this.Entity.Transform.Plot(ax);
 
             % Sanity check
             if isempty(this.Mesh)

@@ -21,22 +21,13 @@ classdef Transform < Element
     end
     methods
         % Constructor
-        function [this] = Transform(p,q)
+        function [this] = Transform(entity)
             % CONSTRUCTOR - Creates and instance of the 'Transform' class
             % from an initial Cartesian position [3x1] and Quaternion
             % [4x1].
 
-            % Input checks
-            if nargin < 2
-                q = [1;0;0;0];
-            end
-            if nargin < 1
-                p = zeros(3,1);
-            end
-
-            % Assign initial values
-            this.Position = p;
-            this.Quaternion = q;
+            % Assign the entity
+            [this] = this@Element(entity);
             % Listen for future changes
             addlistener(this,"Position","PostSet",@(src,evnt)OnTransformUpdate(this));
             addlistener(this,"Quaternion","PostSet",@(src,evnt)OnTransformUpdate(this));
@@ -89,7 +80,7 @@ classdef Transform < Element
             % This transform multiplied by all its parents
 
             % [To fix after parentage]
-            p = this.position;
+            p = this.Position;
         end
         % Numeric representation
         function [phi,theta,psi] = GetEulers(this)
@@ -113,9 +104,12 @@ classdef Transform < Element
         end
         function [T] = GetMatrix(this)
             % This function returns the current transformation matrix.
-            T = PhysicsExtensions.QuaternionTransform( ...
+            Tq = PhysicsExtensions.QuaternionTransform( ...
                 this.Position, ...
                 this.Quaternion);
+            Ts = PhysicsExtensions.ScaleTransform( ...
+                this.Scale);
+            T = Tq*Ts;
         end
         function [this] = SetMatrix(this,T)
             % This function assigns a given transformation matrix.
@@ -173,8 +167,7 @@ classdef Transform < Element
                 set(hand,"Matrix",eye(4));
             else
                 % Attempt to get numeric instance of this transform
-                m = this.Matrix * Transform.Scale(this.Scale);
-                set(hand,"Matrix",m);
+                set(hand,"Matrix",this.GetMatrix());
             end
 
             % Draw a triad at the location

@@ -136,8 +136,8 @@ classdef DynamicsWorld < CollisionWorld
             for i = 1:numel(this.Bodies)
                 object_i = this.Bodies(i);
 
-                transform_i = object_i.Entity.GetElement("Transform");
-                collider_i = object_i.Entity.GetElement("Collider");
+                transform_i = object_i.Entity.Transform;
+                collider_i = object_i.Entity.Collider;
                 
                 v = transform_i.position - globeCenter;
                 distance = norm(v);

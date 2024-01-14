@@ -2,17 +2,13 @@ classdef PhysicsExtensions
     %PHYSICSEXTENSIONS Summary of this class goes here
     %   Detailed explanation goes here
 
-    properties
-        Property1
-    end
-
     %% Quaternion Extensions
     methods (Static)
         function [T] = QuaternionTransform(p,q)
             % This function creates a quaternion transform
-            Rq = QuaternionToRotation(q);
+            Rq = PhysicsExtensions.QuaternionToRotation(q);
             % Create the equivalent transform
-            T = PoseToTransform(p,Rq);
+            T = PhysicsExtensions.PoseToTransform(p,Rq);
         end
         function [q] = TransformToQuaternion(T)
             R = TransformToRotation(T);
@@ -32,7 +28,7 @@ classdef PhysicsExtensions
             if isa(q,"sym")
                 isSym = true;
             else
-                q = QuaternionPose.Unit(q);  % Normalise the quaternion
+                q = PhysicsExtensions.qUnit(q);  % Normalise the quaternion
             end
 
             % Output container
@@ -139,6 +135,25 @@ classdef PhysicsExtensions
             q(2) = sr * cp * cy - cr * sp * sy;
             q(3) = cr * sp * cy + sr * cp * sy;
             q(4) = cr * cp * sy - sr * sp * cy;
+        end
+        % Operations
+        function [qv] = qMultiply(q,v)
+            % Calculate the product of two quaternions
+            % Associated block:
+            % "Quaternion Multiplication"
+            % Multiply the quaternion elements
+
+            assert(size(q,1) == 4 && size(v,1) == 4,...
+                'Both quaternion must be provided as 4x1 column vectors')
+            % Quaternion projection matrix
+            qv = [v(1), -v(2), -v(3), -v(4);
+                v(2),  v(1), -v(4),  v(3);
+                v(3),  v(4),  v(1), -v(2);
+                v(4), -v(3),  v(2),  v(1)]*q; % Confirmed with matlab website
+        end
+        function [q_hat] = qUnit(q)
+            % This function normalises the quaternion
+            q_hat = q/sqrt(q(1)^2 + q(2)^2 + q(3)^2 + q(4)^2);
         end
     end
 

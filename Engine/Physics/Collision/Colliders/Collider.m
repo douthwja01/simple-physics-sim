@@ -146,7 +146,7 @@ classdef (Abstract) Collider < Element
             axisRay = Ray.FromPoints(bWorldPosition,sWorldPosition);
 
             % Get the collider mesh
-            collisionMesh = bCollider.Mesh.TransformBy(bTransform.transform);
+            collisionMesh = bCollider.Mesh.TransformBy(bTransform.GetMatrix());
             vertexProjections = inf(collisionMesh.NumberOfVertices,1);
             for i = 1:collisionMesh.NumberOfVertices
                 % A given collision vertex
@@ -197,7 +197,7 @@ classdef (Abstract) Collider < Element
             centerToPlaneHeight = Ray.PointProjection(axisRay,bWorldPosition);
             
             % Get the collider mesh
-            collisionMesh = bCollider.Mesh.TransformBy(bTransform.transform);
+            collisionMesh = bCollider.Mesh.TransformBy(bTransform.GetMatrix());
             vertexProjections = inf(collisionMesh.NumberOfVertices,1);
             for i = 1:collisionMesh.NumberOfVertices
                 % A given collision vertex
@@ -248,8 +248,8 @@ classdef (Abstract) Collider < Element
             axisRay = Ray.FromPoints(aWorldPosition,bWorldPosition); 
             reverseAxisRay = Ray.FromPoints(bWorldPosition,aWorldPosition); 
             % Get the orientated collision meshes
-            collisionMeshA = colliderA.Mesh.TransformBy(transformA.transform);
-            collisionMeshB = colliderB.Mesh.TransformBy(transformB.transform);
+            collisionMeshA = colliderA.Mesh.TransformBy(transformA.GetMatrix());
+            collisionMeshB = colliderB.Mesh.TransformBy(transformB.GetMatrix());
             
             % Find the greatest projection of A on the axis
             vertexProjectionsA = zeros(collisionMeshA.NumberOfVertices,1);
