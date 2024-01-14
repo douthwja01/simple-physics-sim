@@ -1,10 +1,12 @@
-classdef Pose < Element
+classdef Pose < TreeElement
     %POSE Summary of this class goes here
     %   Detailed explanation goes here
     
     % Kinematic properties (simple containers)
     properties
+        % Statics
         Transform = Element.empty;
+        % Kinematics
         Velocity = zeros(3,1);
         AngularVelocity = zeros(3,1);
         Acceleration = zeros(3,1);
@@ -18,14 +20,15 @@ classdef Pose < Element
     methods
         function [this] = Pose(entity)
             %POSE Construct an instance of the pose-element
-            %   Detailed explanation goes here
+            % Detailed explanation goes here
 
+            % Input check
             if nargin < 1
                 entity = Entity.empty;
             end
 
             % Assign the entity
-            [this] = this@Element(entity);
+            [this] = this@TreeElement(entity);
 
             % Create a new transform object
             this.Transform = Transform();
