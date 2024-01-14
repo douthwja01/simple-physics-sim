@@ -12,7 +12,7 @@ gridPoints = CreateGrid([-1.5;0;4],numberOfObjects,numberPerColumn,1.1);
 for i = 1:numberOfObjects
     % Place the object
     entity_i = Entity(sprintf("Object %d (Box)",i));
-    entity_i.Transform.Position = gridPoints(:,i);
+    entity_i.Pose.SetWorldPosition(gridPoints(:,i));
     % Add elements
     entity_i.RigidBody = RigidBody();
     entity_i.Collider = BoxCollider();
@@ -28,8 +28,8 @@ end
 
 % Add an obstacle
 fixed = Entity("Obstacle");
-fixed.Transform.Position = [0;0;2];
-fixed.Transform.IsStatic = true;
+fixed.Pose.SetWorldPosition([0;0;2]);
+fixed.Pose.IsStatic = true;
 % Add elements
 fixed.RigidBody = RigidBody();
 fixed.Collider = SphereCollider();
@@ -41,8 +41,8 @@ sim.AddEntity(fixed);
 
 % Add the ground plane
 ground = Entity("Ground");
-ground.Transform.IsStatic = true;
-ground.Transform.Scale = [20;20;1];
+ground.Pose.IsStatic = true;
+ground.Pose.SetWorldScale([20;20;1]);
 % Add elements
 ground.Collider = PlaneCollider();
 % ground.Visuals = 

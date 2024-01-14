@@ -73,16 +73,16 @@ classdef (Abstract) Collider < Element
             assert(sColliderB.Code == ColliderCode.Sphere,"Second collider must be a sphere collider.");
             
             % Pull out the world positions
-            positionA = sColliderA.Transform.WorldPosition();
-            positionB = sColliderB.Transform.WorldPosition();
+            positionA = sColliderA.Pose.GetWorldPosition();
+            positionB = sColliderB.Pose.GetWorldPosition();
 
             % Separation axis
-            collisionAxis = positionA - positionB;
-            distance = norm(collisionAxis);
-            normal = collisionAxis/distance;
+            seperationAxis = positionA - positionB;
+            distance = norm(seperationAxis);
+            unitSeperationAxis = seperationAxis/distance;
             % Points furthest towards each other
-            a = positionA + normal*sColliderA.Radius;
-            b = positionB - normal*sColliderB.Radius;
+            a = positionA + unitSeperationAxis*sColliderA.Radius;
+            b = positionB - unitSeperationAxis*sColliderB.Radius;
             % The overlap distance
             depth = distance - (sColliderA.Radius + sColliderB.Radius);
             isColliding = ~(depth > 0);
@@ -93,7 +93,7 @@ classdef (Abstract) Collider < Element
             end
 
             % Collision points
-            points = CollisionPoints(a,b,normal,depth,isColliding);
+            points = CollisionPoints(a,b,unitSeperationAxis,depth,isColliding);
         end
         function [points] = FindSpherePlaneCollisionPoints(sCollider,pCollider)
             % Find the collisions points between a sphere and a plane.
@@ -103,17 +103,17 @@ classdef (Abstract) Collider < Element
             assert(pCollider.Code == ColliderCode.Plane,"Second collider must be a plane collider.");
 
             % Pull out the transforms
-            sTransform = sCollider.Transform;
+            sWorldPosition = sCollider.Pose.GetWorldPosition();
             % Origin positions in the world
-            pWorldPosition = pCollider.Transform.WorldPosition();
+            pWorldPosition = pCollider.Pose.GetWorldPosition();
 
             % Sphere properties
-		    aCenter = sCollider.Center + sTransform.WorldPosition();
-            aRadius = sCollider.Radius * sTransform.WorldScale();
-            axis = pCollider.Normal/norm(pCollider.Normal);
+		    aCenter = sWorldPosition;
+            aRadius = sCollider.Radius; % * sTransform.GetWorldScale();
+            planeNormal = pCollider.Normal/norm(pCollider.Normal);
 
             % Planar projection
-            distance = dot(aCenter - pWorldPosition,axis);
+            distance = dot(sWorldPosition - pWorldPosition,planeNormal);
             
             % Is it colliding
             isColliding = ~(distance > aRadius);
@@ -123,10 +123,10 @@ classdef (Abstract) Collider < Element
             end
             % Calculate the scalar distance to be resolved
             toResolve = distance - aRadius;
-		    sDepth = aCenter - axis * aRadius;
-		    pDepth = aCenter - axis * toResolve;
+		    sDepth = aCenter - planeNormal * aRadius;
+		    pDepth = aCenter - planeNormal * toResolve;
             % Return the collision points
-            points = CollisionPoints(pDepth,sDepth,axis,toResolve,isColliding);
+            points = CollisionPoints(pDepth,sDepth,planeNormal,toResolve,isColliding);
         end     
         function [points] = FindSphereOBBCollisionPoints(sCollider,bCollider)
             % Find the collision points between a sphere and an OBB box.
@@ -136,17 +136,17 @@ classdef (Abstract) Collider < Element
             assert(sCollider.Code == ColliderCode.Sphere,"Second collider must be a sphere collider.");
 
             % Pull out the transforms
-            sTransform = sCollider.Transform;
-            bTransform = bCollider.Transform;
+            sTransform = sCollider.Pose;
+            bTransform = bCollider.Pose;
             % Origin positions in the world
-            sWorldPosition = sTransform.WorldPosition();
-            bWorldPosition = bTransform.WorldPosition();
+            sWorldPosition = sTransform.GetWorldPosition();
+            bWorldPosition = bTransform.GetWorldPosition();
 
             % Seperation axis (box to sphere)
             axisRay = Ray.FromPoints(bWorldPosition,sWorldPosition);
 
             % Get the collider mesh
-            collisionMesh = bCollider.Mesh.TransformBy(bTransform.GetMatrix());
+            collisionMesh = bCollider.GetTransformedMesh();
             vertexProjections = inf(collisionMesh.NumberOfVertices,1);
             for i = 1:collisionMesh.NumberOfVertices
                 % A given collision vertex
@@ -185,11 +185,11 @@ classdef (Abstract) Collider < Element
             assert(pCollider.Code == ColliderCode.Plane,"Second collider must be a plane collider.");
 
             % Pull out the transforms
-            pTransform = pCollider.Transform;
-            bTransform = bCollider.Transform;
+            pTransform = pCollider.Pose;
+            bTransform = bCollider.Pose;
             % Origin positions in the world
-            pWorldPosition = pTransform.WorldPosition();
-            bWorldPosition = bTransform.WorldPosition();
+            pWorldPosition = pTransform.GetWorldPosition();
+            bWorldPosition = bTransform.GetWorldPosition();
 
             % Create a ray using the plane origin
             axisRay = Ray.FromVector(pWorldPosition,pCollider.Normal);    
@@ -197,7 +197,7 @@ classdef (Abstract) Collider < Element
             centerToPlaneHeight = Ray.PointProjection(axisRay,bWorldPosition);
             
             % Get the collider mesh
-            collisionMesh = bCollider.Mesh.TransformBy(bTransform.GetMatrix());
+            collisionMesh = bCollider.GetTransformedMesh();
             vertexProjections = inf(collisionMesh.NumberOfVertices,1);
             for i = 1:collisionMesh.NumberOfVertices
                 % A given collision vertex
@@ -238,18 +238,18 @@ classdef (Abstract) Collider < Element
             assert(colliderB.Code == ColliderCode.OBB,"Second collider must be a box collider.");
 
             % Pull out the transforms
-            transformA = colliderA.Transform;
-            transformB = colliderB.Transform;
+            transformA = colliderA.Pose;
+            transformB = colliderB.Pose;
             % Origin positions in the world
-            aWorldPosition = transformA.WorldPosition();
-            bWorldPosition = transformB.WorldPosition();
+            aWorldPosition = transformA.GetWorldPosition();
+            bWorldPosition = transformB.GetWorldPosition();
 
             % Create a ray using the plane origin
             axisRay = Ray.FromPoints(aWorldPosition,bWorldPosition); 
             reverseAxisRay = Ray.FromPoints(bWorldPosition,aWorldPosition); 
             % Get the orientated collision meshes
-            collisionMeshA = colliderA.Mesh.TransformBy(transformA.GetMatrix());
-            collisionMeshB = colliderB.Mesh.TransformBy(transformB.GetMatrix());
+            collisionMeshA = colliderA.GetTransformedMesh();
+            collisionMeshB = colliderB.GetTransformedMesh();
             
             % Find the greatest projection of A on the axis
             vertexProjectionsA = zeros(collisionMeshA.NumberOfVertices,1);

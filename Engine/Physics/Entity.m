@@ -7,7 +7,7 @@ classdef Entity < matlab.mixin.Heterogeneous & handle
         Uuid;
     end
     properties %(SetAccess = private)
-        Transform = Element.empty;
+        Pose = Element.empty;
         Renderer = Element.empty;
         RigidBody = Element.empty;
         Collider = Element.empty;
@@ -26,7 +26,7 @@ classdef Entity < matlab.mixin.Heterogeneous & handle
             % Generate a random integer 
             this.Uuid = RandIntOfLength(6);
             % Create a transform
-            this.Transform = Transform(this);
+            this.Pose = Pose(this);
             this.Renderer = MeshRenderer(this);
         end
         % Get/sets
@@ -34,10 +34,10 @@ classdef Entity < matlab.mixin.Heterogeneous & handle
             assert(isinteger(u),"Expecting a valid identity code.");
             this.Uuid = u;
         end
-        function set.Transform(this,T)
-            assert(isa(T,"Transform"),"Expecting a valid transform element.");
-            this.Transform = T;
-            T.AssignEntity(this);
+        function set.Pose(this,pose)
+            assert(isa(pose,"Pose"),"Expecting a valid transform element.");
+            this.Pose = pose;
+            pose.AssignEntity(this);
         end
         function set.Renderer(this,r)
             assert(isa(r,"MeshRenderer"),"Expecting a valid renderer element.");

@@ -115,7 +115,7 @@ classdef DynamicsWorld < CollisionWorld
                 this.Bodies(i).Update();
             end
             % Extract only the transform
-            bodyTransforms = [this.Bodies.Transform];
+            bodyTransforms = [this.Bodies.Pose];
             % Use the integrator components to integrate
             this.Integrator.Integrate(bodyTransforms,dt);
         end

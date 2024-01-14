@@ -48,7 +48,7 @@ classdef MeshRenderer < Element
             end
 
             % Transform plot
-            m = this.Entity.Transform.GetMatrix();
+            m = this.Pose.Transform.GetMatrix();
             set(this.Handle,"Matrix",m);
         end
     end
@@ -58,7 +58,7 @@ classdef MeshRenderer < Element
             % Initialise the renderer.
 
             % Plot the handle
-            this.Handle = this.Entity.Transform.Plot(ax);
+            this.Handle = this.Entity.Pose.Plot(ax);
 
             % Sanity check
             if isempty(this.Mesh)
@@ -70,8 +70,6 @@ classdef MeshRenderer < Element
             this.MeshHandle = this.Mesh.Draw(this.Handle);
             % Render property assignment
             this.RenderPropertiesUpdated();
-%             % Return the handle
-%             this.Handle = h_data;
         end
         function [this] = RenderPropertiesUpdated(this)
             % Update any 'one-time' mesh properties against the active mesh

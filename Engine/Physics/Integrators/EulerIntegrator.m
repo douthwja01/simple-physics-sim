@@ -5,13 +5,20 @@ classdef EulerIntegrator < Integrator
         Name = "Forward Euler-method";
     end
     methods (Access = protected)
-        function [this] = IntegrateTransform(this,transform,dt)
+        function [this] = IntegrateTransform(this,pose,dt)
             % This function computes the euler step for a set of provided
             % bodies/transforms.
             
+            p0 = pose.GetWorldPosition();
+            v0 = pose.Velocity;
+
+
             % Compute the simple Forward-Euler step
-            transform.Velocity = transform.Velocity + transform.Acceleration*dt;
-            transform.Position = transform.Position + transform.Velocity*dt;
+            velocity = v0 + pose.Acceleration*dt;
+            position = p0 + velocity*dt;
+
+            pose.Velocity = velocity;
+            pose.SetWorldPosition(position);
         end
     end
 end

@@ -4,7 +4,9 @@ classdef (Abstract) Element < matlab.mixin.Heterogeneous & handle
     
     properties (SetAccess = private)
         Entity;     % The associated entity
-        Transform;  % The entity's transform
+    end
+    properties (Dependent)
+        Pose;       % The entity's transform
     end
     
     methods
@@ -13,14 +15,15 @@ classdef (Abstract) Element < matlab.mixin.Heterogeneous & handle
                 this.Entity = entity;
             end
         end
+        function [p] = get.Pose(this)
+            p = this.Entity.Pose;
+        end
         function [this] = AssignEntity(this,entity)
             assert(isa(entity,"Entity"),"Expecting a valid entity.");
             this.Entity = entity;
-            this.Transform = entity.Transform;
         end
         function [this] = UnassignEntity(this)
             this.Entity = Element.empty;
-            this.Transform = Element.empty;
         end
     end
 end

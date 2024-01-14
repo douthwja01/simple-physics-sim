@@ -1,33 +1,30 @@
 %% A simple Transform Class (Transform.m) %%%%%%%%%%%%%%%%%%%%
-% A class define a container describing the motion and pose of a point of
-% reference or frame.
+% A class define a container describing the pose of a reference frame.
 
-classdef Transform < Element
+classdef Transform < handle
     properties (SetObservable = true,AbortSet)
         Position = zeros(3,1);
         Quaternion = [1;0;0;0];
         Scale = ones(3,1);
     end
-    % Kinematic properties (simple containers)
-    properties
-        IsStatic = false;
-        Velocity = zeros(3,1);
-        AngularVelocity = zeros(3,1);
-        Acceleration = zeros(3,1);
-        AngularAcceleration = zeros(3,1);
-    end
-    properties (Hidden)
-        PriorPosition = [];
-    end
+
     methods
         % Constructor
-        function [this] = Transform(entity)
+        function [this] = Transform(p,q)
             % CONSTRUCTOR - Creates and instance of the 'Transform' class
             % from an initial Cartesian position [3x1] and Quaternion
             % [4x1].
 
-            % Assign the entity
-            [this] = this@Element(entity);
+            % Input parsing
+            if nargin < 2
+                q = [1;0;0;0];
+            end
+            if nargin < 1
+                p = zeros(3,1);
+            end
+            this.Position = p;
+            this.Quaternion = q;
+
             % Listen for future changes
             addlistener(this,"Position","PostSet",@(src,evnt)OnTransformUpdate(this));
             addlistener(this,"Quaternion","PostSet",@(src,evnt)OnTransformUpdate(this));
@@ -45,43 +42,10 @@ classdef Transform < Element
             assert(IsColumn(s,3),"Expecting a valid 3D scale vector [3x1].");
             this.Scale = s;
         end   
-        function set.IsStatic(this,s)
-            assert(islogical(s),"Expecting a valid logical IsStatic flag.");
-            this.IsStatic = s;
-        end
-        function set.Velocity(this,v)
-            assert(IsColumn(v,3),"Expecting a valid Cartesian linear velocity [3x1].");
-            this.Velocity = v;
-        end
-        function set.AngularVelocity(this,w)
-            assert(IsColumn(w,3),"Expecting a valid Cartesian angular velocity [3x1].");
-            this.AngularVelocity = w;
-        end 
-        function set.Acceleration(this,dv)
-            assert(IsColumn(dv,3),"Expecting a valid Cartesian linear acceleration [3x1].");
-            this.Acceleration = dv;
-        end  
-        function set.AngularAcceleration(this,dw)
-            assert(IsColumn(dw,3),"Expecting a valid Cartesian angular acceleration [3x1].");
-            this.AngularAcceleration = dw;
-        end 
     end
 
     %% Further accessors
     methods
-        % Parentage
-        function [s] = WorldScale(this)
-            % This scale multiplied by all the parent scales
-
-            % [To fix after parentage]
-            s = this.Scale;
-        end
-        function [p] = WorldPosition(this)
-            % This transform multiplied by all its parents
-
-            % [To fix after parentage]
-            p = this.Position;
-        end
         % Numeric representation
         function [phi,theta,psi] = GetEulers(this)
             % This function returns the current set of euler angles.
@@ -176,6 +140,7 @@ classdef Transform < Element
         end
     end
 
+    %% Internals
     methods (Access = private)
         function [this] = OnTransformUpdate(this)
             % This event is notified when the transform value is updated.

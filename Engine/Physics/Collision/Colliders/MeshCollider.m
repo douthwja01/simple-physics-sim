@@ -20,6 +20,11 @@ classdef (Abstract) MeshCollider < Collider
             % Update the AABB
             this.RecalculateAABB();
         end
+
+        function [mesh] = GetTransformedMesh(this)
+            % Return the mesh transformed to world coordinate frame.
+            mesh = this.Mesh.TransformBy(this.Pose.GetWorldMatrix());
+        end
     end
     % Internals
     methods (Access = protected)
