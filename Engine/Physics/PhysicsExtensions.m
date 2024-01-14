@@ -137,6 +137,20 @@ classdef PhysicsExtensions
             q(4) = cr * cp * sy - sr * sp * cy;
         end
         % Operations
+        function [dq] = qDifferential(q0,omega)
+            % Compute the quaternion differential
+
+            assert(numel(q0)==4,"Expecting a valid quaternion [4x1].");
+            assert(IsColumn(omega,3),"Expecting a body axis rate [3x1].");
+
+            % Rewritten to allow multiplication by omega_b directly (of [4x3])
+            Jq = 0.5*[-q0(2), -q0(3), -q0(4);
+                q0(1), -q0(4),  q0(3);
+                q0(4),  q0(1), -q0(2);
+                -q0(3), -q0(2),  q0(1)];
+
+            dq = Jq*omega;
+        end
         function [qv] = qMultiply(q,v)
             % Calculate the product of two quaternions
             % Associated block:

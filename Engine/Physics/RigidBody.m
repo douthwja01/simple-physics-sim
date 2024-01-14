@@ -25,7 +25,9 @@ classdef RigidBody < Element
 
     methods
         function [this] = RigidBody(entity)
+            % CONSTRUCTOR - Construct a copy of the rigidbody class.
 
+            % Input check
             if nargin < 1
                 entity = Entity.empty;
             end

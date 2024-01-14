@@ -10,15 +10,26 @@ classdef EulerIntegrator < Integrator
             % bodies/transforms.
             
             p0 = pose.GetWorldPosition();
+            q0 = pose.GetWorldRotation();
             v0 = pose.Velocity;
-
+            w0 = pose.AngularVelocity;
 
             % Compute the simple Forward-Euler step
-            velocity = v0 + pose.Acceleration*dt;
-            position = p0 + velocity*dt;
+            v = v0 + pose.Acceleration*dt;
+            w = w0 + pose.AngularAcceleration*dt;
+            
+            % Computer 
+            dq = PhysicsExtensions.qDifferential(q0,w);
 
-            pose.Velocity = velocity;
+            % Euler step
+            rotation = q0 + dq*dt;
+            position = p0 + v*dt;
+
+            pose.Velocity = v;
+            pose.AngularVelocity = w;
+            % Set the world properties
             pose.SetWorldPosition(position);
+            pose.SetWorldRotation(rotation);
         end
     end
 end

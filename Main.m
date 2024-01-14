@@ -45,7 +45,7 @@ ground.Pose.IsStatic = true;
 ground.Pose.SetWorldScale([20;20;1]);
 % Add elements
 ground.Collider = PlaneCollider();
-% ground.Visuals = 
+% ground.Visuals 
 ground.Renderer.Mesh = MeshExtensions.Plane(zeros(3,1),[0;0;1],1,1);
 ground.Renderer.Colour = "g";
 sim.AddEntity(ground);
