@@ -18,9 +18,6 @@ classdef MeshRenderer < Element
 
             % Assign the entity
             [this] = this@Element(entity);
-
-            % Default to unit cuboid
-            this.Mesh = MeshExtensions.UnitCube(); 
         end
         % Get/sets
         function set.Mesh(this,m)
