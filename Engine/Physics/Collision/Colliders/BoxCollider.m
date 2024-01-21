@@ -6,7 +6,9 @@ classdef BoxCollider < MeshCollider
         Code = ColliderCode.OBB;
     end
     properties
-        Center = zeros(3,1);
+        Width = 1;
+        Depth = 1;
+        Height = 1;
     end
 
     methods
@@ -19,6 +21,7 @@ classdef BoxCollider < MeshCollider
             this.Mesh = MeshExtensions.UnitCube();
         end
     end
+    % Utilities
     methods
         function [points] = TestCollision(this,colliderB)
             % Test for collision between this collider and a variable
@@ -38,11 +41,25 @@ classdef BoxCollider < MeshCollider
                     error("Collider type not recognised.");
             end
         end
+        function [mesh] = GetTransformedMesh(this)
+            % Convert the default mesh to the rendered mesh.
+            % (Overridden in parent classes).
+
+            % Get the base mesh
+            mesh = GetTransformedMesh@MeshCollider(this); 
+            % Get the transformed mesh
+            mesh = mesh.ScaleBy(this.Width,this.Height,this.Depth);
+        end
         function [aabb] = GetTransformedAABB(this)
             % Overrided needed, sphere colliders do not need a mesh
             % representation as a unitary radius is valid. However, for
             % AABB comparison, a primitive must be constructed any way to
             % represent this radius.
+
+            % Sanity check
+            if isempty(this.Mesh) || this.Mesh.NumberOfVertices == 0
+                return
+            end
 
             % Get the mesh transformed in world coordinates
             mesh = this.GetTransformedMesh();
