@@ -3,18 +3,29 @@ classdef BoxRenderer < MeshRenderer
     %   Detailed explanation goes here
     
     properties
-        Property1
+        Height = 1;
+        Width = 1;
+        Depth = 1;
     end
-    
     methods
-        function [this] = BoxRenderer(entity)
-            % Constructor for a visual elements
-
+        function [this] = BoxRenderer()
+            % CONSTRUCTOR - Construct an instance of the box renderer.
+            
             % Assign the entity
-            [this] = this@MeshRenderer(entity);
-
+            [this] = this@MeshRenderer();
             % Default to unit cuboid
-            this.Mesh = MeshExtensions.UnitCube(); 
+            this.Base = MeshExtensions.UnitCube(); 
+        end
+    end
+    methods (Access = protected)
+        function [mesh] = GetTransformedMesh(this)
+            % Convert the default mesh to the rendered mesh.
+            % (Overridden in parent classes).
+
+            % Get the base mesh
+            mesh = GetTransformedMesh@MeshRenderer(this); 
+            % Get the transformed mesh
+            mesh = mesh.ScaleBy(this.Width,this.Height,this.Depth);
         end
     end
 end

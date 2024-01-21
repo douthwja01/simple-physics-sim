@@ -14,8 +14,6 @@ classdef SphereCollider < Collider
         function [this] = SphereCollider()
             % CONSTRUCTOR - Sphere collider.
             
-            % Populate the equivalent AABB.
-            this.RecalculateAABB();
         end
         function [points] = TestCollision(this,colliderB)
             % Test for collision between this collider and a variable
@@ -39,11 +37,10 @@ classdef SphereCollider < Collider
         function set.Radius(this,r)
             assert(isnumeric(r),"Expecting a numerical radius.");
             this.Radius = r;
-            this.RecalculateAABB();
         end
     end
-    methods (Access = protected)
-        function [this] = RecalculateAABB(this)
+    methods 
+        function [aabb] = GetTransformedAABB(this)
             % Overrided needed, sphere colliders do not need a mesh
             % representation as a unitary radius is valid. However, for
             % AABB comparison, a primitive must be constructed any way to
@@ -51,8 +48,11 @@ classdef SphereCollider < Collider
 
             % Recompute AABB
             r = this.Radius;
-            this.AABB = AABB([-r,r],[-r,r],[-r,r]);
-            this.AABB.Parent = this;
+            aabb = AABB([-r,r],[-r,r],[-r,r]);
+            % Offset the aabb by the sphere's world position
+            aabb = aabb + this.Pose.GetWorldPosition();
+            % assign this as the parent
+            aabb.Parent = this;
         end
     end
 end

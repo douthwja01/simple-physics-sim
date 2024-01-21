@@ -9,17 +9,12 @@ classdef (Abstract) Collider < Element
         IsTrigger = false;
         Cid;
     end
-    properties (SetAccess = protected)
-        AABB = AABB.empty;  % Limits structure
-    end
 
     methods (Abstract)
         % Evaluate collision between this and another collider primitive.
         [points] = TestCollision(colliderB);
-    end
-    methods (Abstract, Access = protected)
         % Provide a means to recalculate the AABB primitive.
-        [this] = RecalculateAABB(this);
+        [aabb] = GetTransformedAABB(this);
     end
 
     % Main

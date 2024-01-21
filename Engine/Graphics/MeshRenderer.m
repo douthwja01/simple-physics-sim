@@ -3,8 +3,8 @@ classdef MeshRenderer < Element
     % This class is a an element responsible for the appearance of the
     % visual elements of an Entity.
 
-    properties %(SetAccess = protected)
-        Mesh = Mesh.empty;
+    properties
+        Base = Mesh.empty;
         Colour = 'r';
         Alpha = 0.5;
     end
@@ -13,16 +13,16 @@ classdef MeshRenderer < Element
         MeshHandle = gobjects(1);
     end
     methods
-        function [this] = MeshRenderer(entity)
+        function [this] = MeshRenderer()
             % Constructor for a visual elements
 
             % Assign the entity
-            [this] = this@Element(entity);
+            [this] = this@Element();
         end
         % Get/sets
-        function set.Mesh(this,m)
-            assert(isa(m,"Mesh"),"Expecting a valid mesh object.");
-            this.Mesh = m;
+        function set.Base(this,m)
+            assert(isa(m,"Mesh"),"Expecting a valid base-mesh object.");
+            this.Base = m;
         end
         function set.Colour(this,colorString)
             assert(isstring(colorString),"Expecting a valid color code string (i.e 'r').");
@@ -50,7 +50,7 @@ classdef MeshRenderer < Element
         end
     end
     % Utilities
-    methods (Access = private)
+    methods (Access = protected)
         function [this] = Initialise(this,ax)
             % Initialise the renderer.
 
@@ -58,15 +58,23 @@ classdef MeshRenderer < Element
             this.Handle = this.Entity.Pose.Plot(ax);
 
             % Sanity check
-            if isempty(this.Mesh)
-                warning("No mesh assigned to renderer.");
+            if isempty(this.Base)
+                wwarning("No mesh assigned to renderer.");
                 return;
             end
 
+            % Get the transformed mesh
+            mesh = this.GetTransformedMesh();
             % Plot the mesh to the handle
-            this.MeshHandle = this.Mesh.Draw(this.Handle);
+            this.MeshHandle = mesh.Draw(this.Handle);
             % Render property assignment
             this.RenderPropertiesUpdated();
+        end
+        function [mesh] = GetTransformedMesh(this)
+            % Convert the default mesh to the rendered mesh.
+            % (Overridden in parent classes).
+
+            mesh = this.Base;           
         end
         function [this] = RenderPropertiesUpdated(this)
             % Update any 'one-time' mesh properties against the active mesh

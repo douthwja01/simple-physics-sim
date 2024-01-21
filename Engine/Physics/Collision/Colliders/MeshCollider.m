@@ -17,8 +17,6 @@ classdef (Abstract) MeshCollider < Collider
         function set.Mesh(this,mesh)
             assert(isa(mesh,"Mesh"),"Expecting a valid mesh.");
             this.Mesh = mesh;
-            % Update the AABB
-            this.RecalculateAABB();
         end
 
         function [mesh] = GetTransformedMesh(this)
@@ -27,8 +25,8 @@ classdef (Abstract) MeshCollider < Collider
         end
     end
     % Internals
-    methods (Access = protected)
-        function [this] = RecalculateAABB(this)
+    methods 
+        function [aabb] = GetTransformedAABB(this)
             % This function recalculates the bounding box from the collider
             % properties.
 
@@ -36,9 +34,11 @@ classdef (Abstract) MeshCollider < Collider
             if isempty(this.Mesh) || this.Mesh.NumberOfVertices == 0
                 return
             end
+
+            % Get the mesh transformed in world coordinates
+            mesh = this.GetTransformedMesh();
             % Recompute AABB
-            this.AABB = AABB.EncloseMesh(this.Mesh);
-            this.AABB.Parent = this;
+            aabb = AABB.EncloseMesh(mesh);
         end
     end
 end

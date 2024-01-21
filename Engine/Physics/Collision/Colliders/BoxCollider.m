@@ -18,6 +18,8 @@ classdef BoxCollider < MeshCollider
             % Generate a cuboid-mesh
             this.Mesh = MeshExtensions.UnitCube();
         end
+    end
+    methods
         function [points] = TestCollision(this,colliderB)
             % Test for collision between this collider and a variable
             % second collider.
@@ -35,6 +37,17 @@ classdef BoxCollider < MeshCollider
                 otherwise
                     error("Collider type not recognised.");
             end
+        end
+        function [aabb] = GetTransformedAABB(this)
+            % Overrided needed, sphere colliders do not need a mesh
+            % representation as a unitary radius is valid. However, for
+            % AABB comparison, a primitive must be constructed any way to
+            % represent this radius.
+
+            % Get the mesh transformed in world coordinates
+            mesh = this.GetTransformedMesh();
+            % Compute the aabb for the mesh
+            aabb = AABB.EncloseMesh(mesh);
         end
     end
 end

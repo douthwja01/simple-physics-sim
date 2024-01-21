@@ -7,7 +7,8 @@ classdef PlaneCollider < Collider
     end
     properties
         Width = 1;
-        Height = 1;
+        Depth = 1;
+        Thickness = 0.05;
         Normal = [0;0;1];
     end
     methods
@@ -16,13 +17,13 @@ classdef PlaneCollider < Collider
 
             % Create a collider
             [this] = this@Collider();   
-            % Load a plane mesh
-            this.RecalculateAABB();
         end
         function set.Normal(this,n)
+            assert(IsColumn(n,3),"Expecting a normal [3x1].");
             this.Normal = n;
-            this.RecalculateAABB();
         end
+    end
+    methods
         function [points] = TestCollision(this,colliderB)
             % Test for collision between this collider and a variable
             % second collider.
@@ -38,25 +39,19 @@ classdef PlaneCollider < Collider
                     error("Collider type not recognised.");
             end
         end
-    end
-    methods (Access = protected)
-        function [this] = RecalculateAABB(this)
+        function [aabb] = GetTransformedAABB(this)
             % This function is called when the normal vector is changed in
             % order to update the mesh that defines the plane to match the
             % new normal.
         
-            % Create 
-            tempMesh = MeshExtensions.Plane( ...
-                zeros(3,1), ...
-                this.Normal, ...
-                this.Width, ...
-                this.Height);
-        
             % We need the box enclosing the plane in each dimension.
-
+            w = this.Width;
+            d = this.Depth;
+            t = this.Thickness;
             % Recompute AABB
-            this.AABB = AABB.EncloseMesh(tempMesh);
-            this.AABB.Parent = this;
+            aabb = AABB(0.5*[-w,w],0.5*[-d,d],[0,-t]);
+            % Assign the parent
+            aabb.Parent = this;
         end
     end
 end
