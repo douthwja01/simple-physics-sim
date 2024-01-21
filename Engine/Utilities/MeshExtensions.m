@@ -3,6 +3,16 @@ classdef MeshExtensions
     %   Detailed explanation goes here
     
     methods (Static)
+        function [mesh] = UnitPlane()
+            % This function creates a simple unit plane
+            
+            % Simple unit vertices
+            vertices = [-0.5,0.5,0;0.5,0.5,0;0.5,-0.5,0;-0.5,-0.5,0];
+            % Simple plane faces
+            faces = [1,2,3;1,3,4];
+            % convert to mesh
+            mesh = Mesh(vertices,faces);
+        end
         function [mesh] = UnitSphere()
             % This function creates a unit sphere centered around zero.
             mesh = MeshExtensions.Sphere(zeros(3,1),1);
@@ -150,6 +160,7 @@ classdef MeshExtensions
             % Create the mesh object
             mesh = Mesh(vertices,faces);      
         end
+        
         function [mesh] = CuboidFromRadius(radius)
             % This function creates a set of vertices for a cube
             % encapsuated in a sphere of a given radius.

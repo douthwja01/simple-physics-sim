@@ -27,7 +27,7 @@ classdef Entity < matlab.mixin.Heterogeneous & handle
             this.Uuid = RandIntOfLength(6);
             % Create a transform
             this.Pose = Pose(this);
-            this.Renderer = MeshRenderer(this);
+            this.Renderer = MeshRenderer();
         end
         % Get/sets
         function set.Uuid(this,u)

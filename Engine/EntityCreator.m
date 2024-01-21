@@ -7,35 +7,67 @@ classdef EntityCreator
     end
     
     methods (Static)
-        function [plane] = Plane(position,rotation)
+        function [plane] = Plane(name,position,rotation)
             % This function creats a plane object.
 
-            plane = Empty("Plane",position,rotation);
-            plane.Pose.IsStatic = true;
-            plane.Pose.SetWorldScale([10;10;0.1]);
+            % Input parsing
+            if nargin < 3
+                rotation = [1;0;0;0];
+            end
+            if nargin < 2
+                position = zeros(3,1);
+            end
+            if nargin < 1
+                name = "Plane";
+            end
+
+            % Create the empty
+            plane = EntityCreator.Empty(name,position,rotation);
             % Add plane elements
             plane.Collider = PlaneCollider();
             plane.Renderer = PlaneRenderer();
         end
-        function [cube] = Box(position,rotation)
+        function [cube] = Box(name,position,rotation)
             % This function creates a box object.
 
+            % Input parsing
+            if nargin < 3
+                rotation = [1;0;0;0];
+            end
+            if nargin < 2
+                position = zeros(3,1);
+            end
+            if nargin < 1
+                name = "Box";
+            end
+            
             % Entity box
-            cube = Empty("Box",position,rotation);
+            cube = EntityCreator.Empty(name,position,rotation);
             % Add box elements
             cube.Renderer = BoxRenderer();
             cube.Collider = BoxCollider();
         end
-        function [sphere] = Sphere(position,rotation)
+        function [sphere] = Sphere(name,position,rotation)
             % This function creates a sphere entity.
 
+            % Input parsing
+            if nargin < 3
+                rotation = [1;0;0;0];
+            end
+            if nargin < 2
+                position = zeros(3,1);
+            end
+            if nargin < 1
+                name = "Sphere";
+            end
+
             % Template
-            sphere = Empty("Sphere",position,rotation);
+            sphere = EntityCreator.Empty(name,position,rotation);
             % Add box elements
             sphere.Renderer = SphereRenderer();
             sphere.Collider = SphereCollider();
         end
-        function [obj] = Empty(name,position,rotation)
+        function [this] = Empty(name,position,rotation)
             % Create a simple entity with a given name, position and
             % rotation.
 
@@ -50,10 +82,10 @@ classdef EntityCreator
             end
             
             % Entity box
-            obj = Entity(name);
+            this = Entity(name);
             % Set the entity location
-            obj.Pose.SetWorldPosition(position);
-            obj.Pose.SetWorldRotation(rotation);
+            this.Pose.SetWorldPosition(position);
+            this.Pose.SetWorldRotation(rotation);
         end
     end
 end

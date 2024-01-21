@@ -11,7 +11,7 @@ classdef (Abstract) Element < matlab.mixin.Heterogeneous & handle
     
     methods
         function [this] = Element(entity)
-            if nargin > 1
+            if nargin > 0
                 this.Entity = entity;
             end
         end
