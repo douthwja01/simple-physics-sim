@@ -28,7 +28,7 @@ end
 % Add an obstacle
 fixed = EntityCreator.Sphere("Obstacle",[0;0;2]);
 % Do not move
-fixed.Pose.IsStatic = true;
+fixed.Transformation.IsStatic = true;
 % Add elements
 fixed.RigidBody = RigidBody();
 fixed.Renderer.Colour = "r";
@@ -38,7 +38,7 @@ sim.AddEntity(fixed);
 % Add the ground plane
 ground = EntityCreator.Plane("Ground",zeros(3,1),[1;0;0;0]);
 % Do not move
-ground.Pose.IsStatic = true;
+ground.Transformation.IsStatic = true;
 % Collisions
 ground.Collider.Width = 10;
 ground.Collider.Depth = 10;

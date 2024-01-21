@@ -1,4 +1,3 @@
-
 classdef SphereCollider < Collider
     % A sphere collider primitive
 
@@ -46,13 +45,11 @@ classdef SphereCollider < Collider
             % AABB comparison, a primitive must be constructed any way to
             % represent this radius.
 
-            % Recompute AABB
             r = this.Radius;
+            % Recompute AABB
             aabb = AABB([-r,r],[-r,r],[-r,r]);
             % Offset the aabb by the sphere's world position
-            aabb = aabb + this.Pose.GetWorldPosition();
-            % assign this as the parent
-            aabb.Parent = this;
+            aabb = aabb + this.Transformation.GetWorldPosition();
         end
     end
 end

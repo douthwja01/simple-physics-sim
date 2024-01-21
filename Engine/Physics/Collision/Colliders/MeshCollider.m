@@ -23,7 +23,7 @@ classdef (Abstract) MeshCollider < Collider
     methods
         function [mesh] = GetTransformedMesh(this)
             % Return the mesh transformed to world coordinate frame.
-            mesh = this.Mesh.TransformBy(this.Pose.GetWorldMatrix());
+            mesh = this.Mesh.TransformBy(this.Transformation.GetWorldMatrix());
         end
         function [aabb] = GetTransformedAABB(this)
             % This function recalculates the bounding box from the collider

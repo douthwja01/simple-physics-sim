@@ -68,8 +68,8 @@ classdef (Abstract) Collider < Element
             assert(sColliderB.Code == ColliderCode.Sphere,"Second collider must be a sphere collider.");
             
             % Pull out the world positions
-            positionA = sColliderA.Pose.GetWorldPosition();
-            positionB = sColliderB.Pose.GetWorldPosition();
+            positionA = sColliderA.Transformation.GetWorldPosition();
+            positionB = sColliderB.Transformation.GetWorldPosition();
 
             % Separation axis
             seperationAxis = positionA - positionB;
@@ -98,9 +98,9 @@ classdef (Abstract) Collider < Element
             assert(pCollider.Code == ColliderCode.Plane,"Second collider must be a plane collider.");
 
             % Pull out the transforms
-            sWorldPosition = sCollider.Pose.GetWorldPosition();
+            sWorldPosition = sCollider.Transformation.GetWorldPosition();
             % Origin positions in the world
-            pWorldPosition = pCollider.Pose.GetWorldPosition();
+            pWorldPosition = pCollider.Transformation.GetWorldPosition();
 
             % Sphere properties
 		    aCenter = sWorldPosition;
@@ -131,11 +131,11 @@ classdef (Abstract) Collider < Element
             assert(sCollider.Code == ColliderCode.Sphere,"Second collider must be a sphere collider.");
 
             % Pull out the transforms
-            sTransform = sCollider.Pose;
-            bTransform = bCollider.Pose;
+%             sTransform = sCollider.Transformation;
+%             bTransform = bCollider.Transformation;
             % Origin positions in the world
-            sWorldPosition = sTransform.GetWorldPosition();
-            bWorldPosition = bTransform.GetWorldPosition();
+            sWorldPosition = sCollider.Transformation.GetWorldPosition();
+            bWorldPosition = bCollider.Transformation.GetWorldPosition();
 
             % Seperation axis (box to sphere)
             axisRay = Ray.FromPoints(bWorldPosition,sWorldPosition);
@@ -180,8 +180,8 @@ classdef (Abstract) Collider < Element
             assert(pCollider.Code == ColliderCode.Plane,"Second collider must be a plane collider.");
 
             % Pull out the transforms
-            pTransform = pCollider.Pose;
-            bTransform = bCollider.Pose;
+            pTransform = pCollider.Transformation;
+            bTransform = bCollider.Transformation;
             % Origin positions in the world
             pWorldPosition = pTransform.GetWorldPosition();
             bWorldPosition = bTransform.GetWorldPosition();
@@ -233,8 +233,8 @@ classdef (Abstract) Collider < Element
             assert(colliderB.Code == ColliderCode.OBB,"Second collider must be a box collider.");
 
             % Pull out the transforms
-            transformA = colliderA.Pose;
-            transformB = colliderB.Pose;
+            transformA = colliderA.Transformation;
+            transformB = colliderB.Transformation;
             % Origin positions in the world
             aWorldPosition = transformA.GetWorldPosition();
             bWorldPosition = transformB.GetWorldPosition();

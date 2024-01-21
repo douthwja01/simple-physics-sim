@@ -6,7 +6,7 @@ classdef (Abstract) Element < matlab.mixin.Heterogeneous & handle
         Entity;     % The associated entity
     end
     properties (Dependent)
-        Pose;       % The entity's transform
+        Transformation;       % The entity's transform
     end
     
     methods
@@ -15,8 +15,8 @@ classdef (Abstract) Element < matlab.mixin.Heterogeneous & handle
                 this.Entity = entity;
             end
         end
-        function [p] = get.Pose(this)
-            p = this.Entity.Pose;
+        function [p] = get.Transformation(this)
+            p = this.Entity.Transformation;
         end
         function [this] = AssignEntity(this,entity)
             assert(isa(entity,"Entity"),"Expecting a valid entity.");

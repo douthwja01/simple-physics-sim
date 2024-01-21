@@ -6,8 +6,8 @@ classdef Entity < matlab.mixin.Heterogeneous & handle
         Name = "Unnamed";
         Uuid;
     end
-    properties %(SetAccess = private)
-        Pose = Element.empty;
+    properties 
+        Transformation = Element.empty;
         Renderer = Element.empty;
         RigidBody = Element.empty;
         Collider = Element.empty;
@@ -26,7 +26,7 @@ classdef Entity < matlab.mixin.Heterogeneous & handle
             % Generate a random integer 
             this.Uuid = RandIntOfLength(6);
             % Create a transform
-            this.Pose = Pose(this);
+            this.Transformation = Transformation(this);
             this.Renderer = MeshRenderer();
         end
         % Get/sets
@@ -34,9 +34,9 @@ classdef Entity < matlab.mixin.Heterogeneous & handle
             assert(isinteger(u),"Expecting a valid identity code.");
             this.Uuid = u;
         end
-        function set.Pose(this,pose)
-            assert(isa(pose,"Pose"),"Expecting a valid transform element.");
-            this.Pose = pose;
+        function set.Transformation(this,pose)
+            assert(isa(pose,"Transformation"),"Expecting a valid transform element.");
+            this.Transformation = pose;
             pose.AssignEntity(this);
         end
         function set.Renderer(this,r)
@@ -62,6 +62,9 @@ classdef Entity < matlab.mixin.Heterogeneous & handle
             end
         end
     end
+end
+
+% Entity-Component-System (ECS) logic
 %         % Element interaction
 %         function [element] = GetElement(this,className)
 %             assert(isstring(className),"Expecting a string class name");
@@ -89,4 +92,3 @@ classdef Entity < matlab.mixin.Heterogeneous & handle
 %             this.Renderer = this.Renderer(this.Renderer ~= element);
 %         end
 %     end
-end
