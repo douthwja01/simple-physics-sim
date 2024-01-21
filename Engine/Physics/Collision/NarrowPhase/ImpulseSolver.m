@@ -11,11 +11,11 @@ classdef ImpulseSolver < NarrowPhaseSolver
                 % Replaces non dynamic objects with default values.
                 manifold = manifolds(i);
 
-                bodyA = manifold.ColliderA.Entity.RigidBody;%("RigidBody");
+                bodyA = manifold.ColliderA.Entity.RigidBody;
                 hasRigidBodyA = ~isempty(bodyA);
                 tfA = manifold.ColliderA.Transformation;
 
-                bodyB = manifold.ColliderB.Entity.RigidBody;%GetElement("RigidBody");
+                bodyB = manifold.ColliderB.Entity.RigidBody;
                 hasRigidBodyB = ~isempty(bodyB);
                 tfB = manifold.ColliderB.Transformation;
 
