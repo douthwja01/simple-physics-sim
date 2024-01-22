@@ -12,7 +12,7 @@ classdef EntityCreator
 
             % Input parsing
             if nargin < 3
-                rotation = [1;0;0;0];
+                rotation = Quaternion();
             end
             if nargin < 2
                 position = zeros(3,1);
@@ -32,7 +32,7 @@ classdef EntityCreator
 
             % Input parsing
             if nargin < 3
-                rotation = [1;0;0;0];
+                rotation = Quaternion();
             end
             if nargin < 2
                 position = zeros(3,1);
@@ -52,7 +52,7 @@ classdef EntityCreator
 
             % Input parsing
             if nargin < 3
-                rotation = [1;0;0;0];
+                rotation = Quaternion();
             end
             if nargin < 2
                 position = zeros(3,1);
@@ -72,7 +72,7 @@ classdef EntityCreator
             % rotation.
 
             if nargin < 3
-                rotation = [1;0;0;0];
+                rotation = Quaternion();
             end
             if nargin < 2
                 position = zeros(3,1);

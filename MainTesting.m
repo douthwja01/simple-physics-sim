@@ -7,11 +7,11 @@ sim = Simulator();
 
 numberOfObjects = 12;
 numberPerColumn = 3;
-gridPoints = CreateGrid([-1.5;0;4],numberOfObjects,numberPerColumn,1.1);
+gridPoints = CreateGrid([-1.5;0;4],numberOfObjects,numberPerColumn,1.3);
 
 for i = 1:numberOfObjects
     % Place the object
-    entity_i = EntityCreator.Box("Box",gridPoints(:,i),[1;0;0;0]);
+    entity_i = EntityCreator.Box("Box",gridPoints(:,i),Quaternion.Random());
     % Add elements
     entity_i.RigidBody = RigidBody();
     % Renderer
@@ -26,7 +26,10 @@ for i = 1:numberOfObjects
 end
 
 % Add an obstacle
-fixed = EntityCreator.Sphere("Obstacle",[0;0;2]);
+fixed = EntityCreator.Sphere( ...
+    "Obstacle", ...
+    [0;0;2], ...
+    Quaternion.Random());
 % Do not move
 fixed.Transformation.IsStatic = true;
 % Add elements
@@ -36,7 +39,7 @@ fixed.Renderer.Colour = "r";
 sim.AddEntity(fixed);
 
 % Add the ground plane
-ground = EntityCreator.Plane("Ground",zeros(3,1),[1;0;0;0]);
+ground = EntityCreator.Plane("Ground",zeros(3,1));
 % Do not move
 ground.Transformation.IsStatic = true;
 % Collisions

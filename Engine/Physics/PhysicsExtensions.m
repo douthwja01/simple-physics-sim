@@ -11,8 +11,9 @@ classdef PhysicsExtensions
         end
         % Conversions
         function [T] = QuaternionTransform(p,q)
+            assert(isa(q,"Quaternion"),"Expecting a valid quaternion.");
             % This function creates a quaternion transform
-            Rq = PhysicsExtensions.QuaternionToRotation(q);
+            Rq = q.ToRotation();
             % Create the equivalent transform
             T = PhysicsExtensions.PoseToTransform(p,Rq);
         end

@@ -41,8 +41,40 @@ classdef Quaternion < handle
                 isa(this.W,"sym");
         end
         % Operators
-        function [Q] = plus(this,Q2)
-            Q = this.Multiply(Q2);
+        function [this] = mtimes(this,m)
+            % Override the '*' operator
+
+            if isscalar(m)
+                this.X = this.X*m;
+                this.Y = this.Y*m;
+                this.Z = this.Z*m;
+                this.W = this.W*m;
+                return
+            end
+            if isa(m,"Quaternion")
+                this = this.Multiply(m);
+                return;
+            end
+            error("Quaternion is not currently multipliable by this type.");
+        end
+        function [this] = plus(this,p)
+
+            if isscalar(p) && isnumeric(p)
+                this.X = this.X + p;
+                this.Y = this.Y + p;
+                this.Z = this.Z + p;
+                this.W = this.W + p;
+                return;
+            end
+            if isa(p,"Quaternion")
+                this.X = this.X + p.X;
+                this.Y = this.Y + p.Y;
+                this.Z = this.Z + p.Z;
+                this.W = this.W + p.W;
+                return;
+            end
+
+            error("Quaternion is not currently add-able to this type.");
         end
     end
     %% Instance methods
@@ -115,13 +147,14 @@ classdef Quaternion < handle
     %% Extensions
     methods (Static)
         % Operations
-        function [dQ] = Differential(this,omega)
+        function [dQ] = Differential(Q,omega)
             % Compute the quaternion differential
 
             % Sanity check
+            assert(isa(Q,"Quaternion"),"Expecting a valid quaternion.");
             assert(IsColumn(omega,3),"Expecting a body axis rate [3x1].");
 
-            q0 = this.ToVector();
+            q0 = Q.ToVector();
             % Rewritten to allow multiplication by omega_b directly (of [4x3])
             Jq = 0.5*[-q0(2), -q0(3), -q0(4);
                 q0(1), -q0(4),  q0(3);
@@ -129,6 +162,9 @@ classdef Quaternion < handle
                 -q0(3), -q0(2),  q0(1)];
             % The differential
             dQ = Quaternion(Jq*omega);
+        end
+        function [Q] = Zero()
+            Q = Quaternion();
         end
         % Conversions
         function [Q] = FromRotation(R)
