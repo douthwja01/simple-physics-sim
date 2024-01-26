@@ -1,5 +1,5 @@
 
-classdef CollisionPoints
+classdef ContactPoints
     % A simple class describing a collision violation.
     properties
         A = zeros(3,1);         % Furtherest point of A into B
@@ -10,7 +10,7 @@ classdef CollisionPoints
     end
 
     methods
-        function [this] = CollisionPoints(a,b,n,d,isColliding)
+        function [this] = ContactPoints(a,b,n,d,isColliding)
             % Constructor for the collision points object.
 
             % Sanity check
@@ -29,12 +29,41 @@ classdef CollisionPoints
         end
         function [out] = Swap(this)
             % Swap the points 
-            out = CollisionPoints();
+            out = ContactPoints();
             out.A = this.B;                     % Set the points of A as B
             out.B = this.A;                     % Set the points of B as A
             out.Normal = -this.Normal;          % Also change the direction
             out.Depth = this.Depth;             % Same scalar distance
             out.IsColliding = this.IsColliding; % Still colliding
+        end
+
+        function [h] = Draw(this,container)
+            % Draw the collision points to a given container.
+
+            h = [];
+            if nargin < 2
+                container = gca;
+            end
+            if isempty(this)
+                return;
+            end
+
+            markerSize = 2;
+            
+            % Plot the collision points
+            h(1) = plot3(container,this.A(1),this.A(2),this.A(3), ...
+                "color","r", ...
+                "MarkerSize",markerSize);
+            h(2) = plot3(container,this.B(1),this.B(2),this.B(3), ...
+                "color","b", ...
+                "MarkerSize",markerSize);
+            % The seperation arrow
+            if this.IsColliding
+                arrowColour = "r";
+            else
+                arrowColour = "b";
+            end
+            h(3) = mArrow3(this.A,this.B,"color",arrowColour,"stemWidth",2);
         end
     end
 end

@@ -11,7 +11,10 @@ gridPoints = CreateGrid([-1.5;0;4],numberOfObjects,numberPerColumn,1.3);
 
 for i = 1:numberOfObjects
     % Place the object
-    entity_i = EntityCreator.Box("Box",gridPoints(:,i),Quaternion.Random());
+    entity_i = EntityCreator.Box( ...
+        "Box", ...
+        gridPoints(:,i), ...
+        Quaternion.FromEulers(0,0,pi/6));
     % Add elements
     entity_i.RigidBody = RigidBody();
     % Renderer

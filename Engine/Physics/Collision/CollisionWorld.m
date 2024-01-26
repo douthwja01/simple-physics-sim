@@ -45,11 +45,12 @@ classdef CollisionWorld < handle
             % --- NARROW PHASE ---
             % This routine solves the inter-particle collisions (brute force)   
             for i = 1:numel(manifolds)
-                manifolds_i = manifolds(i);
+                manifold_i = manifolds(i);
+                
                 % Evaluate if there has been a collision for the pair.
                 this.TestCollision( ...
-                    manifolds_i.ColliderA, ....
-                    manifolds_i.ColliderB);
+                    manifold_i.ColliderA, ....
+                    manifold_i.ColliderB);
             end
             % --------------------
 
@@ -130,6 +131,9 @@ classdef CollisionWorld < handle
 
             % Test collisions with their respective colliders.
             points = collider_i.TestCollision(collider_j);
+
+            %points.Draw(gca);
+                
 
             % If not colliding, skip
             if ~points.IsColliding

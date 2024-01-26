@@ -94,7 +94,9 @@ classdef Quaternion < handle
             qv = [vData(1), -vData(2), -vData(3), -vData(4);
                 vData(2),  vData(1), -vData(4),  vData(3);
                 vData(3),  vData(4),  vData(1), -vData(2);
-                vData(4), -vData(3),  vData(2),  vData(1)]*q; % Confirmed with matlab website
+                vData(4), -vData(3),  vData(2),  vData(1)]*q; 
+            % Confirmed with matlab website
+            
             % Create new quaternion
             Q = Quaternion(qv);
         end
