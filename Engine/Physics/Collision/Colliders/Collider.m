@@ -8,13 +8,10 @@ classdef (Abstract) Collider < Element
     properties
         IsTrigger = false;
         Cid;
+        ShowEventsInConsole = false;
     end
-
-    methods (Abstract)
-        % Evaluate collision between this and another collider primitive.
-        [points] = TestCollision(colliderB);
-        % Provide a means to recalculate the AABB primitive.
-        [aabb] = GetTransformedAABB(this);
+    events
+        Collided; 
     end
 
     % Main
@@ -29,6 +26,9 @@ classdef (Abstract) Collider < Element
 
             % Create a random colliderId
             this.Cid = RandIntOfLength(6);
+
+            % Register for engine feedback
+            addlistener(this,"Collided",@(src,evnt)this.OnColliderEvent(evnt));
         end
         % Get/sets
         function set.IsTrigger(this,isTrigger)
@@ -41,24 +41,53 @@ classdef (Abstract) Collider < Element
         end
     end
 
-    % Callbacks
-    methods %(Access = private)
-        function [this] = OnCollision(this,collision)
-            % When the on-collision event is triggered by the world.            
+    % Further collider requirements
+    methods (Abstract)
+        % Evaluate collision between this and another collider primitive.
+        [points] = TestCollision(colliderB);
+        % Provide a means to recalculate the AABB primitive.
+        [aabb] = GetTransformedAABB(this);
+    end
 
-%             fprintf("Collider '%s', collided with '%s'.\n", ...
-%                 collision.ColliderA.Entity.Name, ...
-%                 collision.ColliderB.Entity.Name);
-        end
-        function [this] = OnTrigger(this,trigger)
-            % When the on-collision event is triggered by the world.
+    %% Internals
+    methods (Access = private)
+        function [this] = OnColliderEvent(this,colliderData)
+            % In the event of collision/trigger event raised, call the
+            % associated feedbacks based on the collider configuration.
 
-%             fprintf("Trigger '%s', triggered by '%s'\n.", ...
-%                 trigger.ColliderA.Entity.Name, ...
-%                 trigger.ColliderB.Entity.Name);
+            % Throw the Trigger/collision call-back
+            if this.IsTrigger
+                this.OnTrigger(colliderData);
+            else
+                this.OnCollision(colliderData);
+            end
         end
     end
-    % Collider Utilities
+    % Default methods (to override)
+    methods (Access = protected)
+        function [this] = OnCollision(this,colliderData)
+            % When the on-collision event is triggered by the world.            
+
+            % If requested, tell the world
+            if this.ShowEventsInConsole
+                fprintf("Collider '%s', collided with '%s'.\n", ...
+                    colliderData.Source.Entity.Name, ...
+                    colliderData.Collider.Entity.Name);
+            end
+        end
+        function [this] = OnTrigger(this,colliderData)
+            % When the on-trigger event is triggered by the world.
+
+            % If requested, tell the world
+            if this.ShowEventsInConsole
+                fprintf("Trigger '%s', triggered by '%s'.\n", ...
+                    colliderData.Source.Entity.Name, ...
+                    colliderData.Collider.Entity.Name);
+            end
+        end
+    end
+
+    %% Collider Utilities
     methods (Static)
         function [points] = FindSphereSphereContactPoints(sColliderA,sColliderB)
             % Find the collision points between two spheres.
