@@ -60,7 +60,7 @@ classdef (Abstract) Collider < Element
     end
     % Collider Utilities
     methods (Static)
-        function [points] = FindSphereSphereCollisionPoints(sColliderA,sColliderB)
+        function [points] = FindSphereSphereContactPoints(sColliderA,sColliderB)
             % Find the collision points between two spheres.
 
             % Sanity check
@@ -83,14 +83,14 @@ classdef (Abstract) Collider < Element
             isColliding = ~(depth > 0);
             % No collision
             if ~isColliding
-                points = CollisionPoints();
+                points = ContactPoints();
                 return;
             end
 
             % Collision points
-            points = CollisionPoints(a,b,unitSeperationAxis,depth,isColliding);
+            points = ContactPoints(a,b,unitSeperationAxis,depth,isColliding);
         end
-        function [points] = FindSpherePlaneCollisionPoints(sCollider,pCollider)
+        function [points] = FindSpherePlaneContactPoints(sCollider,pCollider)
             % Find the collisions points between a sphere and a plane.
 
             % Sanity check
@@ -113,7 +113,7 @@ classdef (Abstract) Collider < Element
             % Is it colliding
             isColliding = ~(distance > aRadius);
             if ~isColliding
-			    points = CollisionPoints();
+			    points = ContactPoints();
                 return;
             end
             % Calculate the scalar distance to be resolved
@@ -121,18 +121,15 @@ classdef (Abstract) Collider < Element
 		    sDepth = aCenter - planeNormal * aRadius;
 		    pDepth = aCenter - planeNormal * toResolve;
             % Return the collision points
-            points = CollisionPoints(pDepth,sDepth,planeNormal,toResolve,isColliding);
+            points = ContactPoints(pDepth,sDepth,planeNormal,toResolve,isColliding);
         end     
-        function [points] = FindSphereOBBCollisionPoints(sCollider,bCollider)
+        function [points] = FindSphereOBBContactPoints(sCollider,bCollider)
             % Find the collision points between a sphere and an OBB box.
 
             % Sanity check
             assert(bCollider.Code == ColliderCode.OBB,"First collider must be a box collider.");
             assert(sCollider.Code == ColliderCode.Sphere,"Second collider must be a sphere collider.");
 
-            % Pull out the transforms
-%             sTransform = sCollider.Transformation;
-%             bTransform = bCollider.Transformation;
             % Origin positions in the world
             sWorldPosition = sCollider.Transformation.GetWorldPosition();
             bWorldPosition = bCollider.Transformation.GetWorldPosition();
@@ -157,7 +154,7 @@ classdef (Abstract) Collider < Element
             % No collision is occuring
             isColliding = toResolve > 0;
             if ~isColliding
-                points = CollisionPoints();
+                points = ContactPoints();
                 return;
             end
             % The points along the ray
@@ -165,14 +162,14 @@ classdef (Abstract) Collider < Element
             boxPointInSphere = bWorldPosition + largestVertexProjection*axisRay.Direction;
             
             % Return the points
-            points = CollisionPoints( ...
+            points = ContactPoints( ...
                 spherePointInBox, ...
                 boxPointInSphere, ...
                 -axisRay.Direction,... % The ray is reversed
                 toResolve, ...
                 isColliding);
         end
-        function [points] = FindPlaneOBBCollisionPoints(pCollider,bCollider)
+        function [points] = FindPlaneOBBContactPoints(pCollider,bCollider)
             % Find the collision points between an OBB box and a plane.
 
             % Sanity check
@@ -207,7 +204,7 @@ classdef (Abstract) Collider < Element
             isColliding = smallestVertexProjection < 0; 
 
             if ~isColliding
-                points = CollisionPoints();
+                points = ContactPoints();
                 return;
             end
             % The penetrating vertex
@@ -218,14 +215,14 @@ classdef (Abstract) Collider < Element
             toResolve = abs(smallestVertexProjection);
 
             % Create the points
-            points = CollisionPoints( ...
+            points = ContactPoints( ...
                 deepestPointOfAInB, ...
                 deepestPointOfBInA, ...
                 axisRay.Direction,...
                 toResolve,...
                 isColliding);
         end
-        function [points] = FindOBBOBBCollisionPoints(colliderA,colliderB)
+        function [points] = FindOBBOBBContactPoints(colliderA,colliderB)
             % Find the collision points between two OBB boxes.
 
             % Sanity check
@@ -269,7 +266,7 @@ classdef (Abstract) Collider < Element
             % Is colliding
             isColliding = depth > 0;
             if ~isColliding
-                points = CollisionPoints();
+                points = ContactPoints();
                 return;
             end
             % Get the points violating the opposing geometry

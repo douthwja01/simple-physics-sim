@@ -31,10 +31,10 @@ classdef PlaneCollider < Collider
             switch colliderB.Code
                 case ColliderCode.Sphere
                     % The second collider is sphere
-                    points = Collider.FindSpherePlaneCollisionPoints(colliderB,this);
+                    points = Collider.FindSpherePlaneContactPoints(colliderB,this);
                 case ColliderCode.OBB
                     % The second collider is an OBB box
-                    points = Collider.FindPlaneOBBCollisionPoints(this,colliderB);
+                    points = Collider.FindPlaneOBBContactPoints(this,colliderB);
                 otherwise
                     error("Collider type not recognised.");
             end

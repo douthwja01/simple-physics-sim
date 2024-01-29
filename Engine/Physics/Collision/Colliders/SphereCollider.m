@@ -21,13 +21,13 @@ classdef SphereCollider < Collider
             switch colliderB.Code
                 case ColliderCode.Sphere
                     % The second collider is a sphere
-                    points = Collider.FindSphereSphereCollisionPoints(this,colliderB);
+                    points = Collider.FindSphereSphereContactPoints(this,colliderB);
                 case ColliderCode.Plane
                     % The second collider is a plane
-                    points = Collider.FindSpherePlaneCollisionPoints(this,colliderB);
+                    points = Collider.FindSpherePlaneContactPoints(this,colliderB);
                 case ColliderCode.OBB
                     % The second collider is an OBB box
-                    points = Collider.FindSphereOBBCollisionPoints(this,colliderB);
+                    points = Collider.FindSphereOBBContactPoints(this,colliderB);
                 otherwise
                     error("Collider type not recognised.");
             end
