@@ -25,7 +25,7 @@ classdef CollisionWorld < handle
     % Main
     methods
         function [this] = CollisionWorld(varargin)
-            % Collision world constructor.
+            % Construct an instance of the collision world object.
 
         end
         % Resolve world Collisions
@@ -63,6 +63,8 @@ classdef CollisionWorld < handle
 
             % Resolve the collisions
             this.SolveCollisions(dt);
+
+            % --- EVENT GENERATION PHASE ---
             % Notify colliders events
             this.SendColliderEvents();
             % Notify world/engine events
@@ -133,13 +135,14 @@ classdef CollisionWorld < handle
             % Test collisions with their respective colliders.
             points = collider_i.TestCollision(collider_j);
 
-            %points.Draw(gca);
-                
-
             % If not colliding, skip
             if ~points.IsColliding
                 return
             end
+
+            %% DEBUGGING
+%             points.Draw(gca);
+                
 
             % Collision description
             manifold = Manifold(collider_i,collider_j,points);

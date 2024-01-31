@@ -1,7 +1,7 @@
 
 classdef BoxCollider < MeshCollider
     % An Object-Aligned Bounding Box (OBB) collider primitive
-    
+
     properties (Constant)
         Code = ColliderCode.OBB;
     end
@@ -26,17 +26,17 @@ classdef BoxCollider < MeshCollider
         function [points] = TestCollision(this,colliderB)
             % Test for collision between this collider and a variable
             % second collider.
-            
+
             switch colliderB.Code
                 case ColliderCode.Sphere
                     % The second collider is a sphere
-                    points = Collider.FindSphereOBBContactPoints(colliderB,this);
+                    points = CollisionExtensions.FindSphereOBBContactPoints(colliderB,this);
                 case ColliderCode.Plane
                     % The second collider is a plane
-                    points = Collider.FindPlaneOBBContactPoints(colliderB,this);
-                 case ColliderCode.OBB
+                    points = CollisionExtensions.FindPlaneOBBContactPoints(colliderB,this);
+                case ColliderCode.OBB
                     % The second collider is a plane
-                    points = Collider.FindOBBOBBContactPoints(this,colliderB);
+                    points = CollisionExtensions.FindOBBOBBContactPoints(this,colliderB);
                 otherwise
                     error("Collider type not recognised.");
             end
@@ -46,7 +46,7 @@ classdef BoxCollider < MeshCollider
             % (Overridden in parent classes).
 
             % Get the base mesh
-            mesh = GetTransformedMesh@MeshCollider(this); 
+            mesh = GetTransformedMesh@MeshCollider(this);
             % Get the transformed mesh
             mesh = mesh.ScaleBy(this.Width,this.Height,this.Depth);
         end
