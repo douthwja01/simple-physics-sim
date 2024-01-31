@@ -8,7 +8,7 @@ classdef CollisionWorld < handle
         Colliders;
         % Broad-phase
         BroadPhaseSolver = SweepAndPrune();
-        NarrowPhaseSolvers = NarrowPhaseSolver.empty(0,1);
+        NarrowPhaseSolvers = NarrowPhaseCollisionSolver.empty(0,1);
         % Variables
         Collisions = Manifold.empty;
         Triggers = Manifold.empty;
@@ -24,10 +24,6 @@ classdef CollisionWorld < handle
 
     % Main
     methods
-        function [this] = CollisionWorld(varargin)
-            % Construct an instance of the collision world object.
-
-        end
         % Resolve world Collisions
         function [this] = ResolveCollisions(this,dt)
             % This function builds the lists of 'detected' collisions and
@@ -94,7 +90,7 @@ classdef CollisionWorld < handle
         end        
         % Managing collision NarrowPhaseSolvers
         function [this] = AddSolver(this,solver)
-            assert(isa(solver,"NarrowPhaseSolver"),"Expecting a valid narrow-phase collision solver.");
+            assert(isa(solver,"NarrowPhaseCollisionSolver"),"Expecting a valid narrow-phase collision solver.");
             
             % Add a given solver to the array of collision solvers.
             this.NarrowPhaseSolvers = vertcat(this.NarrowPhaseSolvers,solver);
@@ -107,7 +103,7 @@ classdef CollisionWorld < handle
                 % Remove the object
                 this.NarrowPhaseSolvers = this.NarrowPhaseSolvers(vec ~= solver);
             else
-                assert(isa(solver,"Solver"),"Expecting a valid 'Solver' object.");
+                assert(isa(solver,"NarrowPhaseCollisionSolver"),"Expecting a valid 'Solver' object.");
                 % Remove a given solver from the array of collisions solvers.
                 this.NarrowPhaseSolvers = this.NarrowPhaseSolvers(this.NarrowPhaseSolvers ~= solver);
             end
@@ -139,10 +135,6 @@ classdef CollisionWorld < handle
             if ~points.IsColliding
                 return
             end
-
-            %% DEBUGGING
-%             points.Draw(gca);
-                
 
             % Collision description
             manifold = Manifold(collider_i,collider_j,points);

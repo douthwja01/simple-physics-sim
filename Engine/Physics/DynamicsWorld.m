@@ -15,12 +15,6 @@ classdef DynamicsWorld < CollisionWorld
     end
     % Main
     methods
-        function [this] = DynamicsWorld(varargin)
-            % Physics world constructor.
-            
-            % Collision world
-            this = this@CollisionWorld(varargin{:});
-        end
         % Get/sets
         function set.Integrator(this,int)
             assert(isa(int,"Integrator"),"Expecting a valid integrator.");

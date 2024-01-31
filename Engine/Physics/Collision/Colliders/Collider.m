@@ -1,7 +1,7 @@
-
 classdef (Abstract) Collider < Element
-    % A collider element primitive
-
+    % A simple collider-element primitive that denotes an object that can 
+    % collide with another collider element in simulation.
+    
     properties (Abstract,Constant)
         Code;
     end
