@@ -93,8 +93,4 @@ classdef OctreeSolver < BroadPhaseSolver
             this.Tree = [];
         end
     end
-
-    methods (Static) %, Access = private)
-        
-    end
 end

@@ -6,7 +6,6 @@ classdef Mesh < handle
     % Assumes that the vertices are centered around the origin.
 
     properties
-        Origin = zeros(3,1);
         Vertices = [];
         Faces = [];
         Normals = [];
@@ -70,15 +69,14 @@ classdef Mesh < handle
             
             % Sanity check
             assert(size(Tf,1) == 4 && size(Tf,2) == 4,"Expecting a valid transformation matrix [4x4].");
-            % Transform the center
-            modifiedCenter = Tf*[this.Origin;1];
+
             % Transform the vertices
             padding = ones(this.NumberOfVertices,1);
             modifiedVertices = Tf*[this.Vertices,padding]';
             modifiedVertices = modifiedVertices(1:3,:)';
+
             % Create the two component meshes
             mesh = Mesh(modifiedVertices,this.Faces);
-            mesh.Origin = modifiedCenter(1:3)';
         end
         function [mesh] = ScaleBy(this,x,y,z)
             % Scale the mesh by a set of dimensional values.
@@ -93,11 +91,8 @@ classdef Mesh < handle
             if nargin < 2
                 container = gca;
             end
-
-            vTransformed = this.Vertices + this.Origin';
-
             % Generate patch
-            h = patch(container,'Vertices',vTransformed,'Faces',this.Faces);        
+            h = patch(container,'Vertices',this.Vertices,'Faces',this.Faces);        
             set(h,"FaceColor",colour);
         end
     end

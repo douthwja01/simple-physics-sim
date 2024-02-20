@@ -55,7 +55,9 @@ ground.Renderer.Depth = 10;
 
 sim.AddEntity(ground);
 
-% Simulate
+% Configure Simulator 
 sim.Physics.SubSteps = 10;
 sim.Physics.Integrator = EulerIntegrator();
+sim.Physics.BroadPhaseSolver = OctreeSolver();
+% Simulate
 sim.Simulate(inf);

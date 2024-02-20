@@ -2,10 +2,6 @@ classdef CollisionExtensions
     %COLLISIONEXTENSIONS - An extension class providing access to a set of
     % collision utility methods used by multiple elements.
     
-    properties
-        Property1
-    end
-    
     %% Collider Utilities
     methods (Static)
         function [points] = FindSphereSphereContactPoints(sphereA,sphereB)

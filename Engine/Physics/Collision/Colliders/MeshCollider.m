@@ -20,9 +20,9 @@ classdef (Abstract) MeshCollider < Collider
         end
     
         function [mesh] = GetWorldMesh(this)
-            
-            T = this.Transform.WorldTransform();
-
+            % Get the mesh tranformed into world space.
+            T = this.Transformation.GetWorldMatrix();
+            % Transform the collision mesh
             mesh = this.Mesh.TransformBy(T);
         end
     end
