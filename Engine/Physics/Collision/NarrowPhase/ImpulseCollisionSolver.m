@@ -109,6 +109,9 @@ classdef ImpulseCollisionSolver < NarrowPhaseCollisionSolver
                 if hasRigidBodyB && bodyB.IsSimulated
                     tfB.Velocity = velocityB - frictionVector * inverseMassB;
                 end
+
+                % Should be adding an impulse directly to the object to
+                % create the implied velocity?
             end
         end
     end

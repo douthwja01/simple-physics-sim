@@ -95,7 +95,7 @@ classdef CollisionWorld < handle
             % Add a given solver to the array of collision solvers.
             this.NarrowPhaseSolvers = vertcat(this.NarrowPhaseSolvers,solver);
         end
-        function [this] = DeleteSolver(this,solver)
+        function [this] = RemoveSolver(this,solver)
             % Delete the object from the world
             if isnumeric(solver)
                 % Temporary index

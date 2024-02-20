@@ -57,5 +57,5 @@ sim.AddEntity(ground);
 
 % Simulate
 sim.Physics.SubSteps = 10;
-sim.Physics.Integrator = EulerIntegrator();
+sim.Physics.Integrator = EulerIntegrator(); %RK4Integrator(); 
 sim.Simulate(inf);
