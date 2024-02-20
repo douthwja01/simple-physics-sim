@@ -80,9 +80,9 @@ classdef Mesh < handle
             mesh = Mesh(modifiedVertices,this.Faces);
             mesh.Origin = modifiedCenter(1:3)';
         end
-        function [mesh] = ScaleBy(this,width,depth,height)
+        function [mesh] = ScaleBy(this,x,y,z)
             % Scale the mesh by a set of dimensional values.
-            tf = eye(4)*[width,depth,height;0];
+            tf = diag([x;y;z;0]);
             mesh = this.TransformBy(tf);
         end
         function [h] = Draw(this,container,colour)

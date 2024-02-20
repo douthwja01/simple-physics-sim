@@ -1,4 +1,3 @@
-
 classdef SphereCollider < Collider
     % A sphere collider primitive
 
@@ -14,8 +13,6 @@ classdef SphereCollider < Collider
         function [this] = SphereCollider()
             % CONSTRUCTOR - Sphere collider.
             
-            % Populate the equivalent AABB.
-            this.RecalculateAABB();
         end
         function [points] = TestCollision(this,colliderB)
             % Test for collision between this collider and a variable
@@ -24,13 +21,13 @@ classdef SphereCollider < Collider
             switch colliderB.Code
                 case ColliderCode.Sphere
                     % The second collider is a sphere
-                    points = Collider.FindSphereSphereCollisionPoints(this,colliderB);
+                    points = CollisionExtensions.FindSphereSphereContactPoints(this,colliderB);
                 case ColliderCode.Plane
                     % The second collider is a plane
-                    points = Collider.FindSpherePlaneCollisionPoints(this,colliderB);
+                    points = CollisionExtensions.FindSpherePlaneContactPoints(this,colliderB);
                 case ColliderCode.OBB
                     % The second collider is an OBB box
-                    points = Collider.FindSphereOBBCollisionPoints(this,colliderB);
+                    points = CollisionExtensions.FindSphereOBBContactPoints(this,colliderB);
                 otherwise
                     error("Collider type not recognised.");
             end
@@ -39,24 +36,20 @@ classdef SphereCollider < Collider
         function set.Radius(this,r)
             assert(isnumeric(r),"Expecting a numerical radius.");
             this.Radius = r;
-            this.RecalculateAABB();
         end
     end
-    methods (Access = protected)
-        function [this] = RecalculateAABB(this)
+    methods 
+        function [aabb] = GetTransformedAABB(this)
             % Overrided needed, sphere colliders do not need a mesh
             % representation as a unitary radius is valid. However, for
             % AABB comparison, a primitive must be constructed any way to
             % represent this radius.
 
-            % Recompute extents 
             r = this.Radius;
-            xLims = this.Center + [-r,r];
-            yLims = this.Center + [-r,r];
-            zLims = this.Center + [-r,r];
-            % Create the AABB
-            this.AABB = AABB(xLims,yLims,zLims);
-            this.AABB.Parent = this;
+            % Recompute AABB
+            aabb = AABB([-r,r],[-r,r],[-r,r]);
+            % Offset the aabb by the sphere's world position
+            aabb = aabb + this.Transformation.GetWorldPosition();
         end
     end
 end

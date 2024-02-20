@@ -7,15 +7,17 @@ sim = Simulator();
 
 numberOfObjects = 12;
 numberPerColumn = 3;
-gridPoints = CreateGrid([-1.5;0;4],numberOfObjects,numberPerColumn,1.1);
+gridPoints = CreateGrid([-1.5;0;4],numberOfObjects,numberPerColumn,1.3);
 
 for i = 1:numberOfObjects
     % Place the object
-    entity_i = Entity(sprintf("Object %d (Box)",i));
-    entity_i.Pose.SetWorldPosition(gridPoints(:,i));
+    entity_i = EntityCreator.Box( ...
+        "Box", ...
+        gridPoints(:,i), ...
+        Quaternion.FromEulers(0,0,pi/6));
     % Add elements
     entity_i.RigidBody = RigidBody();
-    entity_i.Collider = BoxCollider();
+    % Renderer
     entity_i.Renderer.Alpha = 0.2;
     if mod(i,2) == 0
         entity_i.Renderer.Colour = "b";
@@ -27,31 +29,33 @@ for i = 1:numberOfObjects
 end
 
 % Add an obstacle
-fixed = Entity("Obstacle");
-fixed.Pose.SetWorldPosition([0;0;2]);
-fixed.Pose.IsStatic = true;
+fixed = EntityCreator.Sphere( ...
+    "Obstacle", ...
+    [0;0;2], ...
+    Quaternion.Random());
+% Do not move
+fixed.Transformation.IsStatic = true;
 % Add elements
 fixed.RigidBody = RigidBody();
-fixed.Collider = SphereCollider();
-% renderer = fixed.Visuals;
-fixed.Renderer.Mesh = MeshExtensions.UnitSphere();
 fixed.Renderer.Colour = "r";
 % Add the fix object
 sim.AddEntity(fixed);
 
 % Add the ground plane
-ground = Entity("Ground");
-ground.Pose.IsStatic = true;
-ground.Pose.SetWorldScale([20;20;1]);
-% Add elements
-ground.Collider = PlaneCollider();
-% ground.Visuals 
-ground.Renderer.Mesh = MeshExtensions.Plane(zeros(3,1),[0;0;1],1,1);
+ground = EntityCreator.Plane("Ground",zeros(3,1));
+% Do not move
+ground.Transformation.IsStatic = true;
+% Collisions
+ground.Collider.Width = 10;
+ground.Collider.Depth = 10;
+% Visuals
 ground.Renderer.Colour = "g";
+ground.Renderer.Width = 10;
+ground.Renderer.Depth = 10;
+
 sim.AddEntity(ground);
 
 % Simulate
 sim.Physics.SubSteps = 10;
 sim.Physics.Integrator = EulerIntegrator();
-sim.Physics.BroadPhaseSolver = OctreeSolver();
 sim.Simulate(inf);

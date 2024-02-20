@@ -4,18 +4,25 @@ classdef RK4Integrator < Integrator
         Name = "Runge-Kutta 4th-Order Algorithm";
     end
     methods (Access = protected)
-        function [this] = IntegrateTransform(this,transform,dt)
+        function [this] = IntegrateTransform(this,transformation,dt)
             % This function computes the RK4 method against a given
             % transform to integrate its state-change over-time.
 
+            % Get the initial frame-state
+            p0 = transformation.GetWorldPosition();
+            v0 = transformation.Velocity;
+            a0 = transformation.Acceleration;
+
             % Wrapper
-            X0 = [transform.position;transform.Velocity;transform.Acceleration];
+            X0 = [p0;v0;a0];
             % Integrate
-            X = this.IntegrateFun(@RK4Integrator.MotionStep,dt,0,X0);
+            dX = this.IntegrateFun(@RK4Integrator.MotionStep,dt,0,X0);
+            % [SOMETHING IS WRONG HERE
+            X = X0 + dX*dt;
             % Reapply
-            transform.position = X(1:3,1);
-            transform.Velocity = X(4:6,1);
-            transform.Acceleration = X(7:9,1);        
+            transformation.SetWorldPosition(X(1:3,1));
+            transformation.Velocity = X(4:6,1);
+            transformation.Acceleration = X(7:9,1);        
         end
     end
     methods (Static)

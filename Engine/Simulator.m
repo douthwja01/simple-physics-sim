@@ -1,5 +1,5 @@
-
 classdef Simulator < handle
+    % SIMULATOR - The master simulator class.
 
     properties
         TimeDelta = 0.01;
@@ -18,13 +18,15 @@ classdef Simulator < handle
     % Main
     methods
         function [this] = Simulator()
-            % CONSTRUCTOR for simulators.
+            % CONSTRUCTOR - Construct an instance of the time simulator 
+            % class representing a singular simulation.
 
             this.AddEnginePaths;
 
-            this.Physics = DynamicsWorld(this.WorldSize);
+            % Create the dynamics world
+            this.Physics = DynamicsWorld();
             % Add impulse collision solver
-            this.Physics.AddSolver(ImpulseSolver());
+            this.Physics.AddSolver(ImpulseCollisionSolver());
         end
         function [this] = Simulate(this,duration)
             % This function executes the simulation sequence
@@ -63,12 +65,12 @@ classdef Simulator < handle
             % Sanity check
             assert(isa(entity,"Entity"),"Expecting a valid 'Entity'.");
             % Add collider
-            cl = entity.GetElement("Collider");
+            cl = entity.Collider;
             if ~isempty(cl)
                 this.Physics.AddCollider(cl);
             end
             % Add Rigid-body
-            rb = entity.GetElement("RigidBody");
+            rb = entity.RigidBody;
             if ~isempty(rb)
                 this.Physics.AddRigidBody(rb);
             end
@@ -81,12 +83,12 @@ classdef Simulator < handle
             % Sanity check
             assert(isa(entity,"Entity"),"Expecting a valid 'Entity' object.");
             % Add collider
-            cl = entity.GetElement("Collider");
+            cl = entity.Collider;
             if ~isempty(cl)
                 this.Physics.RemoveCollider(cl);
             end
             % Add Rigid-body
-            rb = entity.GetElement("RigidBody");
+            rb = entity.RigidBody;
             if ~isempty(rb)
                 this.Physics.RemoveRigidBody(rb);
             end
@@ -133,7 +135,7 @@ classdef Simulator < handle
 
             for i = 1:numel(this.Entities)
                 % Get the renderer frome the entity
-                renderer_i = this.Entities(i).GetElement("MeshRenderer");
+                renderer_i = this.Entities(i).Renderer; %("MeshRenderer");
                 if isempty(renderer_i)
                     continue;
                 end
@@ -146,13 +148,13 @@ classdef Simulator < handle
             % Confirm all subdirectories are on the path.
 
             % Get the path to this file
-            [repoPath,~] = fileparts(mfilename('fullpath'));
+            enginePath = fileparts(mfilename('fullpath'));
+            utilsPath = strcat(enginePath,"\Utilities");
+            repoPath = erase(enginePath,"\Engine");
             % Gaurantee the common is always added
-            addpath(strcat(repoPath,"\Common"));
+            addpath(utilsPath);
             % If elements are not on the path, add them
-            if ~Path.IsOnPath(strcat(repoPath,"\Physics"))
-                Path.AddAllSubfolders(repoPath);
-            end
+            Path.AddAllSubfolders(repoPath);
         end
     end
 

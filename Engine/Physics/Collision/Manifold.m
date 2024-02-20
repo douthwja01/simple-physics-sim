@@ -5,7 +5,7 @@ classdef Manifold < event.EventData
     properties
         ColliderA = Collider.empty;         % The first collisionbject
         ColliderB = Collider.empty;         % The second collision object
-        Points = CollisionPoints.empty;     % The points defining the collision
+        Points = ContactPoints.empty;       % The points defining the collision
     end
     
     methods

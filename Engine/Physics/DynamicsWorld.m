@@ -15,12 +15,6 @@ classdef DynamicsWorld < CollisionWorld
     end
     % Main
     methods
-        function [this] = DynamicsWorld(worldSize)
-            % Physics world constructor.
-            
-            % Collision world
-            this = this@CollisionWorld(worldSize);
-        end
         % Get/sets
         function set.Integrator(this,int)
             assert(isa(int,"Integrator"),"Expecting a valid integrator.");
@@ -115,7 +109,7 @@ classdef DynamicsWorld < CollisionWorld
                 this.Bodies(i).Update();
             end
             % Extract only the transform
-            bodyTransforms = [this.Bodies.Transform];
+            bodyTransforms = [this.Bodies.Transformation];
             % Use the integrator components to integrate
             this.Integrator.Integrate(bodyTransforms,dt);
         end
@@ -136,8 +130,8 @@ classdef DynamicsWorld < CollisionWorld
             for i = 1:numel(this.Bodies)
                 object_i = this.Bodies(i);
 
-                transform_i = object_i.Entity.GetElement("Transform");
-                collider_i = object_i.Entity.GetElement("Collider");
+                transform_i = object_i.Entity.Transform;
+                collider_i = object_i.Entity.Collider;
                 
                 v = transform_i.position - globeCenter;
                 distance = norm(v);
