@@ -9,7 +9,6 @@ classdef (Abstract) Joint < Element
     methods
         function [this] = Joint()
             %JOINT Construct an instance of this class
-            %   Detailed explanation goes here
         end
     end
 end

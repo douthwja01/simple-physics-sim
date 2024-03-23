@@ -1,4 +1,3 @@
-
 classdef CollisionWorld < handle
     % Collision world primitive responsible for managing the collision
     % properties of the simulation.

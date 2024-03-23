@@ -11,7 +11,9 @@ classdef RevoluteJoint < ActuatedJoint
     methods
         function [this] = RevoluteJoint()
             %REVOLUTEJOINT Construct an instance of this class
-            %   Detailed explanation goes here
+            
+            % Call the parent class
+            [this] = this@ActuatedJoint();
         end
     end
 end

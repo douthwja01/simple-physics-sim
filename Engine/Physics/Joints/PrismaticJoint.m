@@ -11,7 +11,9 @@ classdef PrismaticJoint < ActuatedJoint
     methods
         function [this] = PrismaticJoint()
             %PRISMATICJOINT Construct an instance of this class
-            %   Detailed explanation goes here
+            
+            % Call the parent class
+            [this] = this@ActuatedJoint();
         end
     end
 end
