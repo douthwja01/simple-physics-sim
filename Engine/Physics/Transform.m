@@ -1,11 +1,11 @@
-classdef Pose < TreeElement
+classdef Transform < TreeElement
     %POSE Summary of this class goes here
     %   Detailed explanation goes here
     
     % Kinematic properties (simple containers)
     properties
         % Statics
-        Transform = Element.empty;
+        Pose = Pose.empty;
         % Kinematics
         Velocity = zeros(3,1);
         AngularVelocity = zeros(3,1);
@@ -18,7 +18,7 @@ classdef Pose < TreeElement
     end
 
     methods
-        function [this] = Pose(entity)
+        function [this] = Transform(entity)
             %POSE Construct an instance of the pose-element
             % Detailed explanation goes here
 
@@ -31,7 +31,7 @@ classdef Pose < TreeElement
             [this] = this@TreeElement(entity);
 
             % Create a new transform object
-            this.Transform = Transform();
+            this.Pose = Pose(zeros(3,1),Quaternion());
         end
         % Get/sets
         function set.Velocity(this,v)
