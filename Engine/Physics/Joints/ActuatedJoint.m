@@ -1,16 +1,25 @@
 classdef (Abstract) ActuatedJoint < MovableJoint
-    %ACTUATEDJOINT Summary of this class goes here
-    %   Detailed explanation goes here
+    %ACTUATEDJOINT Actuated joint definition.
+    %   This is a base class for all actuated-joint definitions.
     
+    properties (Abstract, Constant)
+        NumberOfInputs;
+    end
+
     properties
-        JointInput = 0;
+        JointInput = double.empty;
     end
     
     methods
-        function obj = ActuatedJoint()
+        function [this] = ActuatedJoint()
             %ACTUATEDJOINT Construct an instance of this class
-            %   Detailed explanation goes here
-%             obj.Property1 = inputArg1 + inputArg2;
+            %   This class is the base of all joints with a none-zero
+            %   number of inputs.
+
+            % Call the parent class
+            [this] = this@MovableJoint();
+            % Default joint values
+            this.JointInput = zeros(this.NumberOfInputs,1);
         end
         % Get/sets
         function set.JointInput(this,u)

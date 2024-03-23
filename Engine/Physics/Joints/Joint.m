@@ -1,6 +1,6 @@
 classdef (Abstract) Joint < Element
-    %JOINT Summary of this class goes here
-    %   Detailed explanation goes here
+    %JOINT Joint definition
+    %   This is a base class for all joint constraint primitives.
     
     properties
         

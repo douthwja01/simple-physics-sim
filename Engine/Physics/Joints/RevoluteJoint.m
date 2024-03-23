@@ -1,9 +1,11 @@
 classdef RevoluteJoint < ActuatedJoint
-    %JOINT Summary of this class goes here
-    %   Detailed explanation goes here
-    
-    properties
-        
+    %REVOLUTEJOINT Revolute-Joint definition.
+    %   This is a primitive joint class, characterised by a single 
+    %   (rotational) degree of freedom.
+
+    properties (Constant)
+        DegreesOfFreedom = 1;
+        NumberOfInputs = 1;
     end
     
     methods

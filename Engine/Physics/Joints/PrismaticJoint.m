@@ -1,9 +1,11 @@
 classdef PrismaticJoint < ActuatedJoint
-    %PRISMATICJOINT Summary of this class goes here
-    %   Detailed explanation goes here
+    %PRISMATICJOINT Prismatic-Joint definition.
+    %   This is a primitive joint class, characterised by a single 
+    %   (translational) degree of freedom.
     
-    properties
-
+    properties (Constant)
+        DegreesOfFreedom = 1;
+        NumberOfInputs = 1;
     end
     
     methods

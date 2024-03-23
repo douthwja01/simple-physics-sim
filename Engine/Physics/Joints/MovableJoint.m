@@ -1,18 +1,27 @@
 classdef (Abstract) MovableJoint < Joint
-    %MOVABLEJOINT Summary of this class goes here
-    %   Detailed explanation goes here
+    %MOVABLEJOINT Movable-Joint definition.
+    %   This is a base class for all movable-joint definitions.
     
+    properties (Abstract, Constant)
+        DegreesOfFreedom;
+    end
     properties
-        JointPosition = 0;
-        JointVelocity = 0;
-        JointAcceleration = 0;
+        JointPosition = double.empty;
+        JointVelocity = double.empty;
+        JointAcceleration = double.empty;
     end
     
     methods
         function [this] = MovableJoint()
             %MOVABLEJOINT Construct an instance of this class
-            %   Detailed explanation goes here
+            %   This is a base class for all movable-joint definitions.
 
+            % Call the parent class
+            [this] = this@Joint();
+            % Default joint states
+            this.JointPosition = zeros(this.DegreesOfFreedom,1);
+            this.JointVelocity = zeros(this.DegreesOfFreedom,1);
+            this.JointAcceleration = zeros(this.DegreesOfFreedom,1);
         end
         % Get/sets
         function set.JointPosition(this,p)
