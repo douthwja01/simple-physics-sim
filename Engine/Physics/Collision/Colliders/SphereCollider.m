@@ -1,4 +1,3 @@
-
 classdef SphereCollider < Collider
     % A sphere collider primitive
 
@@ -22,13 +21,13 @@ classdef SphereCollider < Collider
             switch colliderB.Code
                 case ColliderCode.Sphere
                     % The second collider is a sphere
-                    points = Collider.FindSphereSphereCollisionPoints(this,colliderB);
+                    points = CollisionExtensions.FindSphereSphereContactPoints(this,colliderB);
                 case ColliderCode.Plane
                     % The second collider is a plane
-                    points = Collider.FindSpherePlaneCollisionPoints(this,colliderB);
+                    points = CollisionExtensions.FindSpherePlaneContactPoints(this,colliderB);
                 case ColliderCode.OBB
                     % The second collider is an OBB box
-                    points = Collider.FindSphereOBBCollisionPoints(this,colliderB);
+                    points = CollisionExtensions.FindSphereOBBContactPoints(this,colliderB);
                 otherwise
                     error("Collider type not recognised.");
             end
@@ -46,13 +45,11 @@ classdef SphereCollider < Collider
             % AABB comparison, a primitive must be constructed any way to
             % represent this radius.
 
-            % Recompute AABB
             r = this.Radius;
+            % Recompute AABB
             aabb = AABB([-r,r],[-r,r],[-r,r]);
             % Offset the aabb by the sphere's world position
-            aabb = aabb + this.Pose.GetWorldPosition();
-            % assign this as the parent
-            aabb.Parent = this;
+            aabb = aabb + this.Transformation.GetWorldPosition();
         end
     end
 end

@@ -4,7 +4,7 @@
 classdef Pose < handle
     properties (SetObservable = true,AbortSet)
         Position = zeros(3,1);
-        Quaternion = [1;0;0;0];
+        Quaternion = Quaternion.empty;
         Scale = ones(3,1);
     end
 
@@ -17,7 +17,7 @@ classdef Pose < handle
 
             % Input parsing
             if nargin < 2
-                q = [1;0;0;0];
+                q = Quaternion();
             end
             if nargin < 1
                 p = zeros(3,1);
@@ -35,7 +35,7 @@ classdef Pose < handle
             this.Position = p;
         end
         function set.Quaternion(this,q)
-            assert(IsColumn(q,4),"Expecting a valid Quaternion [4x1].");
+            assert(isa(q,"Quaternion"),"Expecting a valid Quaternion [4x1].");
             this.Quaternion = q;
         end
         function set.Scale(this,s)

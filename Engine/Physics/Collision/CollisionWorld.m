@@ -8,7 +8,7 @@ classdef CollisionWorld < handle
         Colliders;
         % Broad-phase
         BroadPhaseSolver = SweepAndPrune();
-        NarrowPhaseSolvers = NarrowPhaseSolver.empty(0,1);
+        NarrowPhaseSolvers = NarrowPhaseCollisionSolver.empty(0,1);
         % Variables
         Collisions = Manifold.empty;
         Triggers = Manifold.empty;
@@ -16,16 +16,14 @@ classdef CollisionWorld < handle
         CollisionCallback = function_handle.empty;
         TriggerCallback = function_handle.empty;
     end
+    % Simulation hooks (for subscribing programs)
+    events (NotifyAccess = private)
+        CollisionFeedback;
+        TriggerFeedback;
+    end
 
     % Main
     methods
-        function [this] = CollisionWorld(varargin)
-            % Collision world constructor.
-
-            % Internal event loop-backs
-            addlistener(this,"CollisionFeedback",@(src,evnt)this.OnInternalCollisionLoopback(evnt));
-            addlistener(this,"TriggerFeedback",@(src,evnt)this.OnInternalTriggerLoopback(evnt));
-        end
         % Resolve world Collisions
         function [this] = ResolveCollisions(this,dt)
             % This function builds the lists of 'detected' collisions and
@@ -45,11 +43,12 @@ classdef CollisionWorld < handle
             % --- NARROW PHASE ---
             % This routine solves the inter-particle collisions (brute force)   
             for i = 1:numel(manifolds)
-                manifolds_i = manifolds(i);
+                manifold_i = manifolds(i);
+                
                 % Evaluate if there has been a collision for the pair.
                 this.TestCollision( ...
-                    manifolds_i.ColliderA, ....
-                    manifolds_i.ColliderB);
+                    manifold_i.ColliderA, ....
+                    manifold_i.ColliderB);
             end
             % --------------------
 
@@ -60,9 +59,12 @@ classdef CollisionWorld < handle
 
             % Resolve the collisions
             this.SolveCollisions(dt);
-            % Issue collision and trigger event callbacks
-            this.SendCollisionCallbacks(this.Collisions);
-            this.SendTriggerCallbacks(this.Triggers);
+
+            % --- EVENT GENERATION PHASE ---
+            % Notify colliders events
+            this.SendColliderEvents();
+            % Notify world/engine events
+            this.SendWorldEvents();
         end
         % Managing collision objects
         function [this] = AddCollider(this,collider)
@@ -78,8 +80,6 @@ classdef CollisionWorld < handle
 
             % Sanity check 
             assert(isa(collider,"Collider"),"Expecting a valid 'Collider' element.");
-            % Unregister world from collider feedback
-%             removelistener
             % Remove a given solver from the array of collisions solvers.
             this.Colliders = this.Colliders(this.Colliders ~= collider);
         end
@@ -90,7 +90,7 @@ classdef CollisionWorld < handle
         end        
         % Managing collision NarrowPhaseSolvers
         function [this] = AddSolver(this,solver)
-            assert(isa(solver,"NarrowPhaseSolver"),"Expecting a valid narrow-phase collision solver.");
+            assert(isa(solver,"NarrowPhaseCollisionSolver"),"Expecting a valid narrow-phase collision solver.");
             
             % Add a given solver to the array of collision solvers.
             this.NarrowPhaseSolvers = vertcat(this.NarrowPhaseSolvers,solver);
@@ -103,7 +103,7 @@ classdef CollisionWorld < handle
                 % Remove the object
                 this.NarrowPhaseSolvers = this.NarrowPhaseSolvers(vec ~= solver);
             else
-                assert(isa(solver,"Solver"),"Expecting a valid 'Solver' object.");
+                assert(isa(solver,"NarrowPhaseCollisionSolver"),"Expecting a valid 'Solver' object.");
                 % Remove a given solver from the array of collisions solvers.
                 this.NarrowPhaseSolvers = this.NarrowPhaseSolvers(this.NarrowPhaseSolvers ~= solver);
             end
@@ -162,45 +162,64 @@ classdef CollisionWorld < handle
             end
         end
         % Send the callbacks for all collisions & triggers
-        function SendTriggerCallbacks(this,instances)
-            % Send the collision callbacks.
+        function SendWorldEvents(this)
+            % Send the trigger callbacks to listeners of the
+            % "TriggerFeedback" world-events.
 
-            % Notify the collider
-            for i = 1:numel(instances)
-                notify(this,"TriggerFeedback",instances(i));
+            % Notify the triggers world events.
+            for i = 1:numel(this.Triggers)
+                % Send to subscribers of the engine
+                notify(this,"TriggerFeedback",manifolthis.Triggers(i));
+            end
+
+            % Notify the collision world events.
+            for i = 1:numel(this.Collisions)
+                % Send to subscribers of the engine.
+                notify(this,"CollisionFeedback",this.Collisions(i));
             end
         end
-        function SendCollisionCallbacks(this,instances)
-            % Send the collision callbacks.
-           
-            % Notify the object's collider that it has collided
-            for i = 1:numel(instances)
-                notify(this,"CollisionFeedback",instances(i));
+        function SendColliderEvents(this)
+            % Notify the colliders of the events they are participating in. 
+
+            % Notify the triggers world events.
+            for i = 1:numel(this.Triggers)
+                % Trigger instance
+                manifold_i = this.Triggers(i);
+                % Send to the collider instance(s)
+                if manifold_i.ColliderA.IsTrigger
+                    data = ColliderData(manifold_i.ColliderB);
+                    % Notify
+                    notify( ...
+                        this.Triggers(i).ColliderA, ...
+                        "Collided", ...
+                        data);
+                end
+                if manifold_i.ColliderB.IsTrigger
+                    data = ColliderData(manifold_i.ColliderA);
+                    % Notify
+                    notify(this.Triggers(i).ColliderB,"Collided",data);
+                end
+            end
+
+            % Notify the collision world events.
+            for i = 1:numel(this.Collisions)
+                % Collision instance
+                manifold_i = this.Collisions(i);
+                
+                % Send to the collider instance(s)
+                if ~manifold_i.ColliderA.IsTrigger
+                    % Extract data
+                    data = ColliderData(manifold_i.ColliderB);
+                    % Notify
+                    notify(manifold_i.ColliderA,"Collided",data);
+                end
+                if ~manifold_i.ColliderB.IsTrigger
+                    % Extract data
+                    data = ColliderData(manifold_i.ColliderA);
+                    % Notify
+                    notify(manifold_i.ColliderB,"Collided",data);
+                end
             end
         end
-    end
-    % Collision and trigger loop-backs to colliders
-    methods (Static, Access = private)
-        function OnInternalTriggerLoopback(triggerEvent)
-            % This method provides a local loop-back for all trigger
-            % events that informs the object-collider (from the general
-            % event) that they can enact their 'OnTrigger'.
-
-            % Call the corresponding (local) collision callback
-            triggerEvent.ColliderA.OnTrigger(triggerEvent);
-        end
-        function OnInternalCollisionLoopback(collisionEvent)
-            % This method provides a local loop-back for all collision
-            % events that informs the object-collider (from the general
-            % event) that they can enact their 'OnCollision'.
-            
-            % Call the corresponding (local) collision callback
-            collisionEvent.ColliderA.OnCollision(collisionEvent);
-        end
-    end
-    % Simulation hooks
-    events (NotifyAccess = private)
-        CollisionFeedback;
-        TriggerFeedback;
     end
 end

@@ -4,9 +4,16 @@ classdef PhysicsExtensions
 
     %% Quaternion Extensions
     methods (Static)
+        function [q] = RandomQuaternion()
+            % Generate a random quaternion
+            e = 2*pi*RandZero(3);
+            q = PhysicsExtensions.EulersToQuaternion(e(1),e(2),e(3));
+        end
+        % Conversions
         function [T] = QuaternionTransform(p,q)
+            assert(isa(q,"Quaternion"),"Expecting a valid quaternion.");
             % This function creates a quaternion transform
-            Rq = PhysicsExtensions.QuaternionToRotation(q);
+            Rq = q.ToRotation();
             % Create the equivalent transform
             T = PhysicsExtensions.PoseToTransform(p,Rq);
         end

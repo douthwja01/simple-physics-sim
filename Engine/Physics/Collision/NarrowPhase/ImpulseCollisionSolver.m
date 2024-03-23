@@ -1,23 +1,24 @@
-classdef ImpulseSolver < NarrowPhaseSolver
+classdef ImpulseCollisionSolver < NarrowPhaseCollisionSolver
     % This basic collision solver resolves collisions between two objects
     % by calculating the impulse required to move the two objects apparent
     % by the next time-step.
 
     methods
         function [this] = Solve(this,manifolds,dt)
-            % Solve the set of collisions using the impulse solvers.
+            % Solve the set of collisions using the impulse solver.
 
+            % Move through the collsion instances
             for i = 1:numel(manifolds)
-                % Replaces non dynamic objects with default values.
+                % The current manifold
                 manifold = manifolds(i);
 
-                bodyA = manifold.ColliderA.Entity.RigidBody;%("RigidBody");
+                bodyA = manifold.ColliderA.Entity.RigidBody;
                 hasRigidBodyA = ~isempty(bodyA);
-                tfA = manifold.ColliderA.Pose;
+                tfA = manifold.ColliderA.Transformation;
 
-                bodyB = manifold.ColliderB.Entity.RigidBody;%GetElement("RigidBody");
+                bodyB = manifold.ColliderB.Entity.RigidBody;
                 hasRigidBodyB = ~isempty(bodyB);
-                tfB = manifold.ColliderB.Pose;
+                tfB = manifold.ColliderB.Transformation;
 
                 collisionNormal = -manifold.Points.Normal;
 

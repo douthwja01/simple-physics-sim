@@ -1,5 +1,5 @@
-
 classdef Simulator < handle
+    % SIMULATOR - The master simulator class.
 
     properties
         TimeDelta = 0.01;
@@ -18,14 +18,15 @@ classdef Simulator < handle
     % Main
     methods
         function [this] = Simulator()
-            % CONSTRUCTOR for simulators.
+            % CONSTRUCTOR - Construct an instance of the time simulator 
+            % class representing a singular simulation.
 
             this.AddEnginePaths;
 
             % Create the dynamics world
             this.Physics = DynamicsWorld();
             % Add impulse collision solver
-            this.Physics.AddSolver(ImpulseSolver());
+            this.Physics.AddSolver(ImpulseCollisionSolver());
         end
         function [this] = Simulate(this,duration)
             % This function executes the simulation sequence

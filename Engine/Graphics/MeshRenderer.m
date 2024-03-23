@@ -45,7 +45,7 @@ classdef MeshRenderer < Element
             end
 
             % Transform plot
-            m = this.Pose.Transform.GetMatrix();
+            m = this.Transformation.Transform.GetMatrix();
             set(this.Handle,"Matrix",m);
         end
     end
@@ -55,7 +55,7 @@ classdef MeshRenderer < Element
             % Initialise the renderer.
 
             % Plot the handle
-            this.Handle = this.Entity.Pose.Plot(ax);
+            this.Handle = this.Entity.Transformation.Plot(ax);
 
             % Sanity check
             if isempty(this.Base)
