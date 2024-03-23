@@ -1,20 +1,12 @@
-<<<<<<<< HEAD:Engine/Physics/Transform.m
 classdef Transform < TreeElement
-========
-classdef Transformation < Element
->>>>>>>> main:Engine/Physics/Transformation.m
     %POSE Summary of this class goes here
     %   Detailed explanation goes here
     
     % Kinematic properties (simple containers)
     properties
-<<<<<<<< HEAD:Engine/Physics/Transform.m
         % Statics
         Pose = Pose.empty;
         % Kinematics
-========
-        Transform = Element.empty;
->>>>>>>> main:Engine/Physics/Transformation.m
         Velocity = zeros(3,1);
         AngularVelocity = zeros(3,1);
         Acceleration = zeros(3,1);
@@ -26,11 +18,7 @@ classdef Transformation < Element
     end
 
     methods
-<<<<<<<< HEAD:Engine/Physics/Transform.m
         function [this] = Transform(entity)
-========
-        function [this] = Transformation(entity)
->>>>>>>> main:Engine/Physics/Transformation.m
             %POSE Construct an instance of the pose-element
             %   Detailed explanation goes here
 
@@ -39,10 +27,10 @@ classdef Transformation < Element
             end
 
             % Assign the entity
-            [this] = this@Element(entity);
+            [this] = this@TreeElement(entity);
 
             % Create a new transform object
-            this.Pose = Pose(zeros(3,1),Quaternion());
+            this.Pose = Pose(zeros(3,1),Quaternion.Zero);
         end
         % Get/sets
         function set.Velocity(this,v)

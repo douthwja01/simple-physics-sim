@@ -1,4 +1,3 @@
-
 classdef Entity < matlab.mixin.Heterogeneous & handle
     % A primitive representing a simulation object.
     
@@ -7,8 +6,8 @@ classdef Entity < matlab.mixin.Heterogeneous & handle
         Uuid;
     end
     properties 
-        Transformation = Element.empty;
-        Renderer = Element.empty;
+        Transform = Transform.empty;
+        Renderer = BoxRenderer.empty;
         RigidBody = Element.empty;
         Collider = Element.empty;
         Joints = Element.empty;
@@ -26,7 +25,7 @@ classdef Entity < matlab.mixin.Heterogeneous & handle
             % Generate a random integer 
             this.Uuid = RandIntOfLength(6);
             % Create a transform
-            this.Transformation = Transformation(this);
+            this.Transform = Transform(this);
             this.Renderer = MeshRenderer();
         end
         % Get/sets
@@ -34,10 +33,10 @@ classdef Entity < matlab.mixin.Heterogeneous & handle
             assert(isinteger(u),"Expecting a valid identity code.");
             this.Uuid = u;
         end
-        function set.Transformation(this,pose)
-            assert(isa(pose,"Transformation"),"Expecting a valid transform element.");
-            this.Transformation = pose;
-            pose.AssignEntity(this);
+        function set.Transform(this,t)
+            assert(isa(t,"Transform"),"Expecting a valid transform element.");
+            this.Transform = t;
+            t.AssignEntity(this);
         end
         function set.Renderer(this,r)
             assert(isa(r,"MeshRenderer"),"Expecting a valid renderer element.");
