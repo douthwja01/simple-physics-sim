@@ -49,7 +49,7 @@ classdef SphereCollider < Collider
             % Recompute AABB
             aabb = AABB([-r,r],[-r,r],[-r,r]);
             % Offset the aabb by the sphere's world position
-            aabb = aabb + this.Transformation.GetWorldPosition();
+            aabb = aabb + this.Transform.GetWorldPosition();
         end
     end
 end
