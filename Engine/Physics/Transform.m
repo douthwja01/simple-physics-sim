@@ -106,35 +106,35 @@ classdef Transform < TreeElement
         % Local representation
         function [T] = GetLocalMatrix(this)
             % Get the local transform matrix
-            T = this.Transform.GetMatrix();
+            T = this.Pose.GetMatrix();
         end
         function [this] = SetLocalMatrix(this,T)
             % Set the local transform matrix            
-            this.Transform.SetMatrix(T);
+            this.Pose.SetMatrix(T);
         end
         function [p] = GetLocalPosition(this)
             % Get the local position from the transform.
-            p = this.Transform.Position;
+            p = this.Pose.Position;
         end
         function [this] = SetLocalPosition(this,p)
             % Set the local position via the transform.
-            this.Transform.Position = p;
+            this.Pose.Position = p;
         end
         function [p] = GetLocalRotation(this)
             % Get the local rotation from the transform.
-            p = this.Transform.Quaternion;
+            p = this.Pose.Quaternion;
         end
         function [this] = SetLocalRotation(this,q)
             % Set the local rotation via the transform.
-            this.Transform.Quaternion = q;
+            this.Pose.Quaternion = q;
         end
         function [s] = GetLocalScale(this)
             % Get the local scale defined by this transform
-            s = this.Transform.Scale;
+            s = this.Pose.Scale;
         end
         function [this] = SetLocalScale(this,s)
             % Set the scale vector of the transform
-            this.Transform.Scale = s;
+            this.Pose.Scale = s;
         end
         % Visualisation
         function [h] = Plot(this,container)
@@ -143,7 +143,7 @@ classdef Transform < TreeElement
                 container = gca;
             end
             % Plot transform 
-            h = this.Transform.Plot(container);
+            h = this.Pose.Plot(container);
         end
     end
 end

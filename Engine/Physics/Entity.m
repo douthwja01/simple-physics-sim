@@ -7,7 +7,7 @@ classdef Entity < matlab.mixin.Heterogeneous & handle
     end
     properties 
         Transform = Transform.empty;
-        Renderer = BoxRenderer.empty;
+        Renderer = Renderer.empty;
         RigidBody = Element.empty;
         Collider = Element.empty;
         Joints = Element.empty;
@@ -26,7 +26,6 @@ classdef Entity < matlab.mixin.Heterogeneous & handle
             this.Uuid = RandIntOfLength(6);
             % Create a transform
             this.Transform = Transform(this);
-            this.Renderer = MeshRenderer();
         end
         % Get/sets
         function set.Uuid(this,u)

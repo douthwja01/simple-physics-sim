@@ -14,11 +14,11 @@ classdef ImpulseCollisionSolver < NarrowPhaseCollisionSolver
 
                 bodyA = manifold.ColliderA.Entity.RigidBody;
                 hasRigidBodyA = ~isempty(bodyA);
-                tfA = manifold.ColliderA.Transformation;
+                tfA = manifold.ColliderA.Transform;
 
                 bodyB = manifold.ColliderB.Entity.RigidBody;
                 hasRigidBodyB = ~isempty(bodyB);
-                tfB = manifold.ColliderB.Transformation;
+                tfB = manifold.ColliderB.Transform;
 
                 collisionNormal = -manifold.Points.Normal;
 

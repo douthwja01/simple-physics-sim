@@ -16,8 +16,8 @@ classdef CollisionExtensions
             assert(sphereB.Code == ColliderCode.Sphere,"Second collider must be a sphere collider.");
             
             % Pull out the world positions
-            positionA = sphereA.Transformation.GetWorldPosition();
-            positionB = sphereB.Transformation.GetWorldPosition();
+            positionA = sphereA.Transform.GetWorldPosition();
+            positionB = sphereB.Transform.GetWorldPosition();
 
             % Separation axis
             seperationAxis = positionA - positionB;
@@ -46,9 +46,9 @@ classdef CollisionExtensions
             assert(plane.Code == ColliderCode.Plane,"Second collider must be a plane collider.");
 
             % Pull out the transforms
-            sWorldPosition = sphere.Transformation.GetWorldPosition();
+            sWorldPosition = sphere.Transform.GetWorldPosition();
             % Origin positions in the world
-            pWorldPosition = plane.Transformation.GetWorldPosition();
+            pWorldPosition = plane.Transform.GetWorldPosition();
 
             % Sphere properties
 		    aCenter = sWorldPosition;
@@ -79,8 +79,8 @@ classdef CollisionExtensions
             assert(sphere.Code == ColliderCode.Sphere,"Second collider must be a sphere collider.");
 
             % Origin positions in the world
-            sWorldPosition = sphere.Transformation.GetWorldPosition();
-            bWorldPosition = box.Transformation.GetWorldPosition();
+            sWorldPosition = sphere.Transform.GetWorldPosition();
+            bWorldPosition = box.Transform.GetWorldPosition();
 
             % Seperation axis (box to sphere)
             axisRay = Ray.FromPoints(bWorldPosition,sWorldPosition);
@@ -125,8 +125,8 @@ classdef CollisionExtensions
             assert(plane.Code == ColliderCode.Plane,"Second collider must be a plane collider.");
 
             % Pull out the transforms
-            pTransform = plane.Transformation;
-            bTransform = box.Transformation;
+            pTransform = plane.Transform;
+            bTransform = box.Transform;
             % Origin positions in the world
             pWorldPosition = pTransform.GetWorldPosition();
             bWorldPosition = bTransform.GetWorldPosition();
@@ -178,8 +178,8 @@ classdef CollisionExtensions
             assert(boxB.Code == ColliderCode.OBB,"Second collider must be a box collider.");
 
             % Pull out the transforms
-            transformA = boxA.Transformation;
-            transformB = boxB.Transformation;
+            transformA = boxA.Transform;
+            transformB = boxB.Transform;
             % Origin positions in the world
             aWorldPosition = transformA.GetWorldPosition();
             bWorldPosition = transformB.GetWorldPosition();
