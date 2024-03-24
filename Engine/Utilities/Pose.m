@@ -1,7 +1,7 @@
 %% A simple Transform Class (Transform.m) %%%%%%%%%%%%%%%%%%%%
 % A class define a container describing the pose of a reference frame.
 
-classdef Transform < handle
+classdef Pose < handle
     properties (SetObservable = true,AbortSet)
         Position = zeros(3,1);
         Quaternion = Quaternion.empty;
@@ -10,7 +10,7 @@ classdef Transform < handle
 
     methods
         % Constructor
-        function [this] = Transform(p,q)
+        function [this] = Pose(p,q)
             % CONSTRUCTOR - Creates and instance of the 'Transform' class
             % from an initial Cartesian position [3x1] and Quaternion
             % [4x1].

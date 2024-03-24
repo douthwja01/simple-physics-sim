@@ -34,7 +34,7 @@ fixed = EntityCreator.Sphere( ...
     [0;0;2], ...
     Quaternion.Random());
 % Do not move
-fixed.Transformation.IsStatic = true;
+fixed.Transform.IsStatic = true;
 % Add elements
 fixed.RigidBody = RigidBody();
 fixed.Renderer.Colour = "r";
@@ -44,7 +44,7 @@ sim.AddEntity(fixed);
 % Add the ground plane
 ground = EntityCreator.Plane("Ground",zeros(3,1));
 % Do not move
-ground.Transformation.IsStatic = true;
+ground.Transform.IsStatic = true;
 % Collisions
 ground.Collider.Width = 10;
 ground.Collider.Depth = 10;

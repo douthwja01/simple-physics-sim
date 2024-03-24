@@ -1,10 +1,12 @@
-classdef Transformation < Element
+classdef Transform < TreeElement
     %POSE Summary of this class goes here
     %   Detailed explanation goes here
     
     % Kinematic properties (simple containers)
     properties
-        Transform = Element.empty;
+        % Statics
+        Pose = Pose.empty;
+        % Kinematics
         Velocity = zeros(3,1);
         AngularVelocity = zeros(3,1);
         Acceleration = zeros(3,1);
@@ -16,7 +18,7 @@ classdef Transformation < Element
     end
 
     methods
-        function [this] = Transformation(entity)
+        function [this] = Transform(entity)
             %POSE Construct an instance of the pose-element
             %   Detailed explanation goes here
 
@@ -25,10 +27,10 @@ classdef Transformation < Element
             end
 
             % Assign the entity
-            [this] = this@Element(entity);
+            [this] = this@TreeElement(entity);
 
             % Create a new transform object
-            this.Transform = Transform();
+            this.Pose = Pose(zeros(3,1),Quaternion.Zero);
         end
         % Get/sets
         function set.Velocity(this,v)
@@ -104,35 +106,35 @@ classdef Transformation < Element
         % Local representation
         function [T] = GetLocalMatrix(this)
             % Get the local transform matrix
-            T = this.Transform.GetMatrix();
+            T = this.Pose.GetMatrix();
         end
         function [this] = SetLocalMatrix(this,T)
             % Set the local transform matrix            
-            this.Transform.SetMatrix(T);
+            this.Pose.SetMatrix(T);
         end
         function [p] = GetLocalPosition(this)
             % Get the local position from the transform.
-            p = this.Transform.Position;
+            p = this.Pose.Position;
         end
         function [this] = SetLocalPosition(this,p)
             % Set the local position via the transform.
-            this.Transform.Position = p;
+            this.Pose.Position = p;
         end
         function [p] = GetLocalRotation(this)
             % Get the local rotation from the transform.
-            p = this.Transform.Quaternion;
+            p = this.Pose.Quaternion;
         end
         function [this] = SetLocalRotation(this,q)
             % Set the local rotation via the transform.
-            this.Transform.Quaternion = q;
+            this.Pose.Quaternion = q;
         end
         function [s] = GetLocalScale(this)
             % Get the local scale defined by this transform
-            s = this.Transform.Scale;
+            s = this.Pose.Scale;
         end
         function [this] = SetLocalScale(this,s)
             % Set the scale vector of the transform
-            this.Transform.Scale = s;
+            this.Pose.Scale = s;
         end
         % Visualisation
         function [h] = Plot(this,container)
@@ -141,7 +143,7 @@ classdef Transformation < Element
                 container = gca;
             end
             % Plot transform 
-            h = this.Transform.Plot(container);
+            h = this.Pose.Plot(container);
         end
     end
 end
