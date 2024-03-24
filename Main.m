@@ -21,7 +21,7 @@ for i = 1:numberOfObjects
         entity_i.Renderer.Colour = "c";
     end
     % Assign the object
-    sim.AddEntity(entity_i);
+    sim.Add(entity_i);
 end
 
 % Add an obstacle
@@ -32,7 +32,7 @@ fixed.Transform.IsStatic = true;
 fixed.RigidBody = RigidBody();
 fixed.Renderer.Colour = "r";
 % Add the fix object
-sim.AddEntity(fixed);
+sim.Add(fixed);
 
 % Add the ground plane
 ground = EntityCreator.Plane("Ground");
@@ -42,7 +42,7 @@ ground.Transform.IsStatic = true;
 % ground.Visuals 
 %ground.Renderer.Mesh = MeshExtensions.Plane(zeros(3,1),[0;0;1],1,1);
 ground.Renderer.Colour = "g";
-sim.AddEntity(ground);
+sim.Add(ground);
 
 % Simulate
 sim.Physics.SubSteps = 10;
