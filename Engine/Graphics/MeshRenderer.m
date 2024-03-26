@@ -45,7 +45,7 @@ classdef MeshRenderer < Renderer
             end
 
             % Transform plot
-            m = this.Transform.Pose.GetMatrix();
+            m = this.Transform.GetWorldMatrix();
             set(this.Handle,"Matrix",m);
         end
     end
