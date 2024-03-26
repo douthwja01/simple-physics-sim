@@ -98,11 +98,6 @@ classdef Pose < handle
 
     %% Support functions
     methods 
-        function [this] = Zero(this)
-            % Reset to default transform
-            this.Quaternion = [1;0;0;0];
-            this.Position = zeros(3,1);
-        end
         function [flag] = IsSymbolic(this)
             % A simple check if the transform is symbolically defined.
             flag = isa(this.Position,"sym") || isa(this.Quaternion,"sym");
@@ -137,6 +132,13 @@ classdef Pose < handle
             % Draw a triad at the location
             hTri = Graphics.DrawTriad(gizmoParams.scale);
             set(hTri,'Parent',hand);
+        end
+    end
+
+    methods (Static)
+        function [p] = Zero()
+            % Create a zeros pose aligned with the default axes.
+            p = Pose(zeros(3,1),Quaternion());
         end
     end
 

@@ -14,7 +14,6 @@ classdef Simulator < handle
     properties (Access = private)
         IsStopped = false;
     end
-
     % Main
     methods
         function [this] = Simulator()
@@ -120,7 +119,6 @@ classdef Simulator < handle
             end
         end
     end
-
     % Internals
     methods (Access = private)
         function [ax,this] = InitialiseGraphics(this)
@@ -171,7 +169,6 @@ classdef Simulator < handle
             Path.AddAllSubfolders(repoPath);
         end
     end
-
     % Callbacks
     methods (Access = private)
         function [this] = OnCollisionCallback(this,source,event)

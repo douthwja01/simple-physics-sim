@@ -5,12 +5,15 @@ classdef (Abstract) MovableJoint < Joint
     properties (Abstract, Constant)
         DegreesOfFreedom;
     end
-    properties
+    properties (SetObservable = true)
         JointPosition = double.empty;
         JointVelocity = double.empty;
         JointAcceleration = double.empty;
     end
-    
+    properties (SetAccess = private)
+        Pivot = Pose.empty;
+    end
+
     methods
         function [this] = MovableJoint()
             %MOVABLEJOINT Construct an instance of this class
@@ -18,6 +21,10 @@ classdef (Abstract) MovableJoint < Joint
 
             % Call the parent class
             [this] = this@Joint();
+            % Transform recalculation feedback
+            addlistener(this,"JointPosition","PostSet",@(src,evnt)OnJointPositionUpdate(this));
+            % Default joint pivot
+            this.Pivot = Pose.Zero();
             % Default joint states
             this.JointPosition = zeros(this.DegreesOfFreedom,1);
             this.JointVelocity = zeros(this.DegreesOfFreedom,1);
@@ -36,6 +43,14 @@ classdef (Abstract) MovableJoint < Joint
             assert(isnumeric(a),"Expecting a numeric joint acceleration.");
             this.JointAcceleration = a;
         end
+        function set.Pivot(this,p)
+            assert(isa(p,"Pose"),"Expecting a valid pose object for the joint's motion.");
+            this.Pivot = p;
+        end
+    end
+    methods (Abstract,Access=protected)
+        % On update of the joint position
+        [this] = OnJointPositionUpdate(src,evnt);
     end
 end
 

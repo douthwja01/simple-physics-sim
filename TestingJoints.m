@@ -5,13 +5,13 @@ addpath("Engine");
 
 sim = Simulator();
 
-position = [0;0;2];
+position = [0;0;3];
 
 numberOfLinks = 3;
 for i = 1:numberOfLinks
     % Place the object
     entity_i = EntityCreator.Box( ...
-        "Box", ...
+        sprintf("Box %d",i), ...
         position, ...
         Quaternion.FromEulers(0,0,0));
     % Add elements
@@ -27,7 +27,7 @@ for i = 1:numberOfLinks
     position = position + [2;0;0];
 
     % Assign the object
-    sim.AddEntity(entity_i);
+    sim.Add(entity_i);
 end
 
 % Add the ground plane
@@ -42,10 +42,14 @@ ground.Renderer.Colour = "g";
 ground.Renderer.Width = 10;
 ground.Renderer.Depth = 10;
 % Add ground to world
-sim.AddEntity(ground);
+sim.Add(ground);
 
 % Create joints
-sim.Entities
+boxOne = sim.Find("Name","Box 1");
+boxOne.Joints = FixedJoint();
+
+boxTwo = sim.Find("Name","Box 2");
+boxTwo.Joints = RevoluteJoint();
 
 % Simulate
 sim.Physics.SubSteps = 10;
