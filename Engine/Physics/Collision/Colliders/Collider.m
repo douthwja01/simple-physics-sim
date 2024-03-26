@@ -45,8 +45,8 @@ classdef (Abstract) Collider < Element
     methods (Abstract)
         % Evaluate collision between this and another collider primitive.
         [points] = TestCollision(colliderB);
-        % Provide a means to recalculate the AABB primitive.
-        [aabb] = GetTransformedAABB(this);
+        % Provide a means to get the world AABB for the collider
+        [aabb] = GetWorldAABB(this);
     end
 
     %% Internals

@@ -1,6 +1,5 @@
 classdef Transform < TreeElement
-    %POSE Summary of this class goes here
-    %   Detailed explanation goes here
+    %TRANSFORM The geometric representation of the entity in 3D space.
     
     % Kinematic properties (simple containers)    
     properties (Dependent)

@@ -24,6 +24,9 @@ for i = 1:numberOfObjects
     else
         entity_i.Renderer.Colour = "c";
     end
+
+    entity_i.Transform.SetLocalScale([1;3;1]);
+
     % Assign the object
     sim.Add(entity_i);
 end
@@ -45,13 +48,11 @@ sim.Add(fixed);
 ground = EntityCreator.Plane("Ground",zeros(3,1));
 % Do not move
 ground.Transform.IsStatic = true;
+ground.Transform.SetLocalScale([15;5;1]);
 % Collisions
-ground.Collider.Width = 10;
-ground.Collider.Depth = 10;
+
 % Visuals
 ground.Renderer.Colour = "g";
-ground.Renderer.Width = 10;
-ground.Renderer.Depth = 10;
 % Add the ground object
 sim.Add(ground);
 
@@ -60,4 +61,4 @@ sim.Add(ground);
 % Simulate
 sim.Physics.SubSteps = 10;
 sim.Physics.Integrator = EulerIntegrator();
-% sim.Simulate(inf);
+sim.Simulate(inf);

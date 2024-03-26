@@ -11,6 +11,7 @@ classdef BoxCollider < MeshCollider
         Height = 1;
     end
 
+    % Main methods
     methods
         function [this] = BoxCollider()
             % CONSTRUCTOR - Generate a box-collider with a unitary cube mesh.
@@ -21,8 +22,8 @@ classdef BoxCollider < MeshCollider
             this.Mesh = MeshExtensions.UnitCube();
         end
     end
-    % Utilities
-    methods
+    % Collision Utilities
+    methods        
         function [points] = TestCollision(this,colliderB)
             % Test for collision between this collider and a variable
             % second collider.
@@ -41,30 +42,13 @@ classdef BoxCollider < MeshCollider
                     error("Collider type not recognised.");
             end
         end
-        function [mesh] = GetTransformedMesh(this)
-            % Convert the default mesh to the rendered mesh.
-            % (Overridden in parent classes).
+        function [mesh] = GetWorldMesh(this)
+            % Calculate the boxes mesh in the world frame.
 
-            % Get the base mesh
-            mesh = GetTransformedMesh@MeshCollider(this);
-            % Get the transformed mesh
-            mesh = mesh.ScaleBy(this.Width,this.Height,this.Depth);
-        end
-        function [aabb] = GetTransformedAABB(this)
-            % Overrided needed, sphere colliders do not need a mesh
-            % representation as a unitary radius is valid. However, for
-            % AABB comparison, a primitive must be constructed any way to
-            % represent this radius.
-
-            % Sanity check
-            if isempty(this.Mesh) || this.Mesh.NumberOfVertices == 0
-                return
-            end
-
-            % Get the mesh transformed in world coordinates
-            mesh = this.GetTransformedMesh();
-            % Compute the aabb for the mesh
-            aabb = AABB.EncloseMesh(mesh);
+            % Transform the mesh by the box dimensions
+            mesh = this.Mesh.ScaleBy(this.Width,this.Height,this.Depth);
+            % Transform the base mesh (by scale and position)
+            mesh = mesh.TransformBy(this.Transform.GetWorldMatrix());
         end
     end
 end
