@@ -55,24 +55,25 @@ classdef OctreeSolver < BroadPhaseSolver
                 % would only seach where d = 2*r; 
 
                 % Build the query box/bounds
-                p = colliders(i).Transform.Position;
-                extents = 10*[-1;1];
-                
+%                 p = colliders(i).Transform.Position;
+%                 extents = 10*[-1;1];
+%                 queryBounds = AABB(extents,extents,extents);
+%                 queryBounds = queryBounds + p;   
+%                 % Create a representative query mesh
+%                 mesh = AABB.CreateMesh(queryBounds);
+%                 h = mesh.Draw(ah,"r");
+%                 set(h,"FaceAlpha",0.1);
 %                 plot3(ah,p(1),p(2),p(3),"ro","MarkerFaceColor","r");
 
                 % Construct the boundary to query
-                queryBounds = AABB(extents,extents,extents);
-                queryBounds = queryBounds + p;
-
-                % Create a representative query mesh
-                mesh = AABB.CreateMesh(queryBounds);
-                h = mesh.Draw(ah,"r");
+                queryBounds = colliders(i).GetWorldAABB();
+                h = queryBounds.Draw(ah,"r");
                 set(h,"FaceAlpha",0.1);
                 
                 % Get all OctreePoints within the queried boundary
                 results = this.Tree.Query(queryBounds);
 
-                fprintf("\nPoints inserted '%d'",this.PointsInserted);
+                fprintf("Points inserted '%d'\n",this.PointsInserted);
 
                 % Draw all the query response points.
                 for j = 1:numel(results)

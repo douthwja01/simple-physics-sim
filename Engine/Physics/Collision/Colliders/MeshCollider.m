@@ -40,7 +40,7 @@ classdef (Abstract) MeshCollider < Collider
             % Get the mesh transformed in world coordinates
             mesh = this.GetWorldMesh();
             % Recompute AABB
-            aabb = AABB.EncloseMesh(mesh);
+            aabb = AABB.FromMesh(mesh);
         end
         function [h] = Draw(this,container)
             % Draw the mesh collider

@@ -183,6 +183,7 @@ classdef AABB < Boundary
         end
     end
     methods
+        % Boundary checks
         function [range] = GetAxisRange(this,axisCode)
             % Get the axis range
             assert(isa(axisCode,"AxisCode"),"Expecting a valid axis-code enum.");
@@ -245,6 +246,11 @@ classdef AABB < Boundary
                 otherwise
                     error("Invalid axis-code for AABB checks.");
             end
+        end        
+        % General
+        function [mesh] = ToMesh(this)
+            % Create a mesh from the current AABB instance.
+            mesh = MeshExtensions.CuboidFromExtents(this.Min,this.Max);
         end
         function [h] = Draw(this,container,colour)
             % Draw this mesh to a given graphical container
@@ -254,25 +260,19 @@ classdef AABB < Boundary
             if nargin < 2
                 container = gca;
             end
-            mesh = CreateMesh(this);
+            mesh = this.ToMesh();
             h = mesh.Draw(container,colour);
         end
     end
     % AABB Tools
     methods (Static)
-        function [mesh] = CreateMesh(aabb)
-            % This function creates a cuboid mesh representing the aabb.
-            assert(isa(aabb,"AABB"),"Expecting a valid AABB primitive.");
-            % Extents
-            mins = [aabb.xBoundary.Min;aabb.yBoundary.Min;aabb.zBoundary.Min];
-            maxs = [aabb.xBoundary.Max;aabb.yBoundary.Max;aabb.zBoundary.Max];
-            % Create the mesh
-            mesh = MeshExtensions.CuboidFromExtents(mins,maxs);
-        end
-        function [aabb] = EncloseMesh(mesh)
+        function [aabb] = FromMesh(mesh)
             % This function creates an axis-aligned-bounding box from a
             % given mesh.
             
+            % Sanity check
+            assert(isa(mesh,"Mesh"),"Expecting a valid mesh class.");
+
             % Simply extract the extents
             [xlimits,ylimits,zlimits] = Mesh.Extents(mesh);
             % Create the primitive
