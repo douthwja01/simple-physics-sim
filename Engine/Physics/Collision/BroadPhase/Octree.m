@@ -36,53 +36,25 @@ classdef Octree < handle
             % Recursively seearch for intersections
             data = this.Root.Query(queryBounds);
         end
-        function [flag] = InsertCollider(this,collider)
-            % Insert a complete collider into the root node.
-            
-            % We need to insert a mesh
-            if isa(collider,"MeshCollider")
-
-                worldMesh = collider.GetWorldMesh();
-                v = worldMesh.Vertices;
-                %v = collider.Mesh.Vertices;
-                for i = 1:worldMesh.NumberOfVertices
-                    vertex = v(i,:)';
-                    % Insert a point with reference to the collider
-                    octPoint = OctreePoint(vertex,collider);
-                    % Insert the vertex
-                    if ~this.InsertPoint(octPoint)
-                        flag = false;
-                        return;
-                    end
-                end
-                flag = true;
-                return
-            end
-
-            if isa(collider,"SphereCollider")
-                position = collider.Center;
-                octPoint = OctreePoint(position,collider);
-                % [Test] Insert the center as a vertex
-                if ~this.InsertPoint(octPoint)
-                    flag = false;
-                    return;
-                end
-                flag = true;
-                return 
-            end
-
-            flag = true;
-        end
+        
         function [flag] = InsertPoint(this,octPoint)
             % Insert a simple point into the octree.
             flag = this.Root.InsertPoint(octPoint);
         end
+    end
+    methods
+        % Support methods
+        function [nodes] = ListNodes(this)
+            % This function returns a flattened handle to all nodes in the
+            % Octree structure (for debugging).
+
+            % Call find child on the root
+            nodes = this.Root.ListChildren();
+        end
         function [n] = GetNumberOfNodes(this)
             n = this.Root.GetNumberOfChildren();
         end
-    end
-    % Drawing methods
-    methods
+        % Drawing methods
         function [h] = DrawNodes(this,container,colour,onlyifPopulated)
             % Draw the complete set of Octree-nodes within the Octree.
             

@@ -267,7 +267,7 @@ classdef AABB < Boundary
             mins = [aabb.xBoundary.Min;aabb.yBoundary.Min;aabb.zBoundary.Min];
             maxs = [aabb.xBoundary.Max;aabb.yBoundary.Max;aabb.zBoundary.Max];
             % Create the mesh
-            mesh = MeshGenerator.CuboidFromExtents(mins,maxs);
+            mesh = MeshExtensions.CuboidFromExtents(mins,maxs);
         end
         function [aabb] = EncloseMesh(mesh)
             % This function creates an axis-aligned-bounding box from a
