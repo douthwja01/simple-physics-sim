@@ -24,8 +24,11 @@ for i = 1:numberOfObjects
     else
         entity_i.Renderer.Colour = "c";
     end
+
+    entity_i.Transform.SetLocalScale([1;3;1]);
+
     % Assign the object
-    sim.AddEntity(entity_i);
+    sim.Add(entity_i);
 end
 
 % Add an obstacle
@@ -34,26 +37,26 @@ fixed = EntityCreator.Sphere( ...
     [0;0;2], ...
     Quaternion.Random());
 % Do not move
-fixed.Transformation.IsStatic = true;
+fixed.Transform.IsStatic = true;
 % Add elements
 fixed.RigidBody = RigidBody();
 fixed.Renderer.Colour = "r";
 % Add the fix object
-sim.AddEntity(fixed);
+sim.Add(fixed);
 
 % Add the ground plane
 ground = EntityCreator.Plane("Ground",zeros(3,1));
 % Do not move
-ground.Transformation.IsStatic = true;
+ground.Transform.IsStatic = true;
+ground.Transform.SetLocalScale([15;5;1]);
 % Collisions
-ground.Collider.Width = 10;
-ground.Collider.Depth = 10;
+
 % Visuals
 ground.Renderer.Colour = "g";
-ground.Renderer.Width = 10;
-ground.Renderer.Depth = 10;
+% Add the ground object
+sim.Add(ground);
 
-sim.AddEntity(ground);
+%found = sim.Find("Name","Box");
 
 % Configure Simulator 
 sim.Physics.SubSteps = 10;

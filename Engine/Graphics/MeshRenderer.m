@@ -1,5 +1,5 @@
 
-classdef MeshRenderer < Element
+classdef MeshRenderer < Renderer
     % This class is a an element responsible for the appearance of the
     % visual elements of an Entity.
 
@@ -17,7 +17,7 @@ classdef MeshRenderer < Element
             % Constructor for a visual elements
 
             % Assign the entity
-            [this] = this@Element();
+            [this] = this@Renderer();
         end
         % Get/sets
         function set.Base(this,m)
@@ -45,7 +45,7 @@ classdef MeshRenderer < Element
             end
 
             % Transform plot
-            m = this.Transformation.Transform.GetMatrix();
+            m = this.Transform.GetWorldMatrix();
             set(this.Handle,"Matrix",m);
         end
     end
@@ -55,7 +55,7 @@ classdef MeshRenderer < Element
             % Initialise the renderer.
 
             % Plot the handle
-            this.Handle = this.Entity.Transformation.Plot(ax);
+            this.Handle = this.Entity.Transform.Plot(ax);
 
             % Sanity check
             if isempty(this.Base)

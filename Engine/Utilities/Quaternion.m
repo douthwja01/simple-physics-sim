@@ -1,5 +1,5 @@
 classdef Quaternion < handle
-    %QUATERNION Summary of this class goes here
+    %QUATERNION mathmatical primitive.
     %   Detailed explanation goes here
     
     properties (SetObservable = true)
@@ -11,6 +11,7 @@ classdef Quaternion < handle
     properties (Dependent)
         IsSymbolic;
     end
+    
     %% Main
     methods
         function [this] = Quaternion(x,y,z,w)
@@ -100,13 +101,14 @@ classdef Quaternion < handle
             % Create new quaternion
             Q = Quaternion(qv);
         end
-        % Conversions
-        function [T] = ToTransform(this)
-            R = this.ToRotation();
-            % Create transform
-            T = [R,zeros(3,1);zeros(1,3),1];
+        function [Q] = Normalise(this)
+            % This function normalises the quaternion
+            q0 = this.ToVector();
+            q0 = q0/sqrt(q0(1)^2 + q0(2)^2 + q0(3)^2 + q0(4)^2);
+            Q = Quaternion(q0);
         end
-        function [R] = ToRotation(this)
+        % Conversions
+        function [R] = ToRotationMatrix(this)
             % This function computes the rotation matrix of the quaternion
             % variables describing the 3D rotations of 3D body.
 
@@ -127,7 +129,7 @@ classdef Quaternion < handle
             R(3,2) = 2*(q(1)*q(2) + q(3)*q(4));
             R(3,3) = q(1)^2 - q(2)^2 - q(3)^2 + q(4)^2;
         end
-        function [phi,theta,psi] = ToEulers(this)
+        function [phi,theta,psi] = ToEulersAngles(this)
             % For convenience 
             q = this.ToVector();
             % Compute the euler rotation from a unit quaternion
@@ -139,17 +141,12 @@ classdef Quaternion < handle
             % Put the components in an array
             q = [this.X;this.Y;this.Z;this.W];
         end
-        function [Q] = Normalise(this)
-            % This function normalises the quaternion
-            q0 = this.ToVector();
-            q0 = q0/sqrt(q0(1)^2 + q0(2)^2 + q0(3)^2 + q0(4)^2);
-            Q = Quaternion(q0);
-        end
     end
-    %% Extensions
+
+    %% (Static) Support methods
     methods (Static)
         % Operations
-        function [dQ] = Differential(Q,omega)
+        function [dQ] = Rate(Q,omega)
             % Compute the quaternion differential
 
             % Sanity check
@@ -168,8 +165,13 @@ classdef Quaternion < handle
         function [Q] = Zero()
             Q = Quaternion();
         end
+        function [Q] = Random()
+            % Generate a random quaternion
+            e = 2*pi*RandZero(3);
+            Q = Quaternion.FromEulers(e(1),e(2),e(3));
+        end
         % Conversions
-        function [Q] = FromRotation(R)
+        function [Q] = FromRotationMatrix(R)
             % This function is designed to convert from a rotation matrix
             % to an equivalent quaternion. This function is also parallel
             % to "rotm2quat.m".
@@ -190,8 +192,8 @@ classdef Quaternion < handle
                 q(2) = (R(3,2) - R(2,3)) / S;
                 q(3) = (R(1,3) - R(3,1)) / S;
                 q(4) = (R(2,1) - R(1,2)) / S;
-                % Reduce if possible
-                q = SymTools.Reduce(q);
+                % Create the quaternion object
+                Q = Quaternion(q(1),q(2),q(3),q(4));
                 return
             end
 
@@ -245,11 +247,6 @@ classdef Quaternion < handle
             W = cr * cp * sy - sr * sp * cy;
             % Assign to quaternion
             Q = Quaternion(X,Y,Z,W);
-        end
-        function [Q] = Random()
-            % Generate a random quaternion
-            e = 2*pi*RandZero(3);
-            Q = Quaternion.FromEulers(e(1),e(2),e(3));
         end
     end
 end

@@ -1,11 +1,8 @@
 classdef EntityCreator
-    %ENTITYCREATOR Summary of this class goes here
-    %   Detailed explanation goes here
-    
-    properties
-        Property1
-    end
-    
+    %ENTITYCREATOR Basic entity creation utilities.
+    %   Provides a set of methods for creating standard
+    %   primitives.
+        
     methods (Static)
         function [plane] = Plane(name,position,rotation)
             % This function creats a plane object.
@@ -84,8 +81,8 @@ classdef EntityCreator
             % Entity box
             this = Entity(name);
             % Set the entity location
-            this.Transformation.SetWorldPosition(position);
-            this.Transformation.SetWorldRotation(rotation);
+            this.Transform.SetWorldPosition(position);
+            this.Transform.SetWorldRotation(rotation);
         end
     end
 end
