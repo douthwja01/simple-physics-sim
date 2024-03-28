@@ -1,5 +1,5 @@
 classdef Quaternion < handle
-    %QUATERNION Summary of this class goes here
+    %QUATERNION mathmatical primitive.
     %   Detailed explanation goes here
     
     properties (SetObservable = true)
@@ -11,6 +11,7 @@ classdef Quaternion < handle
     properties (Dependent)
         IsSymbolic;
     end
+    
     %% Main
     methods
         function [this] = Quaternion(x,y,z,w)
@@ -100,6 +101,12 @@ classdef Quaternion < handle
             % Create new quaternion
             Q = Quaternion(qv);
         end
+        function [Q] = Normalise(this)
+            % This function normalises the quaternion
+            q0 = this.ToVector();
+            q0 = q0/sqrt(q0(1)^2 + q0(2)^2 + q0(3)^2 + q0(4)^2);
+            Q = Quaternion(q0);
+        end
         % Conversions
         function [T] = ToTransform(this)
             R = this.ToRotation();
@@ -139,17 +146,11 @@ classdef Quaternion < handle
             % Put the components in an array
             q = [this.X;this.Y;this.Z;this.W];
         end
-        function [Q] = Normalise(this)
-            % This function normalises the quaternion
-            q0 = this.ToVector();
-            q0 = q0/sqrt(q0(1)^2 + q0(2)^2 + q0(3)^2 + q0(4)^2);
-            Q = Quaternion(q0);
-        end
     end
     %% Extensions
     methods (Static)
         % Operations
-        function [dQ] = Differential(Q,omega)
+        function [dQ] = Rate(Q,omega)
             % Compute the quaternion differential
 
             % Sanity check
@@ -167,6 +168,11 @@ classdef Quaternion < handle
         end
         function [Q] = Zero()
             Q = Quaternion();
+        end
+        function [Q] = Random()
+            % Generate a random quaternion
+            e = 2*pi*RandZero(3);
+            Q = Quaternion.FromEulers(e(1),e(2),e(3));
         end
         % Conversions
         function [Q] = FromRotation(R)
@@ -245,11 +251,6 @@ classdef Quaternion < handle
             W = cr * cp * sy - sr * sp * cy;
             % Assign to quaternion
             Q = Quaternion(X,Y,Z,W);
-        end
-        function [Q] = Random()
-            % Generate a random quaternion
-            e = 2*pi*RandZero(3);
-            Q = Quaternion.FromEulers(e(1),e(2),e(3));
         end
     end
 end

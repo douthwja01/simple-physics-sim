@@ -19,7 +19,7 @@ classdef EulerIntegrator < Integrator
             w = w0 + pose.AngularAcceleration*dt;
             
             % Computer 
-            dq = Quaternion.Differential(q0,w);
+            dq = Quaternion.Rate(q0,w);
 
             % Euler step
             rotation = q0 + dq*dt;
