@@ -138,7 +138,7 @@ classdef Transform < TreeElement
         function [T] = GetLocalMatrix(this)
             % Get the local transform matrix, this matrix already
             % contains the rotation,translation and scaling.
-            T = this.SO3.GetMatrix();
+            T = this.SO3.ToMatrix();
         end
         function [this] = SetLocalMatrix(this,T)
             % Set the local transform matrix            
@@ -164,7 +164,7 @@ classdef Transform < TreeElement
         % Local Scaling
         function [Ts] = GetLocalScaleMatrix(this)
             % Get the matrix representation of the scale
-            Ts = this.SO3.GetScaleMatrix();
+            Ts = this.SO3.ToScaleMatrix();
         end
         function [s] = GetLocalScale(this)
             % Get the local scale defined by this transform

@@ -108,12 +108,7 @@ classdef Quaternion < handle
             Q = Quaternion(q0);
         end
         % Conversions
-        function [T] = ToTransform(this)
-            R = this.ToRotation();
-            % Create transform
-            T = [R,zeros(3,1);zeros(1,3),1];
-        end
-        function [R] = ToRotation(this)
+        function [R] = ToRotationMatrix(this)
             % This function computes the rotation matrix of the quaternion
             % variables describing the 3D rotations of 3D body.
 
@@ -134,7 +129,7 @@ classdef Quaternion < handle
             R(3,2) = 2*(q(1)*q(2) + q(3)*q(4));
             R(3,3) = q(1)^2 - q(2)^2 - q(3)^2 + q(4)^2;
         end
-        function [phi,theta,psi] = ToEulers(this)
+        function [phi,theta,psi] = ToEulersAngles(this)
             % For convenience 
             q = this.ToVector();
             % Compute the euler rotation from a unit quaternion
@@ -147,7 +142,8 @@ classdef Quaternion < handle
             q = [this.X;this.Y;this.Z;this.W];
         end
     end
-    %% Extensions
+
+    %% (Static) Support methods
     methods (Static)
         % Operations
         function [dQ] = Rate(Q,omega)
@@ -175,7 +171,7 @@ classdef Quaternion < handle
             Q = Quaternion.FromEulers(e(1),e(2),e(3));
         end
         % Conversions
-        function [Q] = FromRotation(R)
+        function [Q] = FromRotationMatrix(R)
             % This function is designed to convert from a rotation matrix
             % to an equivalent quaternion. This function is also parallel
             % to "rotm2quat.m".
@@ -196,8 +192,8 @@ classdef Quaternion < handle
                 q(2) = (R(3,2) - R(2,3)) / S;
                 q(3) = (R(1,3) - R(3,1)) / S;
                 q(4) = (R(2,1) - R(1,2)) / S;
-                % Reduce if possible
-                q = SymTools.Reduce(q);
+                % Create the quaternion object
+                Q = Quaternion(q(1),q(2),q(3),q(4));
                 return
             end
 
