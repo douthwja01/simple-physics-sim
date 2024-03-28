@@ -54,8 +54,8 @@ classdef SphereCollider < Collider
             scale = this.Transform.GetWorldScale();
             % Offset the aabb by the sphere's world position
             aabb = a * scale + p;
-            % Assign the parent
-            aabb.Parent = this;
+            % Assign the owner's cid
+            aabb.Cid = this.Cid;
         end
     end
 end

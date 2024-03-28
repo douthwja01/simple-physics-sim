@@ -41,6 +41,8 @@ classdef (Abstract) MeshCollider < Collider
             mesh = this.GetWorldMesh();
             % Recompute AABB
             aabb = AABB.FromMesh(mesh);
+            % Assign the owner's id
+            aabb.Cid = this.Cid;
         end
         function [h] = Draw(this,container)
             % Draw the mesh collider

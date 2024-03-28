@@ -30,25 +30,32 @@ classdef OctreeNode < handle
             n = length(this.Points);
         end
         % Main Methods
-        function [results] = Query(this,region)
+        function [results] = Query(this,queryBoundary)
             % This function takes a AABB query and determines the complete
             % set of points that exist within it.
 
             results = [];
             
             % If the query doesn't intersect this region, abort. 
-            if ~this.Boundary.Intersects(region)
+            if ~this.Boundary.Intersects(queryBoundary)
                 return;
             end
+            
+            % Get the id of the queryBoundary
+            hasCid = ~isempty(queryBoundary.Cid);
 
             % Check all points in the node against the boundary.
             for i = 1:this.NumberOfPoints
                 octPoint = this.Points(i);
-
-                if ~region.Contains(this.Points(i).Position)
-                    continue
+                % Check if we are querying a point belonging to ourselves.
+                if hasCid && octPoint.Cid == queryBoundary.Cid
+                    continue;
                 end
 
+                % If the region doesnt doesn't contain the point
+                if ~queryBoundary.Contains(this.Points(i).Position)
+                    continue
+                end
                 % Add the point to the results
                 results = vertcat(results,octPoint);
             end
@@ -58,16 +65,17 @@ classdef OctreeNode < handle
                 return
             end
 
+            % Query the children for the region
             for i = 1:this.SubRegions
                 % Query the region against the child
-                childResults = this.Children(i).Query(region);
+                childResults = this.Children(i).Query(queryBoundary);
                 % Add the point to the results
                 if ~isempty(childResults)
                     results = vertcat(results,childResults);
                 end
             end
         end
-        function [flag] = InsertPoint(this,octPoint)
+        function [flag] = Insert(this,octPoint)
             % Allow the insertion of a given point into the octreeNode.
  
             % Sanity check
@@ -95,7 +103,7 @@ classdef OctreeNode < handle
             % Try and insert the point in the child node
             for i = 1:this.SubRegions
                 % Attempt insertion in each child-node
-                if this.Children(i).InsertPoint(octPoint)
+                if this.Children(i).Insert(octPoint)
                     flag = true;
                     return
                 end
@@ -107,9 +115,6 @@ classdef OctreeNode < handle
             if nargin < 2
                 populatedOnly = false;
             end
-%             if nargin < 2
-%                 parentNodes = OctreeNode.empty;
-%             end
 
             % Check if the node is active
             if populatedOnly && numel(this.Points) == 0

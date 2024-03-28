@@ -9,7 +9,8 @@ classdef AABB < Boundary
         Max;
     end  
     properties
-        Parent = Collider.empty;
+%         Parent = Collider.empty;
+        Cid = uint32.empty;      % Identity code
     end
     % Intervals in each dimensions
     properties (SetAccess = private)
@@ -43,9 +44,9 @@ classdef AABB < Boundary
             this.zBoundary = Interval(zRange(1),zRange(2));
         end
         % Get/sets
-        function set.Parent(this,p)
-            assert(isa(p,"Collider"),"Expecting a valid parent collider.");
-            this.Parent = p;
+        function set.Cid(this,cid)
+            assert(isa(cid,"uint32"),"Expecting a 'uint32' cid code.");
+            this.Cid = cid;
         end
         function [m] = get.Min(this)
             m = [this.xBoundary.Min;
@@ -86,6 +87,7 @@ classdef AABB < Boundary
                     error("Second input not compatible.");
                 end
                 r = AABB(x.Range,y.Range,z.Range);
+                r.Cid = obj1.Cid;
                 return;
             end
 
@@ -103,6 +105,7 @@ classdef AABB < Boundary
                     error("Second input not compatible.");
                 end
                 r = AABB(x.Range,y.Range,z.Range);
+                r.Cid = obj2.Cid;
                 return;
             end
         end
@@ -123,6 +126,7 @@ classdef AABB < Boundary
                     error("Second input not compatible.");
                 end
                 r = AABB(x.Range,y.Range,z.Range);
+                r.Cid = obj1.Cid;
                 return;
             end
 
@@ -140,6 +144,7 @@ classdef AABB < Boundary
                     error("Second input not compatible.");
                 end
                 r = AABB(x.Range,y.Range,z.Range);
+                r.Cid = obj2.Cid;
                 return;
             end
         end
@@ -160,6 +165,7 @@ classdef AABB < Boundary
                     error("Second input not compatible.");
                 end
                 r = AABB(x.Range,y.Range,z.Range);
+                r.Cid = obj1.Cid;
                 return;
             end
 
@@ -178,6 +184,7 @@ classdef AABB < Boundary
                     error("Second input not compatible.");
                 end
                 r = AABB(x.Range,y.Range,z.Range);
+                r.Cid = obj2.Cid;
                 return;
             end
         end

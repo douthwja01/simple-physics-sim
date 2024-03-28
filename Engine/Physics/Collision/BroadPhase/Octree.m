@@ -36,10 +36,12 @@ classdef Octree < handle
             % Recursively seearch for intersections
             data = this.Root.Query(queryBounds);
         end
-        
-        function [flag] = InsertPoint(this,octPoint)
+        function [flag] = Insert(this,octPoint)
+            % This function will insert a simple octPoint into the tree
+            % structure.
+
             % Insert a simple point into the octree.
-            flag = this.Root.InsertPoint(octPoint);
+            flag = this.Root.Insert(octPoint);
         end
     end
     methods

@@ -4,23 +4,29 @@ classdef OctreePoint < handle
     % which it belongs outside the octree.
     
     properties
-        Position = zeros(3,1);
-        Reference = [];
+        Position = zeros(3,1);  % Spacial location
+        Cid = uint32.empty;      % Identity code
+        %Reference = [];
     end
     
     methods
-        function [this] = OctreePoint(point,reference)
+        function [this] = OctreePoint(point,cid)
             % OCTPOINT - Construct an instance of the Octpoint class from a
             % position in the octree and its attached reference.
 
             this.Position = point;
-            this.Reference = reference;
+            this.Cid = cid;
         end
+        % Get/sets
         function set.Position(this,p)
             assert(IsColumn(p,3),"Expecting a valid cartesian point [3x1].");
             this.Position = p;
         end
-
+        function set.Cid(this,cid)
+            assert(isa(cid,"uint32"),"Expecting a 'uint32' cid code.");
+            this.Cid = cid;
+        end
+        % Support functions
         function [h] = Draw(this,container,colour)
             % Plot the octree-point to a graphical container.
             if nargin < 2

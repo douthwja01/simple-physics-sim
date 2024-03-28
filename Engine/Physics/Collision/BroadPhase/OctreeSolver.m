@@ -66,7 +66,7 @@ classdef OctreeSolver < BroadPhaseSolver
 %                 plot3(ah,p(1),p(2),p(3),"ro","MarkerFaceColor","r");
 
                 % Construct the boundary to query
-                queryBounds = colliders(i).GetWorldAABB();
+                queryBounds = 2*colliders(i).GetWorldAABB();
                 h = queryBounds.Draw(ah,"r");
                 set(h,"FaceAlpha",0.1);
                 
@@ -80,9 +80,16 @@ classdef OctreeSolver < BroadPhaseSolver
                     p = results(j).Position;
                     plot3(ah,p(1),p(2),p(3),"ro","MarkerFaceColor","k");
                 end
-
+                
+%                 delete(h);
                 % Append
 %                 octreePoints = vertcat(octreePoints,results);
+
+                % We need to add all unique collider combinations based on
+                % the points.
+                
+                toEvaluate = Manifolds()
+
             end
             
 %             fprintf("\nTotal Octree-points '%d'.",length(octreePoints));
@@ -107,15 +114,14 @@ classdef OctreeSolver < BroadPhaseSolver
             
             % We need to insert a mesh
             if isa(collider,"MeshCollider")
-
                 worldMesh = collider.GetWorldMesh();
                 v = worldMesh.Vertices;
                 %v = collider.Mesh.Vertices;
                 for i = 1:worldMesh.NumberOfVertices
-                    % Insert a point with reference to the collider
-                    octPoint = OctreePoint(v(i,:)',collider);
+                    % Insert a point and collider 'cid'
+                    octPoint = OctreePoint(v(i,:)',collider.Cid);
                     % Insert the vertex
-                    if ~this.Tree.InsertPoint(octPoint)
+                    if ~this.Tree.Insert(octPoint)
                         flag = false;
                         return;
                     end
@@ -127,9 +133,9 @@ classdef OctreeSolver < BroadPhaseSolver
 
             if isa(collider,"SphereCollider")
                 position = collider.Center;
-                octPoint = OctreePoint(position,collider);
+                octPoint = OctreePoint(position,collider.Cid);
                 % [Test] Insert the center as a vertex
-                if ~this.Tree.InsertPoint(octPoint)
+                if ~this.Tree.Insert(octPoint)
                     flag = false;
                     return;
                 end
