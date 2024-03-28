@@ -86,7 +86,7 @@ classdef CollisionExtensions
             axisRay = Ray.FromPoints(bWorldPosition,sWorldPosition);
 
             % Get the collider mesh
-            collisionMesh = box.GetTransformedMesh();
+            collisionMesh = box.GetWorldMesh();
             vertexProjections = inf(collisionMesh.NumberOfVertices,1);
             for i = 1:collisionMesh.NumberOfVertices
                 % A given collision vertex
@@ -137,7 +137,7 @@ classdef CollisionExtensions
             centerToPlaneHeight = Ray.PointProjection(axisRay,bWorldPosition);
             
             % Get the collider mesh
-            collisionMesh = box.GetTransformedMesh();
+            collisionMesh = box.GetWorldMesh();
             vertexProjections = inf(collisionMesh.NumberOfVertices,1);
             for i = 1:collisionMesh.NumberOfVertices
                 % A given collision vertex
@@ -188,8 +188,8 @@ classdef CollisionExtensions
             axisRay = Ray.FromPoints(aWorldPosition,bWorldPosition); 
             reverseAxisRay = Ray.FromPoints(bWorldPosition,aWorldPosition); 
             % Get the orientated collision meshes
-            collisionMeshA = boxA.GetTransformedMesh();
-            collisionMeshB = boxB.GetTransformedMesh();
+            collisionMeshA = boxA.GetWorldMesh();
+            collisionMeshB = boxB.GetWorldMesh();
             
             % Find the greatest projection of A on the axis
             vertexProjectionsA = zeros(collisionMeshA.NumberOfVertices,1);

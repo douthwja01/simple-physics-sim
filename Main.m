@@ -36,9 +36,15 @@ sim.Add(fixed);
 
 % Add the ground plane
 ground = EntityCreator.Plane("Ground");
-ground.Transform.SetWorldScale([20;20;1]);
+ground.Transform.SetWorldScale([10;10;1]);
 ground.Transform.IsStatic = true;
-
+% Collisions
+% ground.Collider.Width = 10;
+% ground.Collider.Depth = 10;
+% Visuals
+ground.Renderer.Colour = "g";
+% ground.Renderer.Width = 10;
+% ground.Renderer.Depth = 10;
 % ground.Visuals 
 %ground.Renderer.Mesh = MeshExtensions.Plane(zeros(3,1),[0;0;1],1,1);
 ground.Renderer.Colour = "g";

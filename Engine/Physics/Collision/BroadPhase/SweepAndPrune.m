@@ -32,7 +32,7 @@ classdef SweepAndPrune < BroadPhaseSolver
             % AABBs to be representive for this frame.
             for i = 1:numel(colliders)
                 % Transform the AABB  for i
-                this.AABBs(i) = colliders(i).GetTransformedAABB();
+                this.AABBs(i) = colliders(i).GetWorldAABB();
                 % Ensure the result retains the parent association
                 this.AABBs(i).Parent = colliders(i);
             end
