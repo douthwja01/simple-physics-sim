@@ -120,7 +120,8 @@ classdef OctreeSolver < BroadPhaseSolver
             % Reset the tree
             this.Tree = Octree.empty;
         end
-    
+    end
+    methods (Access = private)
         function [flag] = InsertCollider(this,collider)
             % Insert a complete collider into the root node.
             
@@ -137,7 +138,6 @@ classdef OctreeSolver < BroadPhaseSolver
                 end
                 this.PointsInserted = this.PointsInserted + 1;
             end
-
             flag = true;
         end
     end

@@ -16,6 +16,7 @@ classdef (Abstract) Collider < Element
 
     % Main
     methods
+        % Constructor
         function [this] = Collider(entity)
             % CONSTRUCTOR - Base definition of colliders.
 
@@ -49,21 +50,7 @@ classdef (Abstract) Collider < Element
         [aabb] = GetWorldAABB(this);
     end
 
-    %% Internals
-    methods (Access = private)
-        function [this] = OnColliderEvent(this,colliderData)
-            % In the event of collision/trigger event raised, call the
-            % associated feedbacks based on the collider configuration.
-
-            % Throw the Trigger/collision call-back
-            if this.IsTrigger
-                this.OnTrigger(colliderData);
-            else
-                this.OnCollision(colliderData);
-            end
-        end
-    end
-    % Default methods (to override)
+    % Internals
     methods (Access = protected)
         function [this] = OnCollision(this,colliderData)
             % When the on-collision event is triggered by the world.            
@@ -83,6 +70,19 @@ classdef (Abstract) Collider < Element
                 fprintf("Trigger '%s', triggered by '%s'.\n", ...
                     colliderData.Source.Entity.Name, ...
                     colliderData.Collider.Entity.Name);
+            end
+        end
+    end    
+    methods (Access = private)
+        function [this] = OnColliderEvent(this,colliderData)
+            % In the event of collision/trigger event raised, call the
+            % associated feedbacks based on the collider configuration.
+
+            % Throw the Trigger/collision call-back
+            if this.IsTrigger
+                this.OnTrigger(colliderData);
+            else
+                this.OnCollision(colliderData);
             end
         end
     end

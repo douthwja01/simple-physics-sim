@@ -33,6 +33,7 @@ classdef DynamicsWorld < CollisionWorld
         end
     end
 
+    % Interactions
     methods        
         % High-level
         function [this] = Initialise(this)
@@ -46,7 +47,14 @@ classdef DynamicsWorld < CollisionWorld
             end
         end
         function [this] = Step(this,dt)
+            % This function steps the physics simulation.
+
+            % Sanity check
             assert(isnumeric(dt),"Expecting a valid time step.");
+            
+            % Solve the collisions
+%             this.ResolveCollisions(dt);
+
             % Step (or substep) the world
             if this.EnableSubStepping
                 subTimeDelta = dt/this.SubSteps;
@@ -86,6 +94,8 @@ classdef DynamicsWorld < CollisionWorld
     % Utilities
     methods(Access = private)
         function [this] = SubStep(this,dt)
+            % This function computes each physics substep.
+
             % The step procedure
             this.ApplyGravity();
             % Solve the collisions

@@ -6,10 +6,10 @@ classdef OctreePoint < handle
     properties
         Position = zeros(3,1);  % Spacial location
         Cid = uint32.empty;      % Identity code
-        %Reference = [];
     end
     
     methods
+        % Constructor
         function [this] = OctreePoint(point,cid)
             % OCTPOINT - Construct an instance of the Octpoint class from a
             % position in the octree and its attached reference.
