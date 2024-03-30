@@ -6,7 +6,7 @@ classdef Simulator < handle
         Physics;
         % Contents
         g = [0;0;-9.81];
-        WorldSize = 20;
+        WorldSize = 100;
     end
     properties (SetAccess = private)
         Entities = [];
@@ -20,11 +20,11 @@ classdef Simulator < handle
         function [this] = Simulator()
             % CONSTRUCTOR - Construct an instance of the time simulator 
             % class representing a singular simulation.
-
+            
+            % Parameters
             this.AddEnginePaths;
-
             % Create the dynamics world
-            this.Physics = DynamicsWorld();
+            this.Physics = DynamicsWorld(this.WorldSize);
             % Add impulse collision solver
             this.Physics.AddSolver(ImpulseCollisionSolver());
         end
@@ -59,7 +59,21 @@ classdef Simulator < handle
             end
         end
         % Add/remove the objects
-        function [this] = AddEntity(this,entity)
+        function [entities] = Find(this,property,value)
+            % Find an entity in the simulator by a given property.
+
+            % Sanity check
+            assert(isstring(property),"Expecting a value property label.");
+
+            entities = [];
+            if numel(this.Entities) == 0
+                return;
+            end
+
+            % Get the entities by that property
+            entities = this.Entities([this.Entities.(property)] == value);
+        end
+        function [this] = Add(this,entity)
             % Add an entity to the simulator.
 
             % Sanity check
@@ -77,7 +91,7 @@ classdef Simulator < handle
             % Add to entity-list
             this.Entities = vertcat(this.Entities,entity);
         end
-        function [this] = DeleteEntity(this,entity)
+        function [this] = Remove(this,entity)
             % Delete the entity from the simulator
 
             % Sanity check
@@ -125,7 +139,7 @@ classdef Simulator < handle
             axisLimits = this.WorldSize/2;
             xlim(ax,[-axisLimits,axisLimits]);
             ylim(ax,[-axisLimits,axisLimits]);
-            zlim(ax,[0,axisLimits]);
+            zlim(ax,[0,this.WorldSize]);
             % Register for key presses
             set(fig,'KeyPressFcn',@(src,evnt)OnKeyPressCallback(this,src,evnt));
         end

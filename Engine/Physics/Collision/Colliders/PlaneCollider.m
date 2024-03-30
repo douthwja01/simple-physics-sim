@@ -23,6 +23,7 @@ classdef PlaneCollider < Collider
             this.Normal = n;
         end
     end
+    % Collision Utilities
     methods
         function [points] = TestCollision(this,colliderB)
             % Test for collision between this collider and a variable
@@ -39,19 +40,24 @@ classdef PlaneCollider < Collider
                     error("Collider type not recognised.");
             end
         end
-        function [aabb] = GetTransformedAABB(this)
+        function [aabb] = GetWorldAABB(this)
             % This function is called when the normal vector is changed in
             % order to update the mesh that defines the plane to match the
             % new normal.
         
-            % We need the box enclosing the plane in each dimension.
+            % Recompute AABB
             w = this.Width;
             d = this.Depth;
             t = this.Thickness;
-            % Recompute AABB
             aabb = AABB(0.5*[-w,w],0.5*[-d,d],[0,-t]);
+
+            % Position & scale
+            p = this.Transform.GetWorldPosition();
+            scale = this.Transform.GetWorldScale();
+            % Offset the aabb by the sphere's world position
+            aabb = aabb * scale + p;
             % Assign the parent
-            aabb.Parent = this;
+            aabb.Cid = this.Cid;
         end
     end
 end

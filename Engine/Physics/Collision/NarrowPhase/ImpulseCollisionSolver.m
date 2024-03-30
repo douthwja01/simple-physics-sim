@@ -14,11 +14,11 @@ classdef ImpulseCollisionSolver < NarrowPhaseCollisionSolver
 
                 bodyA = manifold.ColliderA.Entity.RigidBody;
                 hasRigidBodyA = ~isempty(bodyA);
-                tfA = manifold.ColliderA.Transformation;
+                tfA = manifold.ColliderA.Transform;
 
                 bodyB = manifold.ColliderB.Entity.RigidBody;
                 hasRigidBodyB = ~isempty(bodyB);
-                tfB = manifold.ColliderB.Transformation;
+                tfB = manifold.ColliderB.Transform;
 
                 collisionNormal = -manifold.Points.Normal;
 
@@ -26,7 +26,9 @@ classdef ImpulseCollisionSolver < NarrowPhaseCollisionSolver
                 velocityA = tfA.Velocity;
                 velocityB = tfB.Velocity;
                 relativeVelocity = velocityB - velocityA;
-                % Scalar speed
+                
+                % Scalar speed 
+                % (arguement between relative velocity and collision normal)
                 relativeSpeed = dot(relativeVelocity, collisionNormal);
 
                 % Extract dynamic properties
@@ -56,8 +58,9 @@ classdef ImpulseCollisionSolver < NarrowPhaseCollisionSolver
 
                 % --- Impulse
 
-                % This is important for convergence
-                % a negative impulse would drive the objects closer together
+                % This is important for convergence, a negative impulse 
+                % would drive the objects closer together.
+
                 if relativeSpeed >= 0
                     continue;
                 end
@@ -106,7 +109,7 @@ classdef ImpulseCollisionSolver < NarrowPhaseCollisionSolver
 
                 % If the second body can have friction applied and is simulated.
                 if hasRigidBodyB && bodyB.IsSimulated
-                    tfB.Velocity = velocityB - frictionVector * inverseMassB;
+                    tfB.Velocity = velocityB + frictionVector * inverseMassB;
                 end
 
                 % Should be adding an impulse directly to the object to

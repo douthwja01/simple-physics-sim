@@ -7,7 +7,7 @@ classdef (Abstract) Collider < Element
     end
     properties
         IsTrigger = false;
-        Cid;
+        Cid = uint8.empty;
         ShowEventsInConsole = false;
     end
     events
@@ -16,6 +16,7 @@ classdef (Abstract) Collider < Element
 
     % Main
     methods
+        % Constructor
         function [this] = Collider(entity)
             % CONSTRUCTOR - Base definition of colliders.
 
@@ -25,7 +26,7 @@ classdef (Abstract) Collider < Element
             end
 
             % Create a random colliderId
-            this.Cid = RandIntOfLength(6);
+            this.Cid = uint32(RandIntOfLength(6));
 
             % Register for engine feedback
             addlistener(this,"Collided",@(src,evnt)this.OnColliderEvent(evnt));
@@ -36,8 +37,8 @@ classdef (Abstract) Collider < Element
             this.IsTrigger = isTrigger;
         end
         function set.Cid(this,cid)
-            assert(isnumeric(cid),"Expecting a valid integer cid.");
-            this.Cid = int32(cid);
+            assert(isa(cid,"uint32"),"Expecting a 'uint32' cid code.");            
+            this.Cid = cid;
         end
     end
 
@@ -45,25 +46,11 @@ classdef (Abstract) Collider < Element
     methods (Abstract)
         % Evaluate collision between this and another collider primitive.
         [points] = TestCollision(colliderB);
-        % Provide a means to recalculate the AABB primitive.
-        [aabb] = GetTransformedAABB(this);
+        % Provide a means to get the world AABB for the collider
+        [aabb] = GetWorldAABB(this);
     end
 
-    %% Internals
-    methods (Access = private)
-        function [this] = OnColliderEvent(this,colliderData)
-            % In the event of collision/trigger event raised, call the
-            % associated feedbacks based on the collider configuration.
-
-            % Throw the Trigger/collision call-back
-            if this.IsTrigger
-                this.OnTrigger(colliderData);
-            else
-                this.OnCollision(colliderData);
-            end
-        end
-    end
-    % Default methods (to override)
+    % Internals
     methods (Access = protected)
         function [this] = OnCollision(this,colliderData)
             % When the on-collision event is triggered by the world.            
@@ -83,6 +70,19 @@ classdef (Abstract) Collider < Element
                 fprintf("Trigger '%s', triggered by '%s'.\n", ...
                     colliderData.Source.Entity.Name, ...
                     colliderData.Collider.Entity.Name);
+            end
+        end
+    end    
+    methods (Access = private)
+        function [this] = OnColliderEvent(this,colliderData)
+            % In the event of collision/trigger event raised, call the
+            % associated feedbacks based on the collider configuration.
+
+            % Throw the Trigger/collision call-back
+            if this.IsTrigger
+                this.OnTrigger(colliderData);
+            else
+                this.OnCollision(colliderData);
             end
         end
     end

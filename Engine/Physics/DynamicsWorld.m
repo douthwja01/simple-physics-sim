@@ -15,6 +15,13 @@ classdef DynamicsWorld < CollisionWorld
     end
     % Main
     methods
+        function [this] = DynamicsWorld(worldSize)
+            % DYNAMICSWORLD - Construct an instance of the dynamics world
+            % object.
+            
+            % Call the parent
+            [this] = this@CollisionWorld(worldSize);
+        end
         % Get/sets
         function set.Integrator(this,int)
             assert(isa(int,"Integrator"),"Expecting a valid integrator.");
@@ -26,6 +33,7 @@ classdef DynamicsWorld < CollisionWorld
         end
     end
 
+    % Interactions
     methods        
         % High-level
         function [this] = Initialise(this)
@@ -39,7 +47,14 @@ classdef DynamicsWorld < CollisionWorld
             end
         end
         function [this] = Step(this,dt)
+            % This function steps the physics simulation.
+
+            % Sanity check
             assert(isnumeric(dt),"Expecting a valid time step.");
+            
+            % Solve the collisions
+%             this.ResolveCollisions(dt);
+
             % Step (or substep) the world
             if this.EnableSubStepping
                 subTimeDelta = dt/this.SubSteps;
@@ -79,6 +94,8 @@ classdef DynamicsWorld < CollisionWorld
     % Utilities
     methods(Access = private)
         function [this] = SubStep(this,dt)
+            % This function computes each physics substep.
+
             % The step procedure
             this.ApplyGravity();
             % Solve the collisions
@@ -109,7 +126,7 @@ classdef DynamicsWorld < CollisionWorld
                 this.Bodies(i).Update();
             end
             % Extract only the transform
-            bodyTransforms = [this.Bodies.Transformation];
+            bodyTransforms = [this.Bodies.Transform];
             % Use the integrator components to integrate
             this.Integrator.Integrate(bodyTransforms,dt);
         end

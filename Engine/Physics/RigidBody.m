@@ -40,7 +40,7 @@ classdef RigidBody < Element
             % Update the object using the verlet method.
 
             % Update the physics
-            this.Entity.Transformation.Acceleration = this.acceleration;
+            this.Entity.Transform.Acceleration = this.acceleration;
         end
 
         % Get/sets

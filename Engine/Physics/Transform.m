@@ -1,22 +1,28 @@
-classdef Transformation < Element
-    %POSE Summary of this class goes here
-    %   Detailed explanation goes here
+classdef Transform < TreeElement
+    %TRANSFORM The geometric representation of the entity in 3D space.
     
-    % Kinematic properties (simple containers)
+    % Kinematic properties (simple containers)    
+    properties (Dependent)
+        Position;
+        Rotation;
+        Scale;
+    end
     properties
-        Transform = Element.empty;
+        % Kinematics
         Velocity = zeros(3,1);
         AngularVelocity = zeros(3,1);
         Acceleration = zeros(3,1);
         AngularAcceleration = zeros(3,1);
         IsStatic = false;
     end
+
     properties (Hidden)
         PriorPosition = [];
+        SO3 = SO3.empty;
     end
 
     methods
-        function [this] = Transformation(entity)
+        function [this] = Transform(entity)
             %POSE Construct an instance of the pose-element
             %   Detailed explanation goes here
 
@@ -25,12 +31,31 @@ classdef Transformation < Element
             end
 
             % Assign the entity
-            [this] = this@Element(entity);
+            [this] = this@TreeElement(entity);
 
             % Create a new transform object
-            this.Transform = Transform();
+            this.SO3 = SO3.Zero;
         end
         % Get/sets
+        function [p] = get.Position(this)
+            p = this.SO3.Position;
+        end
+        function set.Position(this,p)
+            this.SO3.Position = p;
+        end
+        function [q] = get.Rotation(this)
+            q = this.SO3.Rotation;
+        end
+        function set.Rotation(this,q)
+            this.SO3.Rotation = q;
+        end
+        function [s] = get.Scale(this)
+            s = this.SO3.Scale;
+        end
+        function set.Scale(this,s)
+            this.SO3.Scale = s;
+        end
+        
         function set.Velocity(this,v)
             assert(IsColumn(v,3),"Expecting a valid Cartesian linear velocity [3x1].");
             this.Velocity = v;
@@ -52,8 +77,8 @@ classdef Transformation < Element
             this.IsStatic = s;
         end
     end
+    % (World) representation
     methods
-        % World representation
         function [T] = GetWorldMatrix(this)
             % Get the world transformation matrix.
 
@@ -89,6 +114,13 @@ classdef Transformation < Element
             % [To fix after parentage]
             this.SetLocalRotation(q);
         end
+        % World Scaling
+        function [Ts] = GetWorldScaleMatrix(this)
+            % Get the matrix representation of the scale
+
+            % [To fix after parentage]
+            Ts = this.GetLocalScaleMatrix();
+        end
         function [s] = GetWorldScale(this)
             % Get the scale in the world-frame
 
@@ -101,38 +133,46 @@ classdef Transformation < Element
             % [To fix after parentage]
             this.SetLocalScale(s);
         end
-        % Local representation
+    end
+    % (Local) Representation
+    methods
         function [T] = GetLocalMatrix(this)
-            % Get the local transform matrix
-            T = this.Transform.GetMatrix();
+            % Get the local transform matrix, this matrix already
+            % contains the rotation,translation and scaling.
+            T = this.SO3.ToMatrix();
         end
         function [this] = SetLocalMatrix(this,T)
             % Set the local transform matrix            
-            this.Transform.SetMatrix(T);
+            this.SO3.SetMatrix(T);
         end
         function [p] = GetLocalPosition(this)
             % Get the local position from the transform.
-            p = this.Transform.Position;
+            p = this.SO3.Position;
         end
         function [this] = SetLocalPosition(this,p)
             % Set the local position via the transform.
-            this.Transform.Position = p;
+            this.SO3.Position = p;
         end
         function [p] = GetLocalRotation(this)
             % Get the local rotation from the transform.
-            p = this.Transform.Quaternion;
+            p = this.SO3.Rotation;
         end
         function [this] = SetLocalRotation(this,q)
             % Set the local rotation via the transform.
-            this.Transform.Quaternion = q;
+            this.SO3.Rotation = q;
+        end
+        % Scaling
+        function [Ts] = GetLocalScaleMatrix(this)
+            % Get the matrix representation of the scale
+            Ts = this.SO3.ToScaleMatrix();
         end
         function [s] = GetLocalScale(this)
             % Get the local scale defined by this transform
-            s = this.Transform.Scale;
+            s = this.SO3.Scale;
         end
         function [this] = SetLocalScale(this,s)
             % Set the scale vector of the transform
-            this.Transform.Scale = s;
+            this.SO3.Scale = s;
         end
         % Visualisation
         function [h] = Plot(this,container)
@@ -141,7 +181,7 @@ classdef Transformation < Element
                 container = gca;
             end
             % Plot transform 
-            h = this.Transform.Plot(container);
+            h = this.SO3.Plot(container);
         end
     end
 end
