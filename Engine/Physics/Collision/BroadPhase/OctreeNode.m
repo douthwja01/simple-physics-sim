@@ -37,7 +37,7 @@ classdef OctreeNode < handle
             results = [];
             
             % If the query doesn't intersect this region, abort. 
-            if ~this.Boundary.Intersects(queryBoundary)
+            if ~this.Boundary.IntersectAABB(queryBoundary)
                 return;
             end
             

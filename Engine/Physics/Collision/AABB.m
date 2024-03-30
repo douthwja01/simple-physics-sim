@@ -231,13 +231,13 @@ classdef AABB < Boundary
             % Test for overlap of two AABBs
 
             flag = false;
-            if ~this.xBoundary.Intersects(other.xBoundary)
+            if ~this.xBoundary.IntersectInterval(other.xBoundary)
                 return
             end
-            if ~this.yBoundary.Intersects(other.yBoundary)
+            if ~this.yBoundary.IntersectInterval(other.yBoundary)
                 return
             end
-            if ~this.zBoundary.Intersects(other.zBoundary)
+            if ~this.zBoundary.IntersectInterval(other.zBoundary)
                 return
             end
             flag = true;
