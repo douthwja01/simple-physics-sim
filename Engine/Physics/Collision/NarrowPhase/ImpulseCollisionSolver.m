@@ -81,7 +81,6 @@ classdef ImpulseCollisionSolver < NarrowPhaseCollisionSolver
                 % Recalulate the relative velocity
                 relativeVelocity = velocityB - velocityA;
                 relativeSpeed = dot(relativeVelocity, collisionNormal);
-
                 % Tangent vector
                 tangent = relativeVelocity - relativeSpeed * collisionNormal;
                 % Safe normalize
