@@ -85,7 +85,41 @@ classdef Interval < Boundary
 
     % Utilities
     methods
-        function [flag] = Intersects(this,other)
+        function [flag,t_enter,t_exit] = IntersectRay(this,ray_origin,ray_direction,t_enter,t_exit)
+            % Test a ray and this intervale for intersection. 
+            % origin - The start of the ray in this intervals dimension.
+            % direction - The direction of the ray in this intervals dimension.
+  
+            flag = false;
+
+            % Minimal direction count
+            if abs(ray_direction) < 0.000001
+                flag = true;
+                return;    
+            end
+            % Compute the intersection params   
+            % float u0, u1;    
+            u0 = (this.Min - ray_origin) / (ray_direction);   
+            u1 = (this.Max - ray_origin) / (ray_direction);    
+            % sort them (t1 must be >= t0)    
+            if u0 > u1        
+                % Swap the coordinates if the times are backward
+                a = u0;
+                u0 = u1;
+                u1 = a;
+            end
+
+            % Check if the intersection is within the ray range    
+            if (u1 < t_enter || u0 > t_exit)       
+                % Update the ray range
+                return;    
+            end   
+            t_enter = max(u0, t_enter);    
+            t_exit  = min(u1, t_exit);    
+            % Ah. we missed the interval    
+            flag = t_exit >= t_enter;
+        end
+        function [flag] = IntersectInterval(this,other)
             % Test two intervals for intersection
             flag = true;
             if this.Min > other.Max || this.Max < other.Min
