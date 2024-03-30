@@ -198,22 +198,36 @@ classdef AABB < Boundary
         end
     end
     methods
-        % Boundary checks
-        function [range] = GetAxisRange(this,axisCode)
-            % Get the axis range
-            assert(isa(axisCode,"AxisCode"),"Expecting a valid axis-code enum.");
-            switch axisCode
-                case AxisCode.X
-                    range = this.xBoundary.Range;
-                case AxisCode.Y
-                    range = this.yBoundary.Range;
-                case AxisCode.Z
-                    range = this.zBoundary.Range;
-                otherwise
-                    error("Invalid axis-code for AABB range export.");
+        % Boundary checks       
+        function [flag] = IntersectRay(this,ray,t_enter,t_exit)
+            % Intersect the AABB with a ray object.
+
+            % Sanity check
+            if nargin < 4
+                t_exit = ray.Magnitude;
             end
+            if nargin < 3
+                t_enter = 0;
+            end
+
+            flag = false;
+            % X-axis check
+            if ~this.xBoundary.IntersectRay(ray.Origin(1), ray.Direction(1), t_enter, t_exit) 
+                return;    
+            end
+            % Y-axis
+            if ~this.yBoundary.IntersectRay(ray.Origin(2), ray.Direction(2), t_enter, t_exit) 
+                return;    
+            end
+            % Z-axis    
+            if ~this.zBoundary.IntersectRay(ray.Origin(3), ray.Direction(3), t_enter, t_exit) 
+                return;  
+            end
+
+            % All axes intersect
+            flag = true;
         end
-        function [flag] = Intersects(this,other)
+        function [flag] = IntersectAABB(this,other)
             % Test for overlap of two AABBs
 
             flag = false;
@@ -244,6 +258,20 @@ classdef AABB < Boundary
                 return;
             end
             flag = true;
+        end
+        function [range] = GetAxisRange(this,axisCode)
+            % Get the axis range
+            assert(isa(axisCode,"AxisCode"),"Expecting a valid axis-code enum.");
+            switch axisCode
+                case AxisCode.X
+                    range = this.xBoundary.Range;
+                case AxisCode.Y
+                    range = this.yBoundary.Range;
+                case AxisCode.Z
+                    range = this.zBoundary.Range;
+                otherwise
+                    error("Invalid axis-code for AABB range export.");
+            end
         end
         function [flag] = AxisContains(this,axisCode,value)
             % Test an individual axis for a value occupancy.

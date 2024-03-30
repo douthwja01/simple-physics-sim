@@ -2,27 +2,27 @@ classdef Octree < handle
     % OCTREE - This class defines an oct-tree hierarchical data structure.
     % While developed for solving 3D collision problems, the implementation
     % is generic and can be executed against similar problems.
-    
+
     properties
         Root = OctreeNode.empty;
     end
-    
+
     methods
         function [this] = Octree(boundary,nodeCapacity)
             % Constructor
-            
+
             % Random 100 unitary cube
             if nargin < 1
                 boundary = AABB(zeros(3,1),[-50;50],[-50;50],[-50;50]);
             end
-            
+
             if nargin < 2
                 nodeCapacity = 4;
             end
 
             assert(isa(boundary,"AABB"),"Expecting an AABB boundary definition.");
             assert(isscalar(nodeCapacity),"Expecting a scalar node (point) capacity.");
-            
+
             % Create the root
             this.Root = OctreeNode(boundary,nodeCapacity);
         end
@@ -59,7 +59,7 @@ classdef Octree < handle
         % Drawing methods
         function [h] = DrawNodes(this,container,colour,onlyifPopulated)
             % Draw the complete set of Octree-nodes within the Octree.
-            
+
             % Input parsing
             if nargin < 2
                 container = gca;
@@ -75,7 +75,7 @@ classdef Octree < handle
         end
         function [h] = DrawPoints(this,container,colour)
             % Draw all Octree-points withing the octree.
-            
+
             % Input parsing
             if nargin < 2
                 container = gca;
@@ -88,4 +88,3 @@ classdef Octree < handle
         end
     end
 end
-
