@@ -7,6 +7,7 @@ classdef OctreeSolver < BroadPhaseSolver
         MaxSize = 10;
         NodeCapacity = 1;
         PointsInserted = 0;
+        DrawComponents = false;
     end
     methods 
         function [this] = OctreeSolver(maxSize)
@@ -22,12 +23,17 @@ classdef OctreeSolver < BroadPhaseSolver
         function [manifolds] = ResolveManifolds(this,colliders)
             % Compute all the possible collision-pairs.
 
+            % Default value
+            manifolds = Manifold.empty;
+
             % Sanity check
             assert(isa(colliders,"Collider"),"Expecting a list of 'collider' objects.");
         
-            [~,ah] = Graphics.FigureTemplate("Octree View");
-            view(ah,[45,45]);
-            axis vis3d;
+            if this.DrawComponents
+                [fh,ah] = Graphics.FigureTemplate("Octree View");
+                view(ah,[45,45]);
+                axis vis3d;
+            end
 
             % 1. Build the Octree (by inserting all points)
             worldExtents = this.MaxSize*[-1;1] + [0.5;0.5];
@@ -43,106 +49,121 @@ classdef OctreeSolver < BroadPhaseSolver
                 end
             end
 
-            fprintf("\n Total nodes '%d'.",this.Tree.GetNumberOfNodes());
-            this.Tree.DrawNodes(ah,"c",true);
-            %this.Tree.DrawPoints(ah,"g");
+            if this.DrawComponents
+                fprintf("\n Points inserted '%d', Total nodes '%d'.",this.PointsInserted,this.Tree.GetNumberOfNodes());
+                this.Tree.DrawNodes(ah,"c",true);
+                %this.Tree.DrawPoints(ah,"g");
+            end
+            % Containers
+            colliderCids = [colliders.Cid]';
 
             % 2. Query the Octree against each collider
-            octreePoints = OctreePoint.empty;
             for i = 1:numel(colliders)
                 % We need to decide (based on the objects geometries, what
                 % the minimal viable query range can be). Ideally, this
                 % would only seach where d = 2*r; 
 
-                % Build the query box/bounds
-%                 p = colliders(i).Transform.Position;
-%                 extents = 10*[-1;1];
-%                 queryBounds = AABB(extents,extents,extents);
-%                 queryBounds = queryBounds + p;   
-%                 % Create a representative query mesh
-%                 mesh = AABB.CreateMesh(queryBounds);
-%                 h = mesh.Draw(ah,"r");
-%                 set(h,"FaceAlpha",0.1);
-%                 plot3(ah,p(1),p(2),p(3),"ro","MarkerFaceColor","r");
-
+                % Get the query collider
+                collider_i = colliders(i);
                 % Construct the boundary to query
-                queryBounds = 2*colliders(i).GetWorldAABB();
-                h = queryBounds.Draw(ah,"r");
-                set(h,"FaceAlpha",0.1);
+                queryBounds = collider_i.GetWorldAABB();
                 
+                % Draw output
+                if this.DrawComponents
+                    h = queryBounds.Draw(ah,"r");
+                    set(h,"FaceAlpha",0.1);
+                end
+
                 % Get all OctreePoints within the queried boundary
                 results = this.Tree.Query(queryBounds);
 
-                fprintf("Points inserted '%d'\n",this.PointsInserted);
+                % No points within the collider (AABB) query
+                if isempty(results)
+                    continue;
+                end
 
                 % Draw all the query response points.
-                for j = 1:numel(results)
-                    p = results(j).Position;
-                    plot3(ah,p(1),p(2),p(3),"ro","MarkerFaceColor","k");
+                if this.DrawComponents
+                    for j = 1:numel(results)
+                        p = results(j).Position;
+                        plot3(ah,p(1),p(2),p(3),"ro","MarkerFaceColor","k");
+                    end
                 end
-                
-%                 delete(h);
-                % Append
-%                 octreePoints = vertcat(octreePoints,results);
 
-                % We need to add all unique collider combinations based on
-                % the points.
-                
-                toEvaluate = Manifolds()
+                % We need to extract a collider reference for each unique
+                % Cid point.
 
+                % Get the unique collider identities
+                uniqueCids = unique([results.Cid]);
+         
+                for j = 1:numel(uniqueCids)
+                    % Selection logicals
+                    logicals = colliderCids == uniqueCids(j);
+                    % Isolate unique collider reference
+                    collider_j = colliders(logicals);
+                    % Add a manifold between this 'query collider and and the other
+                    manifolds = vertcat(manifolds,Manifold(collider_i,collider_j));
+                end
             end
-            
-%             fprintf("\nTotal Octree-points '%d'.",length(octreePoints));
-% 
-%             manifolds = Manifold.empty;
-%             for i = 1:length(octreePoints)
-% 
-% 
-%                 % Append
-% %                 manifolds = vertcat(manifolds,results);
-%             end
 
             fprintf("\nTotal Manifolds '%d'.",length(manifolds));
 
+            if this.DrawComponents
+                delete(fh);
+            end
 
             % Reset the tree
-            this.Tree = [];
+            this.Tree = Octree.empty;
         end
     
         function [flag] = InsertCollider(this,collider)
             % Insert a complete collider into the root node.
             
-            % We need to insert a mesh
-            if isa(collider,"MeshCollider")
-                worldMesh = collider.GetWorldMesh();
-                v = worldMesh.Vertices;
-                %v = collider.Mesh.Vertices;
-                for i = 1:worldMesh.NumberOfVertices
-                    % Insert a point and collider 'cid'
-                    octPoint = OctreePoint(v(i,:)',collider.Cid);
-                    % Insert the vertex
-                    if ~this.Tree.Insert(octPoint)
-                        flag = false;
-                        return;
-                    end
-                    this.PointsInserted = this.PointsInserted + 1;
-                end
-                flag = true;
-                return
-            end
-
-            if isa(collider,"SphereCollider")
-                position = collider.Center;
-                octPoint = OctreePoint(position,collider.Cid);
-                % [Test] Insert the center as a vertex
+            aabb = collider.GetWorldAABB();
+            meshAABB = aabb.ToMesh();
+          
+            for i = 1:meshAABB.NumberOfVertices
+                % Insert a point and collider 'cid'
+                octPoint = OctreePoint(meshAABB.Vertices(i,:)',collider.Cid);
+                % Insert the vertex
                 if ~this.Tree.Insert(octPoint)
                     flag = false;
                     return;
                 end
-                flag = true;
                 this.PointsInserted = this.PointsInserted + 1;
-                return 
             end
+
+%             % We need to insert a mesh
+%             if isa(collider,"MeshCollider")
+%                 worldMesh = collider.GetWorldMesh();
+%                 v = worldMesh.Vertices;
+%                 %v = collider.Mesh.Vertices;
+%                 for i = 1:worldMesh.NumberOfVertices
+%                     % Insert a point and collider 'cid'
+%                     octPoint = OctreePoint(v(i,:)',collider.Cid);
+%                     % Insert the vertex
+%                     if ~this.Tree.Insert(octPoint)
+%                         flag = false;
+%                         return;
+%                     end
+%                     this.PointsInserted = this.PointsInserted + 1;
+%                 end
+%                 flag = true;
+%                 return
+%             end
+
+%             if isa(collider,"SphereCollider")
+%                 position = collider.Center;
+%                 octPoint = OctreePoint(position,collider.Cid);
+%                 % [Test] Insert the center as a vertex
+%                 if ~this.Tree.Insert(octPoint)
+%                     flag = false;
+%                     return;
+%                 end
+%                 flag = true;
+%                 this.PointsInserted = this.PointsInserted + 1;
+%                 return 
+%             end
 
             flag = true;
         end

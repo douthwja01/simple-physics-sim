@@ -9,7 +9,6 @@ classdef AABB < Boundary
         Max;
     end  
     properties
-%         Parent = Collider.empty;
         Cid = uint32.empty;      % Identity code
     end
     % Intervals in each dimensions
@@ -71,120 +70,128 @@ classdef AABB < Boundary
             this.zBoundary.Max = m(3);
         end
         % Operators
-        function [r] = plus(obj1,obj2)
+        function [result] = plus(obj1,obj2)
             % How addition is done with AABBs.
+        
+            result = AABB();
+
             if isa(obj1,"AABB")
-                assert(isnumeric(obj2),"Expecting a second numeric input.");
-                if IsColumn(obj2,3)
-                    x = obj1.xBoundary + obj2(1);
-                    y = obj1.yBoundary + obj2(2);
-                    z = obj1.zBoundary + obj2(3);
-                elseif isnumeric(obj2)
-                    x = obj1.xBoundary + obj2;
-                    y = obj1.yBoundary + obj2;
-                    z = obj1.zBoundary + obj2;
-                else
-                    error("Second input not compatible.");
+                % Pass Cid
+                result.Cid = obj1.Cid;
+                switch true
+                    case isscalar(obj2)
+                        result.xBoundary = obj1.xBoundary + obj2;
+                        result.yBoundary = obj1.yBoundary + obj2;
+                        result.zBoundary = obj1.zBoundary + obj2;
+                    case IsColumn(obj2,3)
+                        result.xBoundary = obj1.xBoundary + obj2(1);
+                        result.yBoundary = obj1.yBoundary + obj2(2);
+                        result.zBoundary = obj1.zBoundary + obj2(3);
+                    otherwise
+                        error("Input not correct.");
                 end
-                r = AABB(x.Range,y.Range,z.Range);
-                r.Cid = obj1.Cid;
-                return;
             end
 
             if isa(obj2,"AABB")
-                assert(isnumeric(obj1),"Expecting a first numeric input.");
-                if IsColumn(obj1,3)
-                    x = obj2.xBoundary + obj1(1);
-                    y = obj2.yBoundary + obj1(2);
-                    z = obj2.zBoundary + obj1(3);
-                elseif isnumeric(obj1)
-                    x = obj2.xBoundary + obj1;
-                    y = obj2.yBoundary + obj1;
-                    z = obj2.zBoundary + obj1;
-                else
-                    error("Second input not compatible.");
+                % Pass Cid
+                result.Cid = obj2.Cid;
+                switch true
+                    case isscalar(obj1)
+                        result.xBoundary = obj2.xBoundary + obj1;
+                        result.yBoundary = obj2.yBoundary + obj1;
+                        result.zBoundary = obj2.zBoundary + obj1;
+                    case IsColumn(obj1,3)
+                        result.xBoundary = obj2.xBoundary + obj1(1);
+                        result.yBoundary = obj2.yBoundary + obj1(2);
+                        result.zBoundary = obj2.zBoundary + obj1(3);
+                    otherwise
+                        error("Input not correct.");
                 end
-                r = AABB(x.Range,y.Range,z.Range);
-                r.Cid = obj2.Cid;
-                return;
             end
         end
-        function [r] = minus(obj1,obj2)
+        function [result] = minus(obj1,obj2)
             % How subtraction is done with AABBs.
             
+            result = AABB();
+
             if isa(obj1,"AABB")
-                assert(isnumeric(obj2),"Expecting a second numeric input.");
-                if IsColumn(obj2,3)
-                    x = obj1.xBoundary - obj2(1);
-                    y = obj1.yBoundary - obj2(2);
-                    z = obj1.zBoundary - obj2(3);
-                elseif isnumeric(obj2)
-                    x = obj1.xBoundary - obj2;
-                    y = obj1.yBoundary - obj2;
-                    z = obj1.zBoundary - obj2;
-                else
-                    error("Second input not compatible.");
+                % Pass Cid
+                result.Cid = obj1.Cid;
+                switch true
+                    case isscalar(obj2)
+                        result.xBoundary = obj1.xBoundary - obj2;
+                        result.yBoundary = obj1.yBoundary - obj2;
+                        result.zBoundary = obj1.zBoundary - obj2;
+                    case IsColumn(obj2,3)
+                        result.xBoundary = obj1.xBoundary - obj2(1);
+                        result.yBoundary = obj1.yBoundary - obj2(2);
+                        result.zBoundary = obj1.zBoundary - obj2(3);
+                    otherwise
+                        error("Input not correct.");
                 end
-                r = AABB(x.Range,y.Range,z.Range);
-                r.Cid = obj1.Cid;
-                return;
             end
 
             if isa(obj2,"AABB")
-                assert(isnumeric(obj1),"Expecting a first numeric input.");
-                if IsColumn(obj1,3)
-                    x = obj2.xBoundary - obj1(1);
-                    y = obj2.yBoundary - obj1(2);
-                    z = obj2.zBoundary - obj1(3);
-                elseif isnumeric(obj1)
-                    x = obj2.xBoundary - obj1;
-                    y = obj2.yBoundary - obj1;
-                    z = obj2.zBoundary - obj1;
-                else
-                    error("Second input not compatible.");
+                % Pass Cid
+                result.Cid = obj2.Cid;
+                switch true
+                    case isscalar(obj1)
+                        result.xBoundary = obj2.xBoundary - obj1;
+                        result.yBoundary = obj2.yBoundary - obj1;
+                        result.zBoundary = obj2.zBoundary - obj1;
+                    case IsColumn(obj1,3)
+                        result.xBoundary = obj2.xBoundary - obj1(1);
+                        result.yBoundary = obj2.yBoundary - obj1(2);
+                        result.zBoundary = obj2.zBoundary - obj1(3);
+                    otherwise
+                        error("Input not correct.");
                 end
-                r = AABB(x.Range,y.Range,z.Range);
-                r.Cid = obj2.Cid;
-                return;
             end
         end
-        function [r] = mtimes(obj1,obj2)
+        function [result] = mtimes(obj1,obj2)
             % How multiplication is done with AABBs.
+            
+            result = AABB();
+            
             if isa(obj1,"AABB")
+                % Sanity check
                 assert(isnumeric(obj2),"Expecting a second numeric input.");
-                
-                if IsColumn(obj2,3)
-                    x = obj1.xBoundary*obj2(1);
-                    y = obj1.yBoundary*obj2(2);
-                    z = obj1.zBoundary*obj2(3);
-                elseif isnumeric(obj2)
-                    x = obj1.xBoundary*obj2;
-                    y = obj1.yBoundary*obj2;
-                    z = obj1.zBoundary*obj2;
-                else
-                    error("Second input not compatible.");
+                % Pass Cid
+                result.Cid = obj1.Cid;
+                % Create a temporary output copy (includes Cid)
+                switch true
+                    case isscalar(obj2)
+                        result.xBoundary = obj1.xBoundary*obj2;
+                        result.yBoundary = obj1.yBoundary*obj2;
+                        result.zBoundary = obj1.zBoundary*obj2;
+                    case IsColumn(obj2,3)
+                        result.xBoundary = obj1.xBoundary*obj2(1);
+                        result.yBoundary = obj1.yBoundary*obj2(2);
+                        result.zBoundary = obj1.zBoundary*obj2(3);
+                    otherwise
+                        error("Input not correct.");
                 end
-                r = AABB(x.Range,y.Range,z.Range);
-                r.Cid = obj1.Cid;
+
                 return;
             end
 
             if isa(obj2,"AABB")
-                assert(isnumeric(obj1),"Expecting a first numeric input.");
-                r = obj2;
-                if IsColumn(obj1,3)
-                    x = r.xBoundary*obj1(1);
-                    y = r.yBoundary*obj1(2);
-                    z = r.zBoundary*obj1(3);
-                elseif isnumeric(obj1)
-                    x = r.xBoundary*obj1;
-                    y = r.yBoundary*obj1;
-                    z = r.zBoundary*obj1;
-                else
-                    error("Second input not compatible.");
+                % Sanity check
+                assert(isnumeric(obj1),"Expecting a second numeric input.");
+                % Pass Cid
+                result.Cid = obj2.Cid;
+                switch true
+                    case isscalar(obj1)
+                        result.xBoundary = obj2.xBoundary*obj1;
+                        result.yBoundary = obj2.yBoundary*obj1;
+                        result.zBoundary = obj2.zBoundary*obj1;
+                    case IsColumn(obj1,3)
+                        result.xBoundary = obj2.xBoundary*obj1(1);
+                        result.yBoundary = obj2.yBoundary*obj1(2);
+                        result.zBoundary = obj2.zBoundary*obj1(3);
+                    otherwise
+                        error("Input not correct.");
                 end
-                r = AABB(x.Range,y.Range,z.Range);
-                r.Cid = obj2.Cid;
                 return;
             end
         end
