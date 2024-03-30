@@ -8,6 +8,7 @@ classdef CollisionWorld < handle
         BroadPhaseSolver = SweepAndPrune();
     end
     properties (SetAccess = private)
+        WorldSize = 10;
         % Collidables
         Colliders;
         NarrowPhaseSolvers = NarrowPhaseCollisionSolver.empty(0,1);
@@ -26,6 +27,19 @@ classdef CollisionWorld < handle
 
     % Main
     methods
+        % Constructor
+        function [this] = CollisionWorld(worldSize)
+            % DYNAMICSWORLD - Construct an instance of the dynamics world
+            % object.
+
+            % Input check
+            if nargin < 1
+                worldSize = 10;
+            end
+
+            % Parameterize
+            this.WorldSize = worldSize;
+        end
         % Get/sets
         function set.BroadPhaseSolver(this,solver)
             assert(isa(solver,"BroadPhaseSolver"),"Expecting a valid broad-phase collision solver.");
@@ -33,6 +47,9 @@ classdef CollisionWorld < handle
             % Add a given solver to the array of collision solvers.
             this.BroadPhaseSolver = solver;
         end
+    end
+    % Utilities
+    methods 
         % Resolve world Collisions
         function [this] = ResolveCollisions(this,dt)
             % This function builds the lists of 'detected' collisions and

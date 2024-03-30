@@ -18,6 +18,7 @@ classdef AABB < Boundary
         zBoundary = Interval.empty;
     end
     methods
+        % Constructor
         function [this] = AABB(xRange,yRange,zRange)
             % CONSTRUCTOR - Generate a box- collider with unitary axial
             % limits.

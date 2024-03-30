@@ -15,6 +15,13 @@ classdef DynamicsWorld < CollisionWorld
     end
     % Main
     methods
+        function [this] = DynamicsWorld(worldSize)
+            % DYNAMICSWORLD - Construct an instance of the dynamics world
+            % object.
+            
+            % Call the parent
+            [this] = this@CollisionWorld(worldSize);
+        end
         % Get/sets
         function set.Integrator(this,int)
             assert(isa(int,"Integrator"),"Expecting a valid integrator.");

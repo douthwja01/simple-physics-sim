@@ -5,13 +5,15 @@ addpath("Engine");
 
 sim = Simulator();
 
-numberOfObjects = 12;
-numberPerColumn = 3;
-gridPoints = CreateGrid([-1.5;0;4],numberOfObjects,numberPerColumn,1.1);
+numberOfObjects = 5;
+numberPerColumn = 10;
+gridPoints = CreateGrid([0;0;4],numberOfObjects,numberPerColumn,1.5);
 
 for i = 1:numberOfObjects
     % Place the object
     entity_i = EntityCreator.Box(sprintf("Object %d (Box)",i),gridPoints(:,i),Quaternion.Zero);
+%     entity_i.Transform.Position = entity_i.Transform.Position + 2*rand(3,1);
+    
     % Add elements
     entity_i.RigidBody = RigidBody();
     entity_i.Renderer.Alpha = 0.2;
@@ -39,19 +41,16 @@ ground = EntityCreator.Plane("Ground");
 ground.Transform.SetWorldScale([10;10;1]);
 ground.Transform.IsStatic = true;
 % Collisions
-% ground.Collider.Width = 10;
-% ground.Collider.Depth = 10;
-% Visuals
-ground.Renderer.Colour = "g";
-% ground.Renderer.Width = 10;
-% ground.Renderer.Depth = 10;
-% ground.Visuals 
-%ground.Renderer.Mesh = MeshExtensions.Plane(zeros(3,1),[0;0;1],1,1);
 ground.Renderer.Colour = "g";
 sim.Add(ground);
 
-% Simulate
+%% Simulator configuration
+sim.WorldSize = 15;
 sim.Physics.SubSteps = 10;
+% Numeric integrators
 sim.Physics.Integrator = EulerIntegrator();
+% Collision solvers
 sim.Physics.BroadPhaseSolver = OctreeSolver();
+% sim.Physics.BroadPhaseSolver = SweepAndPrune();
+% Simulate
 sim.Simulate(inf);

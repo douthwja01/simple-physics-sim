@@ -6,7 +6,7 @@ classdef Simulator < handle
         Physics;
         % Contents
         g = [0;0;-9.81];
-        WorldSize = 20;
+        WorldSize = 100;
     end
     properties (SetAccess = private)
         Entities = [];
@@ -20,11 +20,11 @@ classdef Simulator < handle
         function [this] = Simulator()
             % CONSTRUCTOR - Construct an instance of the time simulator 
             % class representing a singular simulation.
-
+            
+            % Parameters
             this.AddEnginePaths;
-
             % Create the dynamics world
-            this.Physics = DynamicsWorld();
+            this.Physics = DynamicsWorld(this.WorldSize);
             % Add impulse collision solver
             this.Physics.AddSolver(ImpulseCollisionSolver());
         end
@@ -136,10 +136,10 @@ classdef Simulator < handle
             xlabel(ax,"X (m)");
             ylabel(ax,"Y (m)");
             zlabel(ax,"Z (m)");
-%             axisLimits = this.WorldSize/2;
-%             xlim(ax,[-axisLimits,axisLimits]);
-%             ylim(ax,[-axisLimits,axisLimits]);
-%             zlim(ax,[0,axisLimits]);
+            axisLimits = this.WorldSize/2;
+            xlim(ax,[-axisLimits,axisLimits]);
+            ylim(ax,[-axisLimits,axisLimits]);
+            zlim(ax,[0,this.WorldSize]);
             % Register for key presses
             set(fig,'KeyPressFcn',@(src,evnt)OnKeyPressCallback(this,src,evnt));
         end

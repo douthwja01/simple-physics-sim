@@ -18,16 +18,15 @@ classdef (Abstract) MeshCollider < Collider
             assert(isa(mesh,"Mesh"),"Expecting a valid mesh.");
             this.Mesh = mesh;
         end
-    
+    end
+    % Utilities
+    methods
         function [mesh] = GetWorldMesh(this)
             % Get the mesh tranformed into world space.
             T = this.Transformation.GetWorldMatrix();
             % Transform the collision mesh
             mesh = this.Mesh.TransformBy(T);
         end
-    end
-    % Collision Utilities
-    methods
         function [aabb] = GetWorldAABB(this)
             % This function recalculates the bounding box from the collider
             % properties.

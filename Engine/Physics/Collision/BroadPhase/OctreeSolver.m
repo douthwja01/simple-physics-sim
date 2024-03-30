@@ -1,6 +1,6 @@
 classdef OctreeSolver < BroadPhaseSolver
-    % An Octree algorithm instance, used to resolve the set of collision
-    % 
+    % OCTREESOLVER - An Octree algorithm instance, used to resolve the set 
+    % of collision instances from an unknown object configuration.
     
     properties (Access = private)
         Tree = Octree.empty;
@@ -11,14 +11,19 @@ classdef OctreeSolver < BroadPhaseSolver
     end
     methods 
         function [this] = OctreeSolver(maxSize)
-            % CONSTRUCTOR - 
+            % CONSTRUCTOR - Construct an instance of the Octree broad-phase
+            % solver.
 
             % Call the parent
             [this] = this@BroadPhaseSolver();
 
-            if nargin > 0
-                this.MaxSize = maxSize/2;
+            % Default max-size
+            if nargin < 1
+                maxSize = 10;
             end
+
+            % Parmeterize
+            this.MaxSize = maxSize;
         end
         function [manifolds] = ResolveManifolds(this,colliders)
             % Compute all the possible collision-pairs.
@@ -132,38 +137,6 @@ classdef OctreeSolver < BroadPhaseSolver
                 end
                 this.PointsInserted = this.PointsInserted + 1;
             end
-
-%             % We need to insert a mesh
-%             if isa(collider,"MeshCollider")
-%                 worldMesh = collider.GetWorldMesh();
-%                 v = worldMesh.Vertices;
-%                 %v = collider.Mesh.Vertices;
-%                 for i = 1:worldMesh.NumberOfVertices
-%                     % Insert a point and collider 'cid'
-%                     octPoint = OctreePoint(v(i,:)',collider.Cid);
-%                     % Insert the vertex
-%                     if ~this.Tree.Insert(octPoint)
-%                         flag = false;
-%                         return;
-%                     end
-%                     this.PointsInserted = this.PointsInserted + 1;
-%                 end
-%                 flag = true;
-%                 return
-%             end
-
-%             if isa(collider,"SphereCollider")
-%                 position = collider.Center;
-%                 octPoint = OctreePoint(position,collider.Cid);
-%                 % [Test] Insert the center as a vertex
-%                 if ~this.Tree.Insert(octPoint)
-%                     flag = false;
-%                     return;
-%                 end
-%                 flag = true;
-%                 this.PointsInserted = this.PointsInserted + 1;
-%                 return 
-%             end
 
             flag = true;
         end
