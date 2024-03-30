@@ -34,7 +34,7 @@ classdef SweepAndPrune < BroadPhaseSolver
                 % Transform the AABB  for i
                 this.AABBs(i) = colliders(i).GetWorldAABB();
                 % Ensure the result retains the parent association
-                this.AABBs(i).Parent = colliders(i);
+%                 this.AABBs(i).Cid = colliders(i).Cid;
             end
            
             % 1. We want to move through the set of colliders and compair
@@ -109,8 +109,11 @@ classdef SweepAndPrune < BroadPhaseSolver
             %% 4. Generate a manifold set to be evaluated
             manifolds = Manifold.empty(0,numberOfPairs);
             for i = 1:numberOfPairs
+                % Select the colliders
+                first = colliders([colliders.Cid] == pairs(i,1).Cid);
+                second = colliders([colliders.Cid] == pairs(i,2).Cid);
                 % Create a collision manifold
-                manifolds(i) = Manifold(pairs(i,1).Parent,pairs(i,2).Parent);
+                manifolds(i) = Manifold(first,second);
             end
         end
         function [handles] = DrawAABBs(this,container,colour)
@@ -127,8 +130,7 @@ classdef SweepAndPrune < BroadPhaseSolver
             end
             % Create meshes and draw
             for i = 1:numel(this.AABBs)
-                mesh = AABB.CreateMesh(this.AABBs(i));
-                handles(i) = mesh.Draw(container,colour);
+                handles(i) = this.AABBs(i).Draw(container,colour);
             end
         end
     end
