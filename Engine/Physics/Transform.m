@@ -79,6 +79,7 @@ classdef Transform < TreeElement
     end
     % (World) representation
     methods
+        % Position & rotation
         function [T] = GetWorldMatrix(this)
             % Get the world transformation matrix.
 
@@ -114,7 +115,19 @@ classdef Transform < TreeElement
             % [To fix after parentage]
             this.SetLocalRotation(q);
         end
-        % World Scaling
+        function [R] = GetWorldRotationMatrix(this)
+            % Get the local rotation from the transform.
+
+            % [To fix after parentage]
+            R = this.SO3.ToRotationMatrix();
+        end
+        function [this] = SetWorldRotationMatrix(this,R)
+            % Get the local rotation from the transform.
+
+            % [To fix after parentage]
+            this.SO3.SetRotationMatrix(R);
+        end
+        % Scaling
         function [Ts] = GetWorldScaleMatrix(this)
             % Get the matrix representation of the scale
 
@@ -136,6 +149,7 @@ classdef Transform < TreeElement
     end
     % (Local) Representation
     methods
+        % Position & rotation
         function [T] = GetLocalMatrix(this)
             % Get the local transform matrix, this matrix already
             % contains the rotation,translation and scaling.
@@ -160,6 +174,14 @@ classdef Transform < TreeElement
         function [this] = SetLocalRotation(this,q)
             % Set the local rotation via the transform.
             this.SO3.Rotation = q;
+        end
+        function [R] = GetLocalRotationMatrix(this)
+            % Get the local rotation from the transform.
+            R = this.SO3.ToRotationMatrix();
+        end
+        function [this] = SetLocalRotationMatrix(this,R)
+            % Get the local rotation from the transform.
+            this.SO3.SetRotationMatrix(R);
         end
         % Scaling
         function [Ts] = GetLocalScaleMatrix(this)

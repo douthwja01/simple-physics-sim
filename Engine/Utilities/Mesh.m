@@ -31,12 +31,10 @@ classdef Mesh < handle
         function set.Vertices(this,v)
             assert(size(v,2) == 3,"Expecting an array of vertex coordinates.");
             this.Vertices = v;
-            this.UpdateNormals();
         end
         function set.Faces(this,f)
             assert(size(f,2) == 3,"Expecting an array of face-vertex indices.");
             this.Faces = f;
-            this.UpdateNormals();
         end
         function [n] = get.NumberOfVertices(this)
             n = size(this.Vertices,1);
@@ -63,6 +61,10 @@ classdef Mesh < handle
             end
             point = this.Vertices(index,:)';
         end
+        function [mesh] = ScaleBy(this,x,y,z)
+            % Scale the mesh by a set of dimensional values.
+            mesh = this.TransformBy(diag([x;y;z;0]));
+        end
         function [mesh] = TransformBy(this,Tf)
             % This function returns this mesh transformed by a given
             % transform matrix.
@@ -74,30 +76,12 @@ classdef Mesh < handle
             padding = ones(this.NumberOfVertices,1);
             modifiedVertices = Tf*[this.Vertices,padding]';
             modifiedVertices = modifiedVertices(1:3,:)';
-
             % Create the two component meshes
             mesh = Mesh(modifiedVertices,this.Faces);
+            % Recalculate its normals
+            mesh.RecalculateNormals();
         end
-        function [mesh] = ScaleBy(this,x,y,z)
-            % Scale the mesh by a set of dimensional values.
-            tf = diag([x;y;z;0]);
-            mesh = this.TransformBy(tf);
-        end
-        function [h] = Draw(this,container,colour)
-            % Draw this mesh to a given graphical container
-            if nargin < 3
-                colour = 'b';
-            end
-            if nargin < 2
-                container = gca;
-            end
-            % Generate patch
-            h = patch(container,'Vertices',this.Vertices,'Faces',this.Faces);        
-            set(h,"FaceColor",colour);
-        end
-    end
-    methods (Access = private)
-        function [this] = UpdateNormals(this)
+        function [this] = RecalculateNormals(this)
             % This function computes the normals of all the mesh faces.
 
             % Sanity check
@@ -114,6 +98,18 @@ classdef Mesh < handle
                 normals(i,:) = TripleProduct(points(1,:),points(2,:),points(3,:));
             end
             this.Normals = normals;
+        end
+        function [h] = Draw(this,container,colour)
+            % Draw this mesh to a given graphical container
+            if nargin < 3
+                colour = 'b';
+            end
+            if nargin < 2
+                container = gca;
+            end
+            % Generate patch
+            h = patch(container,'Vertices',this.Vertices,'Faces',this.Faces);        
+            set(h,"FaceColor",colour);
         end
     end
     % Mesh Tools
