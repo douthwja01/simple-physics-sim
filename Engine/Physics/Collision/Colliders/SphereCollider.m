@@ -58,4 +58,37 @@ classdef SphereCollider < Collider
             aabb.Cid = this.Cid;
         end
     end
+    methods (Static)
+
+        function [axes] = GetCollisionAxes(otherObject )
+            % There are infinite possible axes on a sphere so we MUST
+            % handle it seperately . Luckily we can just get the closest point
+            % on the opposite object to our centre and use that .
+
+            dir = (otherObject.GetPosition() - Parent().GetPosition()).Normalise();
+
+            p1 = Parent ().GetPosition ();
+            p2 = otherObject.GetCollisionShape().GetClosestPoint( p1 );
+
+            axes = push_back (( p1 - p2 ). Normalise ());
+        end
+
+        function [closest] = GetClosestPoint(radius, point )
+            % Get the closest point on a sphere to a given point.
+
+            % From the centers
+            dir = point - Parent().GetPosition();
+            % Unit
+            unit_dir = dir.Normalise();
+            % Project the point in the direction, by the radius value
+            closest = Parent().GetPosition() + unit_dir*radius;
+        end
+
+        function [out_min,out_max] = GetMinMaxVertexOnAxis(position,axis,radius) 
+            
+            out_min = position - axis * radius;
+            out_max = position + axis * radius;
+        end
+
+    end
 end

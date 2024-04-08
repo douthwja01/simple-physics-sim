@@ -83,7 +83,7 @@ classdef Interval < Boundary
         end
     end
 
-    % Utilities
+    %% Instance Operations
     methods
         function [flag,t_enter,t_exit] = IntersectRay(this,ray_origin,ray_direction,t_enter,t_exit)
             % Test a ray and this intervale for intersection. 
@@ -119,19 +119,23 @@ classdef Interval < Boundary
             % Ah. we missed the interval    
             flag = t_exit >= t_enter;
         end
-        function [flag] = IntersectInterval(this,other)
-            % Test two intervals for intersection
-            flag = true;
-            if this.Min > other.Max || this.Max < other.Min
-                flag = false;
-            end
-        end
-        function [flag] = Contains(this,value)
+    end
+    
+    %% Static Operations
+    methods (Static)
+        function [flag] = Contains(first,second)
             % Test if the interval contains a coordinate
             flag = true;
-            if this.Min > value || this.Max < value
+            if first.Min > second || first.Max < second
                 flag = false;
             end
         end
+        function [flag] = IsIntersecting(first,second)
+            % Test two intervals for intersection
+            flag = true;
+            if first.Min > second.Max || first.Max < second.Min
+                flag = false;
+            end
+        end   
     end
 end
