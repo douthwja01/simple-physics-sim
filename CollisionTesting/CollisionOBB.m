@@ -13,7 +13,7 @@ classdef CollisionOBB < CollisionPrimitive
             dir = point.position - this.position;
         
             size_array = this.size.AsLinearArray();
-            orientation_array = this.orientation.AsVectorArray();
+            orientation_array = this.Orientation.AsVectorArray();
         
             for i = 1:3
                 axis = orientation_array(i);
@@ -49,9 +49,9 @@ classdef CollisionOBB < CollisionPrimitive
             axes(1,:) = [1, 0, 0];
             axes(2,:) = [0, 1, 0];
             axes(3,:) = [0, 0, 1];
-            axes(4,:) = this.orientation.x;
-            axes(5,:) = this.orientation.y;
-            axes(6,:) = this.orientation.z;
+            axes(4,:) = this.Orientation.x;
+            axes(5,:) = this.Orientation.y;
+            axes(6,:) = this.Orientation.z;
         
             for i = 1:3 
                 for j = 4:6 
@@ -73,11 +73,11 @@ classdef CollisionOBB < CollisionPrimitive
             % Check if this obb is colliding with a given plane
             % primitive.
 
-            plen = this.Size.x * abs(dot(plane.Normal,this.orientation.x)) + ...
-            this.Size.y * abs(dot(plane.Normal,this.orientation.y)) + ...
-            this.Size.z * abs(dot(plane.Normal,this.orientation.z));
+            plen = this.Size.x * abs(dot(plane.Normal,this.Orientation.x)) + ...
+            this.Size.y * abs(dot(plane.Normal,this.Orientation.y)) + ...
+            this.Size.z * abs(dot(plane.Normal,this.Orientation.z));
         
-            dist = dot(plane.normal,this.Position) - plane.Distance;
+            dist = dot(plane.Normal,this.Position) - plane.Distance;
         
             flag = abs(dist) < plen;
         end

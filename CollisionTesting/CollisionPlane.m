@@ -121,5 +121,9 @@ classdef CollisionPlane < CollisionPrimitive
             argument = dot(vec3,this.Normal);
             sideBool = argument - this.Distance;
         end
+        function [plane] = Normalize(this)
+            m = norm(this.Normal);
+            plane = CollisionPlane(this.Normal/m,this.Distance/m);
+        end
     end
 end
