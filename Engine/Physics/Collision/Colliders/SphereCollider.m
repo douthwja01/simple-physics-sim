@@ -2,10 +2,9 @@ classdef SphereCollider < Collider
     % A sphere collider primitive
 
     properties (Constant)
-        Code = ColliderCode.Sphere; 
+        Code = ColliderCode.Sphere;
     end
     properties
-        Center = zeros(3,1);
         Radius = 1;
     end
 
@@ -19,26 +18,8 @@ classdef SphereCollider < Collider
             this.Radius = r;
         end
     end
-    % Collision Utilities
-    methods 
-        function [points] = TestCollision(this,colliderB)
-            % Test for collision between this collider and a variable
-            % second collider.
-            
-            switch colliderB.Code
-                case ColliderCode.Sphere
-                    % The second collider is a sphere
-                    points = CollisionExtensions.FindSphereSphereContactPoints(this,colliderB);
-                case ColliderCode.Plane
-                    % The second collider is a plane
-                    points = CollisionExtensions.FindSpherePlaneContactPoints(this,colliderB);
-                case ColliderCode.OBB
-                    % The second collider is an OBB box
-                    points = CollisionExtensions.FindSphereOBBContactPoints(this,colliderB);
-                otherwise
-                    error("Collider type not recognised.");
-            end
-        end
+    % Legacy
+    methods
         function [aabb] = GetWorldAABB(this)
             % Overrided needed, sphere colliders do not need a mesh
             % representation as a unitary radius is valid. However, for
@@ -56,6 +37,99 @@ classdef SphereCollider < Collider
             aabb = a * scale + p;
             % Assign the owner's cid
             aabb.Cid = this.Cid;
+        end
+    end
+    %% Collision Pairing
+    methods
+        function [points] = CheckPoint(this,point)
+            % Check the collision points between a sphere and a point.
+        end
+        function [points] = CheckLine(this,line)
+            % Check the collision points between a sphere and a line.
+        end
+        function [points] = CheckRay(this,ray)
+            % Check the collision points between a sphere and a ray.
+        end
+        function [points] = CheckTriangle(this,triangle)
+            % Check the collision points between a sphere and a triangle.
+        end
+        function [points] = CheckSphere(this,sphere)
+            % Check this collider against a second sphere collider
+
+            % Sanity check
+            assert(this.Code == ColliderCode.Sphere,"First collider must be a sphere collider.");
+            assert(sphere.Code == ColliderCode.Sphere,"Second collider must be a sphere collider.");
+
+            % Pull out the world positions
+            positionA = this.Transform.GetWorldPosition();
+            positionB = sphere.Transform.GetWorldPosition();
+
+            % Separation axis
+            seperationAxis = positionA - positionB;
+            distance = norm(seperationAxis);
+            unitSeperationAxis = seperationAxis/distance;
+            % Points furthest towards each other
+            a = positionA + unitSeperationAxis*this.Radius;
+            b = positionB - unitSeperationAxis*sphere.Radius;
+            % The overlap distance
+            depth = distance - (this.Radius + sphere.Radius);
+            isColliding = ~(depth > 0);
+            % No collision
+            if ~isColliding
+                points = ContactPoints();
+                return;
+            end
+
+            % Collision points
+            points = ContactPoints(a,b,unitSeperationAxis,depth,isColliding);
+        end
+        function [points] = CheckPlane(this,plane)
+            % Find the collisions points between a sphere and a plane.
+
+            % Sanity check
+            assert(plane.Code == ColliderCode.Plane,"Second collider must be a plane collider.");
+
+            % Pull out the transforms
+            sWorldPosition = this.Transform.GetWorldPosition();
+            % Origin positions in the world
+            pWorldPosition = plane.Transform.GetWorldPosition();
+
+            % Sphere properties
+            aCenter = sWorldPosition;
+            aRadius = this.Radius; % * sTransform.GetWorldScale();
+            planeNormal = plane.Normal/norm(plane.Normal);
+
+            % Planar projection
+            distance = dot(sWorldPosition - pWorldPosition,planeNormal);
+
+            % Is it colliding
+            isColliding = ~(distance > aRadius);
+            if ~isColliding
+                points = ContactPoints();
+                return;
+            end
+            % Calculate the scalar distance to be resolved
+            toResolve = distance - aRadius;
+            sDepth = aCenter - planeNormal * aRadius;
+            pDepth = aCenter - planeNormal * toResolve;
+            % Return the collision points
+            points = ContactPoints(pDepth,sDepth,planeNormal,toResolve,isColliding);
+        end
+        function [points] = CheckCapsule(this,capsule)
+            % Find the collision points between a sphere and a capsule.
+            points = capsule.CheckSphere(this);
+        end
+        function [points] = CheckAABB(this,aabb)
+            % Find the collision points between a sphere and an AABB.
+            points = aabb.CheckSphere(this);
+        end
+        function [points] = CheckOBB(this,obb)
+            % Find the collision points between a sphere and an OBB box.
+            points = obb.CheckSphere(this);
+        end
+        function [points] = CheckMesh(this,mesh)
+            % Find the collision points between a sphere and a mesh.
+            points = mesh.CheckSphere(this);
         end
     end
 end

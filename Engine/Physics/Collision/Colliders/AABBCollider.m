@@ -1,4 +1,4 @@
-classdef AABB < Boundary
+classdef AABBCollider < Collider
     % An Axis-Aligned Bounding Box (AABB) collider primitive
     
     properties (Constant)
@@ -7,10 +7,7 @@ classdef AABB < Boundary
     properties (Dependent) 
         Min;
         Max;
-    end  
-    properties
-        Cid = uint32.empty;      % Identity code
-    end
+    end 
     % Intervals in each dimensions
     properties (SetAccess = private)
         xBoundary = Interval.empty;
@@ -19,7 +16,7 @@ classdef AABB < Boundary
     end
     methods
         % Constructor
-        function [this] = AABB(xRange,yRange,zRange)
+        function [this] = AABBCollider(xRange,yRange,zRange)
             % CONSTRUCTOR - Generate a box- collider with unitary axial
             % limits.
             % center - 3D center position.
@@ -44,10 +41,6 @@ classdef AABB < Boundary
             this.zBoundary = Interval(zRange(1),zRange(2));
         end
         % Get/sets
-        function set.Cid(this,cid)
-            assert(isa(cid,"uint32"),"Expecting a 'uint32' cid code.");
-            this.Cid = cid;
-        end
         function [m] = get.Min(this)
             m = [this.xBoundary.Min;
                 this.yBoundary.Min;
@@ -74,7 +67,7 @@ classdef AABB < Boundary
         function [result] = plus(obj1,obj2)
             % How addition is done with AABBs.
         
-            result = AABB();
+            result = AABBCollider();
 
             if isa(obj1,"AABB")
                 % Pass Cid
@@ -113,7 +106,7 @@ classdef AABB < Boundary
         function [result] = minus(obj1,obj2)
             % How subtraction is done with AABBs.
             
-            result = AABB();
+            result = AABBCollider();
 
             if isa(obj1,"AABB")
                 % Pass Cid
@@ -152,7 +145,7 @@ classdef AABB < Boundary
         function [result] = mtimes(obj1,obj2)
             % How multiplication is done with AABBs.
             
-            result = AABB();
+            result = AABBCollider();
             
             if isa(obj1,"AABB")
                 % Sanity check
@@ -197,7 +190,12 @@ classdef AABB < Boundary
             end
         end
     end
+
     methods
+        function [aabb] = GetWorldAABB(this)
+            % Simply return the world AABB
+            aabb = this;
+        end
         % Boundary checks       
         function [flag] = IntersectRay(this,ray,t_enter,t_exit)
             % Intersect the AABB with a ray object.
@@ -319,7 +317,58 @@ classdef AABB < Boundary
             % Simply extract the extents
             [xlimits,ylimits,zlimits] = Mesh.Extents(mesh);
             % Create the primitive
-            aabb = AABB(xlimits,ylimits,zlimits);
+            aabb = AABBCollider(xlimits,ylimits,zlimits);
+        end
+    end
+    %% Collision Pairing
+    methods
+        function [points] = CheckPoint(this,point)
+            % Find the collision points between an aabb and a point.
+
+            % [TO FILL]
+        end
+        function [points] = CheckLine(this,line)
+            % Find the collision points between an aabb and a line.
+        end
+        function [points] = CheckRay(this,ray)
+            % Find the collision points between an aabb and a ray.
+        end
+        function [points] = CheckSphere(this,sphere)
+            % Check this collider against a second sphere collider
+
+            % [TO FILL]
+
+            % Collision points
+            points = ContactPoints(a,b,unitSeperationAxis,depth,isColliding);
+        end
+        function [points] = CheckPlane(this,plane)
+            % Find the collisions points between an AABB and a plane.
+            
+            % [TO FILL]
+
+            % Return the collision points
+            points = ContactPoints(pDepth,sDepth,planeNormal,toResolve,isColliding);
+        end
+        function [points] = CheckCapsule(this,capsule)
+            % Find the collision points between an AABB and a capsule.
+            points = capsule.CheckAABB(this);
+        end
+        function [points] = CheckAABB(this,aabb)
+            % Find the collision points between an AABB and an AABB.
+            
+            % [TO FILL]
+
+        end
+        function [points] = CheckOBB(this,obb)
+            % Find the collision points between an AABB and an OBB box.
+            points = obb.CheckAABB(this);
+        end
+        function [points] = CheckTriangle(this,triangle)
+            % Find the collision points between an aabb and a triangle.
+        end
+        function [points] = CheckMesh(this,mesh)
+            % Find the collision points between an AABB and a mesh.
+            points = mesh.CheckAABB(this);
         end
     end
 end

@@ -7,7 +7,7 @@ classdef (Abstract) Collider < Element
     end
     properties
         IsTrigger = false;
-        Cid = uint8.empty;
+        Cid = uint32.empty;
         ShowEventsInConsole = false;
     end
     events
@@ -45,12 +45,24 @@ classdef (Abstract) Collider < Element
     % Further collider requirements
     methods (Abstract)
         % Evaluate collision between this and another collider primitive.
-        [points] = TestCollision(colliderB);
+%         [points] = TestCollision(colliderB);
         % Provide a means to get the world AABB for the collider
         [aabb] = GetWorldAABB(this);
     end
 
-    % Internals
+    %% Internals
+    methods (Abstract)
+        [points] = CheckPoint(this,point);
+        [points] = CheckLine(this,line);
+        [points] = CheckRay(this,ray);
+        [points] = CheckSphere(this,sphere);
+        [points] = CheckPlane(this,plant);
+        [points] = CheckCapsule(this,capsule);
+        [points] = CheckAABB(this,aabb);
+        [points] = CheckOBB(this,obb);
+        [points] = CheckTriangle(this,triangle);
+        [points] = CheckMesh(this,mesh);
+    end
     methods (Access = protected)
         function [this] = OnCollision(this,colliderData)
             % When the on-collision event is triggered by the world.            
