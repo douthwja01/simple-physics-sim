@@ -7,13 +7,13 @@ classdef ColliderCode < uint8
       None(0);          % Generic 
       Point(1);
       Line(2);
-      Ray(3);
-      Triangle(4);      
-      Sphere(5);        % Spherical bounding box assumption
-      Plane(6);         % Planar
-      Capsule(7);       % Capsule enclosed volume
-      AABB(8);          % Axis aligned bounding box
-      OBB(9);           % Object orientated bounding box
+      Ray(3);     
+      Sphere(4);        % Spherical bounding box assumption
+      Plane(5);         % Planar
+      Capsule(6);       % Capsule enclosed volume
+      AABB(7);          % Axis aligned bounding box
+      OBB(8);           % Object orientated bounding b
+      Triangle(9); 
       Mesh(10);         % Mesh enclosed volume
    end
 end

@@ -28,7 +28,7 @@ classdef SphereCollider < Collider
 
             % Recompute AABB
             r = this.Radius;
-            a = AABB([-r,r],[-r,r],[-r,r]);
+            a = AABBCollider([-r,r],[-r,r],[-r,r]);
 
             % Position & scale
             p = this.Transform.GetWorldPosition();

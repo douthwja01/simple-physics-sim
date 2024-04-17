@@ -42,7 +42,7 @@ classdef EntityCreator
             cube = EntityCreator.Empty(name,position,rotation);
             % Add box elements
             cube.Renderer = BoxRenderer();
-            cube.Collider = BoxCollider();
+            cube.Collider = OBBCollider();
         end
         function [sphere] = Sphere(name,position,rotation)
             % This function creates a sphere entity.

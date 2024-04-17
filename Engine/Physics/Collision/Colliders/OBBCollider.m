@@ -197,7 +197,7 @@ classdef OBBCollider < Collider
             % Get the mesh transformed in world coordinates
             mesh = this.GetWorldMesh();
             % Recompute AABB
-            aabb = AABB.FromMesh(mesh);
+            aabb = AABBCollider.FromMesh(mesh);
             % Assign the owner's id
             aabb.Cid = this.Cid;
         end

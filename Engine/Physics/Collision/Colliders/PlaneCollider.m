@@ -34,7 +34,7 @@ classdef PlaneCollider < Collider
             w = this.Width;
             d = this.Depth;
             t = this.Thickness;
-            aabb = AABB(0.5*[-w,w],0.5*[-d,d],[0,-t]);
+            aabb = AABBCollider(0.5*[-w,w],0.5*[-d,d],[0,-t]);
 
             % Position & scale
             p = this.Transform.GetWorldPosition();

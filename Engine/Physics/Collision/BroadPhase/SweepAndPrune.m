@@ -4,7 +4,7 @@ classdef SweepAndPrune < BroadPhaseSolver
     % successive dimensions.
     
     properties
-        AABBs = AABB.empty;
+        AABBs = AABBCollider.empty;
     end
     methods 
         function [this] = SweepAndPrune()
@@ -24,7 +24,7 @@ classdef SweepAndPrune < BroadPhaseSolver
             assert(isa(colliders,"Collider"),"Expecting a list of 'collider' objects.");
             
             % Property initialisation
-            this.AABBs = AABB.empty;
+            this.AABBs = AABBCollider.empty;
             manifolds = Manifold.empty;
             numberOfColliders = numel(colliders);
 

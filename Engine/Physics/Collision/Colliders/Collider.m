@@ -42,10 +42,44 @@ classdef (Abstract) Collider < Element
         end
     end
 
+    methods
+        function [points] = TestCollision(this,collider)
+            % This function provides a general-purpose interface for
+            % evaluating any collider against another.
+            
+            switch collider.Code
+                case ColliderCode.None
+                    points = ContactPoints.empty;
+                case ColliderCode.Point
+                    points = this.CheckPoints(collider);
+                case ColliderCode.Line
+                    points = this.CheckLine(collider);
+                case ColliderCode.Ray
+                    points = this.CheckRay(collider);
+                case ColliderCode.Sphere
+                    points = this.CheckSphere(collider);
+                case ColliderCode.Plane
+                    points = this.CheckPlane(collider);
+                case ColliderCode.Capsule
+                    points = this.CheckCapsule(collider);
+                case ColliderCode.AABB
+                    points = this.CheckAABB(collider);
+                case ColliderCode.OBB
+                    points = this.CheckOBB(collider);
+                case ColliderCode.Triangle
+                    points = this.CheckTriangle(collider);
+                case ColliderCode.Mesh
+                    points = this.CheckMesh(collider);
+                otherwise
+                    error("Collider code not recognised.");
+            end
+        end
+    end
+
     % Further collider requirements
     methods (Abstract)
         % Evaluate collision between this and another collider primitive.
-%         [points] = TestCollision(colliderB);
+        %[points] = TestCollision(collider);
         % Provide a means to get the world AABB for the collider
         [aabb] = GetWorldAABB(this);
     end
