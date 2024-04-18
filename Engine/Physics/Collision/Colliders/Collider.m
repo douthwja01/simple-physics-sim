@@ -43,33 +43,34 @@ classdef (Abstract) Collider < Element
     end
 
     methods
-        function [points] = TestCollision(this,collider)
+        function [isColliding,points] = TestCollision(this,collider)
             % This function provides a general-purpose interface for
             % evaluating any collider against another.
             
             switch collider.Code
                 case ColliderCode.None
+                    isColliding = false;
                     points = ContactPoints.empty;
                 case ColliderCode.Point
-                    points = this.CheckPoints(collider);
+                    [isColliding,points] = this.CheckPoints(collider);
                 case ColliderCode.Line
-                    points = this.CheckLine(collider);
+                    [isColliding,points] = this.CheckLine(collider);
                 case ColliderCode.Ray
-                    points = this.CheckRay(collider);
+                    [isColliding,points] = this.CheckRay(collider);
                 case ColliderCode.Sphere
-                    points = this.CheckSphere(collider);
+                    [isColliding,points] = this.CheckSphere(collider);
                 case ColliderCode.Plane
-                    points = this.CheckPlane(collider);
+                    [isColliding,points] = this.CheckPlane(collider);
                 case ColliderCode.Capsule
-                    points = this.CheckCapsule(collider);
+                    [isColliding,points] = this.CheckCapsule(collider);
                 case ColliderCode.AABB
-                    points = this.CheckAABB(collider);
+                    [isColliding,points] = this.CheckAABB(collider);
                 case ColliderCode.OBB
-                    points = this.CheckOBB(collider);
+                    [isColliding,points] = this.CheckOBB(collider);
                 case ColliderCode.Triangle
-                    points = this.CheckTriangle(collider);
+                    [isColliding,points] = this.CheckTriangle(collider);
                 case ColliderCode.Mesh
-                    points = this.CheckMesh(collider);
+                    [isColliding,points] = this.CheckMesh(collider);
                 otherwise
                     error("Collider code not recognised.");
             end
@@ -78,26 +79,30 @@ classdef (Abstract) Collider < Element
 
     % Further collider requirements
     methods (Abstract)
-        % Evaluate collision between this and another collider primitive.
-        %[points] = TestCollision(collider);
         % Provide a means to get the world AABB for the collider
         [aabb] = GetWorldAABB(this);
     end
 
     %% Internals
     methods (Abstract)
-        [points] = CheckPoint(this,point);
-        [points] = CheckLine(this,line);
-        [points] = CheckRay(this,ray);
-        [points] = CheckSphere(this,sphere);
-        [points] = CheckPlane(this,plant);
-        [points] = CheckCapsule(this,capsule);
-        [points] = CheckAABB(this,aabb);
-        [points] = CheckOBB(this,obb);
-        [points] = CheckTriangle(this,triangle);
-        [points] = CheckMesh(this,mesh);
+        [isColliding,points] = CheckPoint(this,point);
+        [isColliding,points] = CheckLine(this,line);
+        [isColliding,points] = CheckRay(this,ray);
+        [isColliding,points] = CheckSphere(this,sphere);
+        [isColliding,points] = CheckPlane(this,plant);
+        [isColliding,points] = CheckCapsule(this,capsule);
+        [isColliding,points] = CheckAABB(this,aabb);
+        [isColliding,points] = CheckOBB(this,obb);
+        [isColliding,points] = CheckTriangle(this,triangle);
+        [isColliding,points] = CheckMesh(this,mesh);
+    end
+    methods (Abstract, Access = protected)
+        [int] = GetAxisInterval(this,axis); % Each collider has a distinct answer
     end
     methods (Access = protected)
+        % Support utilities
+        
+        % Event handles
         function [this] = OnCollision(this,colliderData)
             % When the on-collision event is triggered by the world.            
 

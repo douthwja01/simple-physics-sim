@@ -24,21 +24,21 @@ classdef OBBCollider < Collider
     end
     %% Collision Pairing
     methods
-        function [points] = CheckPoint(this,point)
+        function [isColliding,points] = CheckPoint(this,point)
             % Find the collision points between an obb and a point.
         end
-        function [points] = CheckLine(this,line)
+        function [isColliding,points] = CheckLine(this,line)
             % Find the collision points between an obb and a line.
         end
-        function [points] = CheckRay(this,ray)
+        function [isColliding,points] = CheckRay(this,ray)
             % Find the collision points between an obb and a ray.
         end
-        function [points] = CheckSphere(this,sphere)
+        function [isColliding,points] = CheckSphere(this,sphere)
             % Find the collision points between this OBB and a sphere.
 
             % TO FILL
         end
-        function [points] = CheckPlane(this,plane)
+        function [isColliding,points] = CheckPlane(this,plane)
             % Find the collision points between this OBB box and a plane.
 
             % Sanity check
@@ -91,16 +91,40 @@ classdef OBBCollider < Collider
                 toResolve,...
                 isColliding);
         end
-        function [points] = CheckCapsule(this,capsule)
+        function [isColliding,points] = CheckCapsule(this,capsule)
             % Find the collision points between an OBB and a capsule.
             points = capsule.CheckOBB(this);
         end
-        function [points] = CheckAABB(this,aabb)
+        function [isColliding,points] = CheckAABB(this,aabb)
             % Find the collision points between an OBB and an AABB.
 
-            % [TO FILL]
+            rotationData = this.Transform.Rotation;
+
+            axes = zeros(6,3);
+            axes(1,:) = [1, 0, 0];
+            axes(2,:) = [0, 1, 0];
+            axes(3,:) = [0, 0, 1];
+            axes(4,:) = rotationData(1,:);
+            axes(5,:) = rotationData(2,:);
+            axes(6,:) = rotationData(3,:);
+        
+            for i = 1:3 
+                for j = 4:6 
+                    crossAxes = cross(axes(i,:),axes(j,:));
+                    axes = vertcat(axes,crossAxes);
+                end
+            end
+            % Check for no overlap on each axis
+            for i = 1:15
+                if ~this.CheckAxisOverlap(this, aabb, axes(i,:)) 
+                    flag = false;
+                    return
+                end
+            end
+        
+            flag = true;
         end
-        function [points] = CheckOBB(this,obb)
+        function [isColliding,points] = CheckOBB(this,obb)
             % Find the collision points between two OBB boxes.
 
             % Sanity check
@@ -159,10 +183,10 @@ classdef OBBCollider < Collider
                 depth,...
                 isColliding);
         end
-        function [points] = CheckTriangle(this,triangle)
+        function [isColliding,points] = CheckTriangle(this,triangle)
             % Find the collision points between an obb and a triangle.
         end
-        function [points] = CheckMesh(this,mesh)
+        function [isColliding,points] = CheckMesh(this,mesh)
             % Find the collision points between an OOB and a mesh.
             points = mesh.CheckOBB(this);
         end
@@ -213,6 +237,35 @@ classdef OBBCollider < Collider
             mesh = this.GetWorldMesh();
             % Draw the collider to the container
             h = mesh.Draw(container,"r");
+        end
+    end
+    methods (Access = protected)
+        function [axisInterval] = GetAxisInterval(this,axis)
+            % This function creates an interval defining the projection of
+            % this shape onto a given axis.
+
+            % Ensure same size
+            axis = axis'; 
+            % Define vertex data from limits
+            vertices = this.GetVertices();
+            % We need to loop through these points and get the minimum and
+            % maximums on the provided axis (axis is assumed to be
+            % arbitrary)
+
+            imin = inf; imax = -inf;
+            for i = 1:size(vertices,1)
+                projection = dot(axis,vertices);
+                % If the projection is greater record it.
+                if projection > imax
+                    imax = projection;
+                end
+                % If the projection is smaller record it.
+                if projection < imin
+                    imin = projection;
+                end
+            end
+            % Return an interval capturing it.
+            axisInterval = Interval(imin,imax);
         end
     end
 end

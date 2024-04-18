@@ -70,11 +70,8 @@ classdef CollisionWorld < handle
             % This routine solves the inter-particle collisions (brute force)   
             for i = 1:numel(manifolds)
                 manifold_i = manifolds(i);
-                
                 % Evaluate if there has been a collision for the pair.
-                this.TestCollision( ...
-                    manifold_i.ColliderA, ....
-                    manifold_i.ColliderB);
+                this.TestCollision(manifold_i.ColliderA,manifold_i.ColliderB);
             end
             % --------------------
 
@@ -146,14 +143,14 @@ classdef CollisionWorld < handle
     
     % Internals
     methods (Access = private)
-        function [points] = TestCollision(this,collider_i,collider_j)
+        function TestCollision(this,collider_i,collider_j)
             % Evaluate an individual collision instance
 
             % Test collisions with their respective colliders.
-            points = collider_i.TestCollision(collider_j);
+            [isColliding,points] = collider_i.TestCollision(collider_j);
 
             % If not colliding, skip
-            if ~points.IsColliding
+            if ~isColliding
                 return
             end
 

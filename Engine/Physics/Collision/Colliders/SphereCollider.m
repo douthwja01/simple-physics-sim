@@ -41,19 +41,19 @@ classdef SphereCollider < Collider
     end
     %% Collision Pairing
     methods
-        function [points] = CheckPoint(this,point)
+        function [isColliding,points] = CheckPoint(this,point)
             % Check the collision points between a sphere and a point.
         end
-        function [points] = CheckLine(this,line)
+        function [isColliding,points] = CheckLine(this,line)
             % Check the collision points between a sphere and a line.
         end
-        function [points] = CheckRay(this,ray)
+        function [isColliding,points] = CheckRay(this,ray)
             % Check the collision points between a sphere and a ray.
         end
-        function [points] = CheckTriangle(this,triangle)
+        function [isColliding,points] = CheckTriangle(this,triangle)
             % Check the collision points between a sphere and a triangle.
         end
-        function [points] = CheckSphere(this,sphere)
+        function [isColliding,points] = CheckSphere(this,sphere)
             % Check this collider against a second sphere collider
 
             % Sanity check
@@ -83,7 +83,7 @@ classdef SphereCollider < Collider
             % Collision points
             points = ContactPoints(a,b,unitSeperationAxis,depth,isColliding);
         end
-        function [points] = CheckPlane(this,plane)
+        function [isColliding,points] = CheckPlane(this,plane)
             % Find the collisions points between a sphere and a plane.
 
             % Sanity check
@@ -115,21 +115,31 @@ classdef SphereCollider < Collider
             % Return the collision points
             points = ContactPoints(pDepth,sDepth,planeNormal,toResolve,isColliding);
         end
-        function [points] = CheckCapsule(this,capsule)
+        function [isColliding,points] = CheckCapsule(this,capsule)
             % Find the collision points between a sphere and a capsule.
             points = capsule.CheckSphere(this);
         end
-        function [points] = CheckAABB(this,aabb)
+        function [isColliding,points] = CheckAABB(this,aabb)
             % Find the collision points between a sphere and an AABB.
             points = aabb.CheckSphere(this);
         end
-        function [points] = CheckOBB(this,obb)
+        function [isColliding,points] = CheckOBB(this,obb)
             % Find the collision points between a sphere and an OBB box.
             points = obb.CheckSphere(this);
         end
-        function [points] = CheckMesh(this,mesh)
+        function [isColliding,points] = CheckMesh(this,mesh)
             % Find the collision points between a sphere and a mesh.
             points = mesh.CheckSphere(this);
+        end
+    end
+    %% Support
+    methods (Access = protected)
+        function [int] = GetAxisInterval(this,axis)
+            % This function gets the projection of this collider on a given
+            % axis.
+
+            % Return the projection interval [TO-CHECK]
+            int = Interval(-this.Radius,this.Radius);
         end
     end
 end

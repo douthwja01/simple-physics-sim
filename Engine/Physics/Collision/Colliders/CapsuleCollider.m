@@ -27,52 +27,52 @@ classdef CapsuleCollider < Collider
     end
     %% Collision Pairing
     methods
-        function [points] = CheckPoint(this,point)
+        function [isColliding,points] = CheckPoint(this,point)
             % Find the collision points between the capsule and a point.
 
             % [TO FILL]
         end
-        function [points] = CheckLine(this,line)
+        function [isColliding,points] = CheckLine(this,line)
             % Find the collision points between the capsule and a line.
 
             % [TO FILL]
         end
-        function [points] = CheckRay(this,ray)
+        function [isColliding,points] = CheckRay(this,ray)
             % Find the collision points between the capsule and a ray.
 
             % [TO FILL]
         end
-        function [points] = CheckSphere(this,sphere)
+        function [isColliding,points] = CheckSphere(this,sphere)
             % Find the collision points between the capsule and a sphere.
             
             % [TO FILL]
         end
-        function [points] = CheckPlane(this,plane)
+        function [isColliding,points] = CheckPlane(this,plane)
             % Find the collision points between the capsule and a plane.
 
             % [TO FILL]
         end
-        function [points] = CheckCapsule(this,capsule)
+        function [isColliding,points] = CheckCapsule(this,capsule)
             % Find the collision points between the capsule and a capsule.
 
             % [TO FILL]
         end
-        function [points] = CheckAABB(this,aabb)
+        function [isColliding,points] = CheckAABB(this,aabb)
             % Find the collision points between the capsule and an AABB.
 
             % [TO FILL]
         end
-        function [points] = CheckOBB(this,obb)
+        function [isColliding,points] = CheckOBB(this,obb)
             % Find the collision points between the capsule and an obb.
 
             % [TO FILL]
         end
-        function [points] = CheckTriangle(this,triangle)
+        function [isColliding,points] = CheckTriangle(this,triangle)
             % Find the collision points between the capsule and a triangle.
 
             % [TO FILL]
         end
-        function [points] = CheckMesh(this,mesh)
+        function [isColliding,points] = CheckMesh(this,mesh)
             % Find the collision points between the capsule and a mesh.
             
             % [TO FILL]

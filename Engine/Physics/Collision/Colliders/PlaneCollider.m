@@ -48,20 +48,20 @@ classdef PlaneCollider < Collider
 
     %% Collision Pairing
     methods
-        function [points] = CheckPoint(this,point)
+        function [isColliding,points] = CheckPoint(this,point)
             % Find the collision points between the plane and a point.
         end
-        function [points] = CheckLine(this,line)
+        function [isColliding,points] = CheckLine(this,line)
             % Find the collision points between the plane and a line.
         end
-        function [points] = CheckRay(this,ray)
+        function [isColliding,points] = CheckRay(this,ray)
             % Find the collision points between the plane and a ray.
         end
-        function [points] = CheckSphere(this,sphere)
+        function [isColliding,points] = CheckSphere(this,sphere)
             % Find the collision points between this plane and a sphere.
             points = sphere.CheckPlane(this);
         end
-        function [points] = CheckPlane(this,plane)
+        function [isColliding,points] = CheckPlane(this,plane)
             % Find the collision points between this OBB box and a plane.
 
             % Sanity check
@@ -114,26 +114,36 @@ classdef PlaneCollider < Collider
                 toResolve,...
                 isColliding);
         end
-        function [points] = CheckCapsule(this,capsule)
+        function [isColliding,points] = CheckCapsule(this,capsule)
             % Find the collision points between a plane and a capsule.
             points = capsule.CheckPlane(this);
         end
-        function [points] = CheckAABB(this,aabb)
+        function [isColliding,points] = CheckAABB(this,aabb)
             % Find the collision points between a plane and an AABB.
             points = aabb.CheckPlane(this);
         end
-        function [points] = CheckOBB(this,obb)
+        function [isColliding,points] = CheckOBB(this,obb)
             % Find the collision points between a plane and an obb.
             points = obb.CheckPlane(this);
         end
-        function [points] = CheckTriangle(this,triangle)
+        function [isColliding,points] = CheckTriangle(this,triangle)
             % Find the collision points between the plane and a triangle.
 
             % [TO FILL]
         end
-        function [points] = CheckMesh(this,mesh)
+        function [isColliding,points] = CheckMesh(this,mesh)
             % Find the collision points between a plane and a mesh.
             points = mesh.CheckPlane(this);
+        end
+    end
+
+    %% Support
+    methods (Access = protected)
+        function [int] = GetAxisInterval(this,axis)
+            % This function gets the projection of this collider on a given
+            % axis.
+
+
         end
     end
 end
