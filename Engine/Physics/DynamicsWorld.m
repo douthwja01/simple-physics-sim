@@ -99,7 +99,7 @@ classdef DynamicsWorld < CollisionWorld
             % The step procedure
             this.ApplyGravity();
             % Solve the collisions
-            this.ResolveCollisions(dt);
+            this.FindResolveCollisions(dt);
             % Update the changes of everything
             this.MoveObjects(dt);
         end        
