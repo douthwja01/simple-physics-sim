@@ -19,8 +19,14 @@ classdef (Abstract) MeshCollider < Collider
             this.Mesh = mesh;
         end
     end
-    % Collision Utilities
+    % Utilities
     methods
+        function [mesh] = GetWorldMesh(this)
+            % Get the mesh tranformed into world space.
+            T = this.Transformation.GetWorldMatrix();
+            % Transform the collision mesh
+            mesh = this.Mesh.TransformBy(T);
+        end
         function [aabb] = GetWorldAABB(this)
             % This function recalculates the bounding box from the collider
             % properties.
@@ -33,7 +39,9 @@ classdef (Abstract) MeshCollider < Collider
             % Get the mesh transformed in world coordinates
             mesh = this.GetWorldMesh();
             % Recompute AABB
-            aabb = AABB.EncloseMesh(mesh);
+            aabb = AABB.FromMesh(mesh);
+            % Assign the owner's id
+            aabb.Cid = this.Cid;
         end
         function [h] = Draw(this,container)
             % Draw the mesh collider

@@ -58,7 +58,9 @@ sim.Add(ground);
 
 %found = sim.Find("Name","Box");
 
-% Simulate
+% Configure Simulator 
 sim.Physics.SubSteps = 10;
 sim.Physics.Integrator = EulerIntegrator();
+sim.Physics.BroadPhaseSolver = OctreeSolver();
+% Simulate
 sim.Simulate(inf);

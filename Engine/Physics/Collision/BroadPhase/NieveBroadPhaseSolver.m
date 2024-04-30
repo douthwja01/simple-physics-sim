@@ -19,21 +19,21 @@ classdef NieveBroadPhaseSolver < BroadPhaseSolver
             % This approach uses a nieve approach to find all the possible
             % collision manifolds where collision could be occurring.
 
+            % Snity check
+            assert(isa(colliders,"Collider"),"Expecting a set of valid colliders.");
+
             manifolds = Manifold.empty;
             % This function solves the inter-particle collisions (brute force)
             for i = 1:numel(colliders)
                 collider_i = colliders(i);
                 for j = i+1:numel(colliders)
                     collider_j = colliders(j);
-
                     % Check if assessing self-collision
                     if (collider_i.Cid == collider_j.Cid)
                         continue;
                     end
-
-                    newManifold = Manifold(collider_i,collider_j);
-
-                    manifolds = vertcat(manifolds,newManifold); 
+                    % Add the manifold to the set
+                    manifolds = vertcat(manifolds,Manifold(collider_i,collider_j)); 
                 end
             end
         end

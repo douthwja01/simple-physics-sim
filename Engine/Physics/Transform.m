@@ -77,6 +77,50 @@ classdef Transform < TreeElement
             this.IsStatic = s;
         end
     end
+
+    % Utilities
+    methods
+        function [v_l] = InverseTransformVector(this,v_w)
+            % Transform a vector in the world frame into the local frame of
+            % this transform.
+
+            % Get the transformation matrix in the world
+            Rwl = this.GetRotationMatrix();
+            % Multiply by the matrix
+            v_l = Rwl'*v_w;
+        end
+        function [v_w] = TransformVector(this,v_l)
+            % Transform a vector from this transform frame into the world
+            % frame.
+
+            % Get the transformation matrix in the world
+            Rwl = this.GetRotationMatrix();
+            % Multiply by the matrix
+            v_w = Rwl*v_l;
+        end
+        function [p_l] = InverseTransformPoint(this,p_w)
+            % Transform a point in the world frame into the local frame of
+            % this transform.
+
+            % Get the transformation matrix in the world
+            Twl = this.GetWorldMatrix();
+            % Invert the matrix and multiply
+            p_l = transpose(Twl)*[p_w;1];
+            % Remove the loose element
+            p_l = p_l(1:3,1);
+        end
+        function [p_w] = TransformPoint(this,p_l)
+            % Transform a point in this transform frame into the world frame.
+
+            % Get the transformation matrix in the world
+            Twl = this.GetWorldMatrix();
+            % Multiply the matrix
+            p_w = Twl*[p_l;1];
+            % Remove the loose element
+            p_w = p_w(1:3,1);
+        end
+    end
+
     % (World) representation
     methods
         function [T] = GetWorldMatrix(this)

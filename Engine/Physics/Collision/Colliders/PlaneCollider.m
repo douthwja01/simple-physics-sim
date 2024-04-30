@@ -57,7 +57,7 @@ classdef PlaneCollider < Collider
             % Offset the aabb by the sphere's world position
             aabb = aabb * scale + p;
             % Assign the parent
-            aabb.Parent = this;
+            aabb.Cid = this.Cid;
         end
     end
 end

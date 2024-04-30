@@ -1,9 +1,9 @@
-classdef RotationalImpulseCollisionSolver < NarrowPhaseCollisionSolver
+classdef RotationalImpulseCollisionResolver < CollisionResolver
     %ROTATIONALIMPULSESOLVER A collision solver that uses the rotational 
     % impulse solution method.
 
     methods        
-        function [this] = Solve(this,manifolds,dt)
+        function [this] = Resolve(this,manifolds,dt)
             % SOLVE - Solve the set of the collision manifolds using the
             % rotational impulse solver.
 

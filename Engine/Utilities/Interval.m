@@ -1,25 +1,28 @@
-classdef Interval
-    properties
-        Min = 0;
-        Max = 1;
+classdef Interval < Boundary
+    % A 1D boundary constraint
+    
+    properties (Constant)
+        Code = ColliderCode.Line;
     end
-    properties (Dependent)
-        Range;
+    properties
+        Min = -1;
+        Max = 1;
     end
     methods
         function [this] = Interval(min,max)
+            % CONSTRUCTOR - Create an instance of the interval class.
+            
             if nargin > 1
-                this.Min = min;
                 this.Max = max;
-            elseif nargin > 0
-                assert(numel(min) == 2,"Expecting a valid vector [min,max].");
-                this.Min = min(1);
-                this.Max = min(2);
             end
-        end
-        % Get/sets
-        function [r] = get.Range(this)
-            r = [this.Min,this.Max];
+            if nargin > 0
+                if length(min) > 1
+                    this.Min = min(1);
+                    this.Max = min(2);
+                else
+                    this.Min = min;
+                end
+            end
         end
         % Operators
         function [r] = plus(obj1,obj2)
@@ -79,11 +82,54 @@ classdef Interval
             end
         end
     end
-    methods (Static)
-        function [flag] = TestIntersection(a,b)
+
+    % Utilities
+    methods
+        function [flag,t_enter,t_exit] = IntersectRay(this,ray_origin,ray_direction,t_enter,t_exit)
+            % Test a ray and this intervale for intersection. 
+            % origin - The start of the ray in this intervals dimension.
+            % direction - The direction of the ray in this intervals dimension.
+  
+            flag = false;
+
+            % Minimal direction count
+            if abs(ray_direction) < 0.000001
+                flag = true;
+                return;    
+            end
+            % Compute the intersection params   
+            % float u0, u1;    
+            u0 = (this.Min - ray_origin) / (ray_direction);   
+            u1 = (this.Max - ray_origin) / (ray_direction);    
+            % sort them (t1 must be >= t0)    
+            if u0 > u1        
+                % Swap the coordinates if the times are backward
+                a = u0;
+                u0 = u1;
+                u1 = a;
+            end
+
+            % Check if the intersection is within the ray range    
+            if (u1 < t_enter || u0 > t_exit)       
+                % Update the ray range
+                return;    
+            end   
+            t_enter = max(u0, t_enter);    
+            t_exit  = min(u1, t_exit);    
+            % Ah. we missed the interval    
+            flag = t_exit >= t_enter;
+        end
+        function [flag] = IntersectInterval(this,other)
             % Test two intervals for intersection
             flag = true;
-            if a.Min > b.Max || a.Max < b.Min
+            if this.Min > other.Max || this.Max < other.Min
+                flag = false;
+            end
+        end
+        function [flag] = Contains(this,value)
+            % Test if the interval contains a coordinate
+            flag = true;
+            if this.Min > value || this.Max < value
                 flag = false;
             end
         end
