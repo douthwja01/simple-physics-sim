@@ -24,11 +24,14 @@ classdef RevoluteJoint < ActuatedJoint
             % On update of the joint position variable.
             switch this.Axis
                 case AxisCode.X
-                    this.Pivot.SetEulers(this.JointPosition,0,0);
+                    %this.Pivot.SetEulers(this.JointPosition,0,0);
+                    this.Pivot.SetRotationMatrix(R_x(this.JointPosition));
                 case AxisCode.Y
-                    this.Pivot.SetEulers(0,this.JointPosition,0);
+                    %this.Pivot.SetEulers(0,this.JointPosition,0);
+                    this.Pivot.SetRotationMatrix(R_y(this.JointPosition));
                 case AxisCode.Z
-                    this.Pivot.SetEulers(0,0,this.JointPosition);
+                    %this.Pivot.SetEulers(0,0,this.JointPosition);
+                    this.Pivot.SetRotationMatrix(R_z(this.JointPosition));
                 otherwise
                     error("Axis code not applicable.");
             end

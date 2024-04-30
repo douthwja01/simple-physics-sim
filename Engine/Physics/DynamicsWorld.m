@@ -52,9 +52,6 @@ classdef DynamicsWorld < CollisionWorld
             % Sanity check
             assert(isnumeric(dt),"Expecting a valid time step.");
             
-            % Solve the collisions
-%             this.ResolveCollisions(dt);
-
             % Step (or substep) the world
             if this.EnableSubStepping
                 subTimeDelta = dt/this.SubSteps;

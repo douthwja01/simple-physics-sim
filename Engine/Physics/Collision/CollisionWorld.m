@@ -142,7 +142,7 @@ classdef CollisionWorld < handle
     
     % Internals
     methods (Access = private)
-         function [this] = ResolveCollisions(this,dt)
+        function [this] = ResolveCollisions(this,dt)
             % This function solves the set of identified collisions by
             % invoking the collision solvers.
 
