@@ -1,4 +1,3 @@
-
 classdef CollisionWorld < handle
     % Collision world primitive responsible for managing the collision
     % properties of the simulation.
@@ -163,7 +162,7 @@ classdef CollisionWorld < handle
             % Evaluate an individual collision instance
 
             % Test collisions with their respective colliders
-            [isColliding,points] = collider_i.TestCollision(collider_j);
+            [points] = collider_i.TestCollision(collider_j);
 
             % If not colliding, skip
             if ~points.IsColliding
