@@ -1,10 +1,10 @@
-classdef PositionCollisionSolver < NarrowPhaseCollisionSolver
+classdef PositionCollisionResolver < CollisionResolver
     % This basic collision solver resolves collisions simply by resolving
     % the minimum seperation between the two colliders by directly setting
     % the position of the two objects via their transforms.
     
     methods
-        function [this] = Solve(this,collisions,dt)
+        function [this] = Resolve(this,collisions,dt)
             % Sanity check
             assert(isa(collisions,"Manifold"),"Expecting an array of collisions objects.");
             assert(isnumeric(dt),"Expecting an array of collisions objects.");

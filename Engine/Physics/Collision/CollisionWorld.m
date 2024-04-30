@@ -1,4 +1,3 @@
-
 classdef CollisionWorld < handle
     % Collision world primitive responsible for managing the collision
     % properties of the simulation.
@@ -11,7 +10,7 @@ classdef CollisionWorld < handle
         WorldSize = 10;
         % Collidables
         Colliders;
-        NarrowPhaseSolvers = NarrowPhaseCollisionSolver.empty(0,1);
+        Resolvers = CollisionResolver.empty(0,1);
         % Variables
         Collisions = Manifold.empty;
         Triggers = Manifold.empty;
@@ -51,7 +50,7 @@ classdef CollisionWorld < handle
     % Utilities
     methods 
         % Resolve world Collisions
-        function [this] = ResolveCollisions(this,dt)
+        function [this] = FindResolveCollisions(this,dt)
             % This function builds the lists of 'detected' collisions and
             % triggers.
 
@@ -69,9 +68,8 @@ classdef CollisionWorld < handle
             % --- NARROW PHASE ---
             % This routine solves the inter-particle collisions (brute force)   
             for i = 1:numel(manifolds)
-                manifold_i = manifolds(i);
                 % Evaluate if there has been a collision for the pair.
-                this.TestCollision(manifold_i.ColliderA,manifold_i.ColliderB);
+                this.TestCollision(manifolds(i).ColliderA,manifolds(i).ColliderB);
             end
             % --------------------
 
@@ -80,8 +78,9 @@ classdef CollisionWorld < handle
                 return;
             end
 
-            % Resolve the collisions
-            this.SolveCollisions(dt);
+            % -- RESOLUTION PHASE --- 
+            % This routine computes the collision resolution
+            this.ResolveCollisions(dt);
 
             % --- EVENT GENERATION PHASE ---
             % Notify colliders events
@@ -108,22 +107,22 @@ classdef CollisionWorld < handle
         end     
         % Managing collision NarrowPhaseSolvers
         function [this] = AddSolver(this,solver)
-            assert(isa(solver,"NarrowPhaseCollisionSolver"),"Expecting a valid narrow-phase collision solver.");
+            assert(isa(solver,"CollisionResolver"),"Expecting a valid narrow-phase collision solver.");
             
             % Add a given solver to the array of collision solvers.
-            this.NarrowPhaseSolvers = vertcat(this.NarrowPhaseSolvers,solver);
+            this.Resolvers = vertcat(this.Resolvers,solver);
         end
         function [this] = RemoveSolver(this,solver)
             % Delete the object from the world
             if isnumeric(solver)
                 % Temporary index
-                vec = 1:1:numel(this.NarrowPhaseSolvers);
+                vec = 1:1:numel(this.Resolvers);
                 % Remove the object
-                this.NarrowPhaseSolvers = this.NarrowPhaseSolvers(vec ~= solver);
+                this.Resolvers = this.Resolvers(vec ~= solver);
             else
                 assert(isa(solver,"NarrowPhaseCollisionSolver"),"Expecting a valid 'Solver' object.");
                 % Remove a given solver from the array of collisions solvers.
-                this.NarrowPhaseSolvers = this.NarrowPhaseSolvers(this.NarrowPhaseSolvers ~= solver);
+                this.Resolvers = this.Resolvers(this.Resolvers ~= solver);
             end
         end
         % Callbacks
@@ -143,10 +142,26 @@ classdef CollisionWorld < handle
     
     % Internals
     methods (Access = private)
+         function [this] = ResolveCollisions(this,dt)
+            % This function solves the set of identified collisions by
+            % invoking the collision solvers.
+
+            % Sanity check
+            assert(isnumeric(dt),"Expecting a valid time step.");
+
+            if isempty(this.Collisions) || numel(this.Collisions) < 1
+                return;
+            end
+
+            for i = 1:numel(this.Resolvers)
+                % Solve the collisions
+                this.Resolvers(i).Resolve(this.Collisions,dt);
+            end
+         end
         function TestCollision(this,collider_i,collider_j)
             % Evaluate an individual collision instance
 
-            % Test collisions with their respective colliders.
+            % Test collisions with their respective colliders
             [isColliding,points] = collider_i.TestCollision(collider_j);
 
             % If not colliding, skip
@@ -161,22 +176,6 @@ classdef CollisionWorld < handle
                 this.Triggers = vertcat(this.Triggers,manifold);
             else
                 this.Collisions = vertcat(this.Collisions,manifold);
-            end
-        end
-        function [this] = SolveCollisions(this,dt)
-            % This function solves the set of identified collisions by
-            % invoking the collision solvers.
-
-            % Sanity check
-            assert(isnumeric(dt),"Expecting a valid time step.");
-
-            if isempty(this.Collisions) || numel(this.Collisions) < 1
-                return;
-            end
-
-            for i = 1:numel(this.NarrowPhaseSolvers)
-                % Solve the collisions
-                this.NarrowPhaseSolvers(i).Solve(this.Collisions,dt);
             end
         end
         % Send the callbacks for all collisions & triggers

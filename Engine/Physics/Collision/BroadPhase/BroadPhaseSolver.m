@@ -1,4 +1,4 @@
-classdef (Abstract) BroadPhaseSolver < CollisionSolver
+classdef (Abstract) BroadPhaseSolver < matlab.mixin.Heterogeneous & handle
     %BROADPHASESOLVER is class of solver designed to resolve (cheaply) a
     %complete set of collider pairs where collision is possible. These
     %collision pairs are then passed on to a narrow-phase solver to resolve

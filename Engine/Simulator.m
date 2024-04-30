@@ -26,7 +26,7 @@ classdef Simulator < handle
             % Create the dynamics world
             this.Physics = DynamicsWorld(this.WorldSize);
             % Add impulse collision solver
-            this.Physics.AddSolver(ImpulseCollisionSolver());
+            this.Physics.AddSolver(ImpulseCollisionResolver());
         end
         function [this] = Simulate(this,duration)
             % This function executes the simulation sequence
