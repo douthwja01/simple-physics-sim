@@ -1,18 +1,9 @@
 classdef (Abstract) DynamicsSolver < SimElement
     % The base class for all 'dynamics' solution finders and tools.
 
-    methods
-        function [this] = Compute(this,bodies)
-            % Compute the motion of the provided bodies utilitising the
-            % given approach.
-
-            % Resolve velocities
-            this.ResolveVelocities(bodies);
-            % Resolve velocities
-            this.ResolveAccelerations(bodies);
-            % Resolve velocities
-            this.ResolveForces(bodies);
-        end
+    methods (Abstract)
+        % Compute the dynamics of a set of bodies
+        [this] = Compute(this,bodies);
     end
 
     % Internals

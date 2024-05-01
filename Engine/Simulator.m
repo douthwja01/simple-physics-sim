@@ -147,7 +147,7 @@ classdef Simulator < handle
 
             for i = 1:numel(this.Entities)
                 % Get the renderer frome the entity
-                renderer_i = this.Entities(i).Renderer; %("MeshRenderer");
+                renderer_i = this.Entities(i).Renderer;
                 if isempty(renderer_i)
                     continue;
                 end

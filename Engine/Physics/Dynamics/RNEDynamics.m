@@ -1,12 +1,26 @@
 classdef RNEDynamics < DynamicsSolver
-    % This class implements the recursive Newton-Euler method for resolving 
+    % This class implements the recursive Newton-Euler method for resolving
     % the dynamic properties of a physics simulation.
 
     properties (Constant)
         Name = "Recursive-Newton Euler (RNE) Dynamic solver.";
     end
 
-    % Interfaces
+    % Interface
+    methods
+        function [this] = Compute(this,bodies)
+            % Compute the motion of the provided bodies utilitising the
+            % given approach.
+
+            % Resolve velocities
+            this.ResolveVelocities(bodies);
+            % Resolve velocities
+            this.ResolveAccelerations(bodies);
+            % Resolve velocities
+            this.ResolveForces(bodies);
+        end
+    end
+    % Internal
     methods (Access = protected)
         function [this] = ResolveVelocities(this,transforms)
             % This function computes the velocities of all the provided
@@ -42,5 +56,5 @@ classdef RNEDynamics < DynamicsSolver
 
             end
         end
-    end    
+    end
 end
