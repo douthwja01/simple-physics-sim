@@ -52,6 +52,7 @@ boxTwo = sim.Find("Name","Box 2");
 boxTwo.Joints = RevoluteJoint();
 
 % Simulate
+sim.WorldSize = 10;
 sim.Physics.SubSteps = 10;
 sim.Physics.Integrator = EulerIntegrator();
 sim.Simulate(inf);
