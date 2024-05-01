@@ -24,7 +24,7 @@ classdef DynamicsWorld < CollisionWorld
         end
         % Get/sets
         function set.Dynamics(this,dyn)
-            assert(isa(dyn,"Integrator"),"Expecting a valid integrator.");
+            assert(isa(dyn,"DynamicsSolver"),"Expecting a valid dynamics-solver.");
             this.Dynamics = dyn;
         end
         function set.Integrator(this,int)

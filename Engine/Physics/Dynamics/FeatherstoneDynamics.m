@@ -5,6 +5,10 @@ classdef FeatherstoneDynamics < DynamicsSolver
     properties (Constant)
         Name = "Featherstone Dynamic solver.";
     end
+    properties
+        S = cell.empty;
+    end
+
     % Interface
     methods
         function [this] = Compute(this,bodies)
@@ -28,11 +32,15 @@ classdef FeatherstoneDynamics < DynamicsSolver
 
             for i = 1:numel(transforms)
                 transform_i = transforms(i);
-
-                
-                if isempty(transform_i.Entity.Joints)
+                % Get the joint
+                joint = transform_i.Entity.Joints;
+                if isempty(joint)
                     continue;
                 end
+                % Get the spacial joint data
+                [XJ,S] = this.GetJointData(joint);
+                
+
             end
         end
         function[this] = ResolveAccelerations(this,transforms)
@@ -58,9 +66,47 @@ classdef FeatherstoneDynamics < DynamicsSolver
             end
         end
     end
-
     methods (Static)    
         % Spacial mathmatics
+        function [Xj,S] = GetJointData(joint)
+            % This function provides a breakout from the JCalc method to
+            % the joint definitions 
+            switch joint.Code
+                case JointCode.Fixed
+                    % Create the fixed joint spacial properties
+                    Xj = eye(6);
+                    S = zeros(6,1);
+                case JointCode.Revolute
+                    % Create the revolute joint spacial properties
+                    Xj = this.Rotation(R_x(q));
+                    S = [0;0;1;0;0;0];
+                case JointCode.Prismatic
+                    % Create the prismatic joint spacial properties
+                    Xj = this.Translation([0;0;q]);
+                    S = [0;0;0;0;0;1];
+                otherwise
+                    error("Joint code %s not implemented.",joint.Code);
+            end
+        end
+        function  [Xj,S] = JointCalc( pitch, q )
+            % jcalc  Calculate joint transform and motion subspace.
+            % [Xj,S]=jcalc(pitch,q) calculates the joint transform and motion subspace
+            % matrices for a revolute (pitch==0), prismatic (pitch==inf) or helical
+            % (pitch==any other value) joint.  For revolute and helical joints, q is
+            % the joint angle.  For prismatic joints, q is the linear displacement.
+            
+            if pitch == 0				% revolute joint
+              Xj = this.Rotation(R_x(q));
+              S = [0;0;1;0;0;0];
+            elseif pitch == inf			% prismatic joint
+              Xj = this.Translation([0;0;q]);
+              S = [0;0;0;0;0;1];
+            else					% helical joint
+              %Xj = Xrotz(q) * Xtrans([0 0 q*pitch]);  
+              Xj = this.FromElements(0,0,q*pitch,q,0,0); 
+              S = [0;0;1;0;0;pitch];
+            end
+        end
         function [vf_cross] = ForceCross(vf)
             % This function computes the spacial cross product matrix for a spacial
             % FORCE vector (f). The use of this is c = Skew(v)*f

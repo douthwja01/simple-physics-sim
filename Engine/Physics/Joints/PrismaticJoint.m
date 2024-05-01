@@ -4,6 +4,7 @@ classdef PrismaticJoint < ActuatedJoint
     %   (translational) degree of freedom.
     
     properties (Constant)
+        Code = JointCode.Prismatic;
         DegreesOfFreedom = 1;
         NumberOfInputs = 1;
     end

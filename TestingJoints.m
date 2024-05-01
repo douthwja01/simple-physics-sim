@@ -53,6 +53,7 @@ boxTwo.Joints = RevoluteJoint();
 
 % Simulate
 sim.WorldSize = 10;
+sim.Physics.Dynamics = FeatherstoneDynamics();
 sim.Physics.SubSteps = 10;
 sim.Physics.Integrator = EulerIntegrator();
 sim.Simulate(inf);

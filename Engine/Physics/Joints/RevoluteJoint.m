@@ -4,6 +4,7 @@ classdef RevoluteJoint < ActuatedJoint
     %   (rotational) degree of freedom.
 
     properties (Constant)
+        Code = JointCode.Revolute;
         DegreesOfFreedom = 1;
         NumberOfInputs = 1;
     end

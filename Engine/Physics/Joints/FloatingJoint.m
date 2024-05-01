@@ -4,6 +4,7 @@ classdef FloatingJoint < MovableJoint
     %   characterised by its six degrees of freedom.
     
     properties (Constant)
+        Code = JointCode.Floating;
         DegreesOfFreedom = 6;
     end
     

@@ -30,12 +30,13 @@ classdef RNEDynamics < DynamicsSolver
 
             for i = 1:numel(transforms)
                 transform_i = transforms(i);
-
-                if isempty(transform_i.Entity.Joints)
-                    fprintf("\nEntity %s has no joint.",transform_i.Entity.Name);
-                else
-                    fprintf("\nEntity %s has a joint.",transform_i.Entity.Name);
+                % Get the joint
+                joint = transform_i.Entity.Joints;
+                if isempty(joint)
+                    continue;
                 end
+
+                
             end
         end
         function[this] = ResolveAccelerations(this,transforms)

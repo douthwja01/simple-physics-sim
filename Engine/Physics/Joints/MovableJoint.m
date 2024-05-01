@@ -2,9 +2,6 @@ classdef (Abstract) MovableJoint < Joint
     %MOVABLEJOINT Movable-Joint definition.
     %   This is a base class for all movable-joint definitions.
     
-    properties (Abstract, Constant)
-        DegreesOfFreedom;
-    end
     properties (SetObservable = true)
         JointPosition = double.empty;
         JointVelocity = double.empty;
