@@ -78,6 +78,10 @@ classdef Simulator < handle
 
             % Sanity check
             assert(isa(entity,"Entity"),"Expecting a valid 'Entity'.");
+
+            % Add the entity by its transform
+            this.Physics.AddTransform(entity.Transform);
+
             % Add collider
             cl = entity.Collider;
             if ~isempty(cl)
@@ -106,6 +110,9 @@ classdef Simulator < handle
             if ~isempty(rb)
                 this.Physics.RemoveRigidBody(rb);
             end
+
+            % Add the entity by its transform
+            this.Physics.RemoveTransform(entity.Transform);
 
             % Delete the entity from the world
             if isnumeric(entity)

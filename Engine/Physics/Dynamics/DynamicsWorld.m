@@ -8,6 +8,7 @@ classdef DynamicsWorld < CollisionWorld
         SubSteps = 5;
     end    
     properties (SetAccess = private)
+        Root = Transform();
         % Timing
         EnableSubStepping = true;
         Gravity = [0;0;-9.81];

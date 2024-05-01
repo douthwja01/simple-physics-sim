@@ -1,8 +1,7 @@
 classdef (Abstract) TreeElement < Element
-    % TREEELEMENT This class adds the tree behaviour elements to the base 
+    % TREEELEMENT - This class adds the tree behaviour elements to the base 
     % modelling element definition.
    
-    %% Main
     properties %(SetAccess = private)
         Parent;
         Children;
@@ -14,6 +13,7 @@ classdef (Abstract) TreeElement < Element
     properties (Constant,Access = private)
         OriginVertexName = "Origin Line";
     end
+    % Main
     methods
         % Constructor
         function [this] = TreeElement(entity)
@@ -71,10 +71,10 @@ classdef (Abstract) TreeElement < Element
                 end
             end
         end
-        function [n]    = get.NumberOfParents(this)
+        function [n] = get.NumberOfParents(this)
             n = numel(this.Parent);
         end
-        function [n]    = get.NumberOfChildren(this)
+        function [n] = get.NumberOfChildren(this)
             n = numel(this.Children);
         end
     end
