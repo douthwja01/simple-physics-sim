@@ -3,7 +3,7 @@ classdef Simulator < handle
 
     properties
         TimeDelta = 0.01;
-        Physics;
+        World;
         % Contents
         g = [0;0;-9.81];
         WorldSize = 100;
@@ -24,24 +24,24 @@ classdef Simulator < handle
             % Parameters
             this.AddEnginePaths;
             % Create the dynamics world
-            this.Physics = DynamicsWorld(this.WorldSize);
+            this.World = DynamicsWorld(this.WorldSize);
             % Add impulse collision solver
-            this.Physics.AddSolver(ImpulseCollisionResolver());
+            this.World.AddSolver(ImpulseCollisionResolver());
         end
         function [this] = Simulate(this,duration)
             % This function executes the simulation sequence
 
             % Sanity check
             assert(isscalar(duration) && duration > 0,"Expecting a scalar duration greater than zero.");
-            assert(~isempty(this.Physics),"Expecting a valid 'DynamicsWorld' managing physics.");
+            assert(~isempty(this.World),"Expecting a valid 'DynamicsWorld' managing physics.");
             
             this.AddEnginePaths();
 
             % Initialise the physics world with substeps
-            this.Physics.Initialise();
+            this.World.Initialise();
 
-            addlistener(this.Physics,"CollisionFeedback",@(src,evnt)this.OnCollisionCallback(src,evnt));
-            addlistener(this.Physics,"TriggerFeedback",@(src,evnt)this.OnTriggerCallback(src,evnt));
+            addlistener(this.World,"CollisionFeedback",@(src,evnt)this.OnCollisionCallback(src,evnt));
+            addlistener(this.World,"TriggerFeedback",@(src,evnt)this.OnTriggerCallback(src,evnt));
 
             % Initialise the graphics
             [ax] = this.InitialiseGraphics();
@@ -53,7 +53,7 @@ classdef Simulator < handle
                 % Update visuals
                 this.UpdateGraphics(ax);
                 % Update physics
-                this.Physics.Step(this.TimeDelta);
+                this.World.Step(this.TimeDelta);
                 % Integrate the time
                 time = time + this.TimeDelta;
             end
@@ -80,17 +80,17 @@ classdef Simulator < handle
             assert(isa(entity,"Entity"),"Expecting a valid 'Entity'.");
 
             % Add the entity by its transform
-            this.Physics.AddTransform(entity.Transform);
+            this.World.AddTransform(entity.Transform);
 
             % Add collider
             cl = entity.Collider;
             if ~isempty(cl)
-                this.Physics.AddCollider(cl);
+                this.World.AddCollider(cl);
             end
             % Add Rigid-body
             rb = entity.RigidBody;
             if ~isempty(rb)
-                this.Physics.AddRigidBody(rb);
+                this.World.AddRigidBody(rb);
             end
             % Add to entity-list
             this.Entities = vertcat(this.Entities,entity);
@@ -103,16 +103,16 @@ classdef Simulator < handle
             % Add collider
             cl = entity.Collider;
             if ~isempty(cl)
-                this.Physics.RemoveCollider(cl);
+                this.World.RemoveCollider(cl);
             end
             % Add Rigid-body
             rb = entity.RigidBody;
             if ~isempty(rb)
-                this.Physics.RemoveRigidBody(rb);
+                this.World.RemoveRigidBody(rb);
             end
 
             % Add the entity by its transform
-            this.Physics.RemoveTransform(entity.Transform);
+            this.World.RemoveTransform(entity.Transform);
 
             % Delete the entity from the world
             if isnumeric(entity)

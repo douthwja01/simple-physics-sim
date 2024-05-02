@@ -18,16 +18,15 @@ classdef SO3 < handle
             % [4x1].
 
             % Input parsing
-            if nargin > 0
-                if IsColumn(p,3)
-                    this.Position = zeros(3,1);
-                else
-                    this.SetMatrix(p);
-                end
+            if nargin < 1
+               p = zeros(3,1);
             end
-            if nargin > 1
-                this.Rotation = q;
+            if nargin < 2
+                q = Quaternion.Zero;
             end
+
+            this.Position = p;
+            this.Rotation = q;
 
             % Listen for future changes
             addlistener(this,"Position","PostSet",@(src,evnt)OnTransformUpdate(this));
@@ -62,6 +61,11 @@ classdef SO3 < handle
             Ts = this.ToScaleMatrix();
             % Combine
             T = Tq*Ts;
+        end
+        function [this] = SetMatrix(this,T)
+            % Allow setting of this SO3's properties from a transformation
+            this.Rotation = Quaternion.FromRotationMatrix(T(1:3,1:3));
+            this.Position = T(4,1:3)';
         end
         function [Ts] = ToScaleMatrix(this)
             % Get the matrix representing the scale assigned to this SO3.
@@ -161,7 +165,8 @@ classdef SO3 < handle
             % Transform -> Position & Rotation
             assert(IsSquare(tMatrix,4),"Expecting a [4x4] transformation matrix.");
             % Extract the matrix components
-            T = SO3(tMatrix(4,1:3),tMatrix(1:3,1:3));
+            q = Quaternion.FromRotationMatrix(tMatrix(1:3,1:3));
+            T = SO3(tMatrix(4,1:3)',q);
         end
         % Creation
         function [T] = FromMDHParameters(d,theta,a,alpha)

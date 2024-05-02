@@ -101,6 +101,18 @@ classdef Quaternion < handle
             % Create new quaternion
             Q = Quaternion(qv);
         end
+        function [Qinv] = Inverse(this)
+            % Calculate the quaternion inverse.
+            q = this.ToVector();
+            qSqr = norm(q);
+            qInv = zeros(4,1);
+            qInv(1) =  q(1)/qSqr;
+            qInv(2) = -q(2)/qSqr;
+            qInv(3) = -q(3)/qSqr;
+            qInv(4) = -q(4)/qSqr;
+            % Return a new quaternion reference
+            Qinv = Quaternion(qInv);
+        end
         function [Q] = Normalise(this)
             % This function normalises the quaternion
             q0 = this.ToVector();

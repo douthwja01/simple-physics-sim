@@ -18,7 +18,7 @@ classdef Transform < TreeElement
 
     properties (Hidden)
         PriorPosition = [];
-        SO3 = SO3.empty;
+        Pose = SO3.empty;
     end
 
     methods
@@ -34,28 +34,28 @@ classdef Transform < TreeElement
             [this] = this@TreeElement(entity);
 
             % Create a new transform object
-            this.SO3 = SO3.Zero;
+            this.Pose = SO3.Zero;
         end
         % Get/sets
         function [p] = get.Position(this)
-            p = this.SO3.Position;
+            p = this.Pose.Position;
         end
         function set.Position(this,p)
-            this.SO3.Position = p;
+            this.Pose.Position = p;
         end
         function [q] = get.Rotation(this)
-            q = this.SO3.Rotation;
+            q = this.Pose.Rotation;
         end
         function set.Rotation(this,q)
-            this.SO3.Rotation = q;
+            this.Pose.Rotation = q;
         end
         function [s] = get.Scale(this)
-            s = this.SO3.Scale;
+            s = this.Pose.Scale;
         end
         function set.Scale(this,s)
-            this.SO3.Scale = s;
+            this.Pose.Scale = s;
         end
-        
+        % Kinematics (should be somewhere else?)
         function set.Velocity(this,v)
             assert(IsColumn(v,3),"Expecting a valid Cartesian linear velocity [3x1].");
             this.Velocity = v;
@@ -126,37 +126,81 @@ classdef Transform < TreeElement
         function [T] = GetWorldMatrix(this)
             % Get the world transformation matrix.
 
-            % [To fix after parentage]
+            % Get the local matrix
             T = this.GetLocalMatrix();
+            if this.NumberOfParents == 0
+                return
+            end
+            % Get the world transformation of the parent
+            Tp = this.Parent.GetWorldMatrix();
+            % Multiply by the parent matrix
+            T = Tp*T;
         end
-        function [this] = SetWorldMatrix(this,m)
+        function [this] = SetWorldMatrix(this,Tw)
             % Set the World transformation matrix.
 
+            % Get the local matrix
+            if this.NumberOfParents == 0
+                this.SetLocalMatrix(Tw);
+                return
+            end
+            % Get the current world matrix
+            Tw_inv = this.GetWorldMatrix;
+            % Get the difference between them [To Check]
+            Tl = Tw/Tw_inv;
             % [To fix after parentage]
-            this.SetLocalMatrix(m);
+            this.SetLocalMatrix(Tl);
         end
         function [p] = GetWorldPosition(this)
             % This transform multiplied by all its parents
 
-            % [To fix after parentage]
-            p = this.GetLocalPosition();
+            % Get the local matrix
+            T = this.GetWorldMatrix();
+            if this.NumberOfParents == 0
+                p = this.Position;
+                return
+            end
+            % Extract from the transform
+            p = T(4,1:3)';
         end
         function [this] = SetWorldPosition(this,p)
+            % Allow the setting of the transform's world position.
+
+            %p_parent = this.Parent.GetWorldPosition();
             
-            % [To fix after parentage]
-            this.SetLocalPosition(p);
-        end
-        function [r] = GetWorldRotation(this)
-            % return the current world-frame rotation
+            pLocal = this.InverseTransformPoint(p);
 
             % [To fix after parentage]
-            r = this.GetLocalRotation();
+            this.SetLocalPosition(pLocal);
+        end
+        function [q] = GetWorldRotation(this)
+            % return the current world-frame rotation
+
+            ql = this.GetLocalRotation();
+            if this.NumberOfParents == 0
+                q = ql;
+                return
+            end
+            % Get the parent rotation
+            qParent = this.Parent.GetWorldRotation();
+            % Multiple local with parent world
+            q = qParent*q1;
         end
         function [this] = SetWorldRotation(this,q)
             % Allow setting of the rotation in the world frame.
 
-            % [To fix after parentage]
-            this.SetLocalRotation(q);
+            % Get the local matrix
+            if this.NumberOfParents == 0
+                this.SetLocalRotation(q);
+                return
+            end
+
+            qParent = this.Parent.GetWorldRotation();
+            % Subtract the parent rotation
+            qLocal = q.Multiply(qParent);
+
+            % Assign the local rotation
+            this.SetLocalRotation(qLocal);
         end
         % World Scaling
         function [Ts] = GetWorldScaleMatrix(this)
@@ -183,40 +227,40 @@ classdef Transform < TreeElement
         function [T] = GetLocalMatrix(this)
             % Get the local transform matrix, this matrix already
             % contains the rotation,translation and scaling.
-            T = this.SO3.ToMatrix();
+            T = this.Pose.ToMatrix();
         end
         function [this] = SetLocalMatrix(this,T)
             % Set the local transform matrix            
-            this.SO3.SetMatrix(T);
+            this.Pose = SO3.FromMatrix(T);
         end
         function [p] = GetLocalPosition(this)
             % Get the local position from the transform.
-            p = this.SO3.Position;
+            p = this.Pose.Position;
         end
         function [this] = SetLocalPosition(this,p)
             % Set the local position via the transform.
-            this.SO3.Position = p;
+            this.Pose.Position = p;
         end
         function [p] = GetLocalRotation(this)
             % Get the local rotation from the transform.
-            p = this.SO3.Rotation;
+            p = this.Pose.Rotation;
         end
         function [this] = SetLocalRotation(this,q)
             % Set the local rotation via the transform.
-            this.SO3.Rotation = q;
+            this.Pose.Rotation = q;
         end
         % Scaling
         function [Ts] = GetLocalScaleMatrix(this)
             % Get the matrix representation of the scale
-            Ts = this.SO3.ToScaleMatrix();
+            Ts = this.Pose.ToScaleMatrix();
         end
         function [s] = GetLocalScale(this)
             % Get the local scale defined by this transform
-            s = this.SO3.Scale;
+            s = this.Pose.Scale;
         end
         function [this] = SetLocalScale(this,s)
             % Set the scale vector of the transform
-            this.SO3.Scale = s;
+            this.Pose.Scale = s;
         end
         % Visualisation
         function [h] = Plot(this,container)
@@ -225,7 +269,7 @@ classdef Transform < TreeElement
                 container = gca;
             end
             % Plot transform 
-            h = this.SO3.Plot(container);
+            h = this.Pose.Plot(container);
         end
     end
 end
