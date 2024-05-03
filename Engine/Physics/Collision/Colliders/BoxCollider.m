@@ -48,7 +48,8 @@ classdef BoxCollider < MeshCollider
             % Transform the mesh by the box dimensions
             mesh = this.Mesh.ScaleBy(this.Width,this.Height,this.Depth);
             % Transform the base mesh (by scale and position)
-            mesh = mesh.TransformBy(this.Transform.GetWorldMatrix());
+            mesh = mesh.TransformBy(this.Transform.Inertial.GetMatrix());
+%             mesh = mesh.TransformBy(this.Transform.GetWorldMatrix());
         end
     end
 end

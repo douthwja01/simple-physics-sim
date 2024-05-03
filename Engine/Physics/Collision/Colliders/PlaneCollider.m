@@ -52,8 +52,12 @@ classdef PlaneCollider < Collider
             aabb = AABB(0.5*[-w,w],0.5*[-d,d],[0,-t]);
 
             % Position & scale
-            p = this.Transform.GetWorldPosition();
-            scale = this.Transform.GetWorldScale();
+%             p = this.Transform.GetWorldPosition();
+%             scale = this.Transform.GetWorldScale();
+
+            p = this.Transform.Inertial.Position;
+            scale = this.Transform.Inertial.Scale;
+
             % Offset the aabb by the sphere's world position
             aabb = aabb * scale + p;
             % Assign the parent

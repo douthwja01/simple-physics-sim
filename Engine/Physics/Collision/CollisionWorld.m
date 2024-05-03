@@ -1,4 +1,4 @@
-classdef CollisionWorld < World
+classdef CollisionWorld < handle
     % Collision world primitive responsible for managing the collision
     % properties of the simulation.
 
@@ -6,6 +6,7 @@ classdef CollisionWorld < World
         BroadPhaseSolver = SweepAndPrune();
     end
     properties (SetAccess = private)
+        World = World.empty;
         % Collidables
         Colliders;
         Resolvers = CollisionResolver.empty(0,1);
@@ -25,16 +26,13 @@ classdef CollisionWorld < World
     % Main
     methods
         % Constructor
-        function [this] = CollisionWorld(worldSize)
+        function [this] = CollisionWorld(world)
             % COLLISIONWORLD - Construct an instance of the collision world
             % object.
 
-            % Input check
-            if nargin < 1
-                worldSize = 10;
-            end
-            % Call the parent
-            [this] = this@World(worldSize);
+            assert(isa(world,"World"),"Collision world requires a world reference.");
+            % Assign the world reference
+            this.World = world;
         end
         % Get/sets
         function set.BroadPhaseSolver(this,solver)

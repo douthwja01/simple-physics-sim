@@ -4,10 +4,13 @@
 % static position and orientation. 
 
 classdef SO3 < handle
-    properties (SetObservable = true,AbortSet)
+    properties
         Position = zeros(3,1);
         Rotation = Quaternion();
         Scale = ones(3,1);
+    end
+    properties (Hidden)
+        HasChanged = false;
     end
 
     methods
@@ -24,78 +27,66 @@ classdef SO3 < handle
             if nargin < 2
                 q = Quaternion.Zero;
             end
-
+            % Assign initial properties
             this.Position = p;
             this.Rotation = q;
-
-            % Listen for future changes
-            addlistener(this,"Position","PostSet",@(src,evnt)OnTransformUpdate(this));
-            addlistener(this,"Rotation","PostSet",@(src,evnt)OnTransformUpdate(this));
+            this.HasChanged = false;
         end
         % Get/sets
         function set.Position(this,p)
             assert(IsColumn(p,3),"Expecting a valid Cartisian position [3x1].");
             this.Position = p;
+            this.HasChanged = true;
         end
         function set.Rotation(this,q)
             assert(isa(q,"Quaternion"),"Expecting a valid Quaternion [4x1].");
             this.Rotation = q;
+            this.HasChanged = true;
         end
         function set.Scale(this,s)
             assert(IsColumn(s,3),"Expecting a valid 3D scale vector [3x1].");
             this.Scale = s;
+            this.HasChanged = true;
         end   
     end
 
     %% (Instance) Methods
     methods
-        % Transformation matrices
-        function [T] = ToMatrix(this)
+        % Gets
+        function [T]    = GetMatrix(this)
             % This function returns the current transformation matrix.
 
             % Extract the state
-            Rq = this.ToRotationMatrix();
+            Rq = this.Rotation.GetRotationMatrix();
             % Create the matrix
             Tq = [Rq,this.Position;zeros(1,3),1];
             % The scale matrix
-            Ts = this.ToScaleMatrix();
+            Ts = this.GetScaleMatrix();
             % Combine
             T = Tq*Ts;
         end
-        function [this] = SetMatrix(this,T)
-            % Allow setting of this SO3's properties from a transformation
-            this.Rotation = Quaternion.FromRotationMatrix(T(1:3,1:3));
-            this.Position = T(4,1:3)';
-        end
-        function [Ts] = ToScaleMatrix(this)
+        function [Ts]   = GetScaleMatrix(this)
             % Get the matrix representing the scale assigned to this SO3.
             s = this.Scale;
             % Create the scaling matrix
             Ts = [s(1),0,0,0; 0,s(2),0,0; 0,0,s(3),0; 0,0,0,1];
-        end
-        % Euler Angles
-        function [phi,theta,psi] = ToEulerAngles(this)
-            % This function returns the current set of euler angles.
-            [phi,theta,psi] = this.Rotation.ToEulers();
-        end
-        function [this] = SetEulerAngles(this,phi,theta,psi)
-            % This function assigns a given set of euler angles.
-            this.Rotation = Quaternion.FromEulers(phi,theta,psi);
-        end
-        % Rotation matrices
-        function [R] = ToRotationMatrix(this)
-            % This function returns the current rotation matrix.
-            R = this.Rotation.ToRotationMatrix();
-        end
-        function [this] = SetRotationMatrix(this,R)
-            % This function assigns a given rotation matrix.
-            this.Rotation = Quaternion.FromRotationMatrix(R);
-        end
-        % Vector States
+        end            
         function [state] = GetState(this)
             % Return a representitive state vector sufficient to describe
             % the transform's pose.
             state = [this.Rotation;this.Position];
+        end        
+        % Sets
+        function [this] = SetMatrix(this,T)
+            % Allow setting of this SO3's properties from a transformation
+            
+            % The "length" of the scaled axes
+            sX = norm(T(1,1:3));
+            sY = norm(T(2,1:3));
+            sZ = norm(T(3,1:3));
+            this.Scale = [sX;sY;sZ];
+            this.Rotation = Quaternion.FromRotationMatrix(T(1:3,1:3));
+            this.Position = T(4,1:3)';
         end
         function [this] = SetState(this,state)
             % Return a representitive state vector sufficient to describe
@@ -107,11 +98,11 @@ classdef SO3 < handle
             this.Position = state(5:7,1);
         end
         % General
-        function [T] = DirectionOnly(this)
+        function [T]    = DirectionOnly(this)
             % Extract only the rotational components
-            T = SO3(zeros(3,1),this.ToRotationMatrix());
+            T = SO3(zeros(3,1),this.GetRotationMatrix());
         end
-        function [T] = TranslationOnly(this)
+        function [T]    = TranslationOnly(this)
             % Extract only the translational components
             T = SO3(this.Position);
         end
@@ -119,7 +110,7 @@ classdef SO3 < handle
             % This function normalises the transform representation.
             
             % Get the matrix
-            this.SetMatrix(NormaliseMatrix(this.ToMatrix()));
+            this.SetMatrix(NormaliseMatrix(this.GetMatrix()));
         end
         function [flag] = IsSymbolic(this)
             % A simple check if the transform is symbolically defined.
@@ -149,7 +140,7 @@ classdef SO3 < handle
                 set(hand,"Matrix",eye(4));
             else
                 % Attempt to get numeric instance of this transform
-                set(hand,"Matrix",this.ToMatrix());
+                set(hand,"Matrix",this.GetMatrix());
             end
 
             % Draw a triad at the location
@@ -164,6 +155,7 @@ classdef SO3 < handle
         function [T] = FromMatrix(tMatrix)
             % Transform -> Position & Rotation
             assert(IsSquare(tMatrix,4),"Expecting a [4x4] transformation matrix.");
+            
             % Extract the matrix components
             q = Quaternion.FromRotationMatrix(tMatrix(1:3,1:3));
             T = SO3(tMatrix(4,1:3)',q);
@@ -284,20 +276,10 @@ classdef SO3 < handle
             
             R = Transform.ToRotation(T);
             p = Transform.ToPosition(T);
-            j = R(1:3,2);
-            k = R(1:3,3);
-            % Recalculate perpendicular assets
-            i = cross(j, k);         % N = O x A
-            j = cross(k, i);         % O = A x N
+            % Normalise the rotation matrix
+            Rnorm = NormaliseRotationMatrix(R);
             % Reassign rotation
-            T = Transform.FromPose(p,[Unit(i),Unit(j),Unit(k)]);
+            T = Transform.FromPose(p,Rnorm);
         end
-        function [this] = OnTransformUpdate(this)
-            % This event is notified when the transform value is updated.
-            notify(this,"TransformChanged");
-        end
-    end
-    events (NotifyAccess = private)
-        TransformChanged;
     end
 end

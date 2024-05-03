@@ -3,10 +3,11 @@ classdef Simulator < handle
 
     properties
         TimeDelta = 0.01;
-        World;
+        World = World.empty;
+        Physics = DynamicsWorld.empty;
         % Contents
+        WorldSize = 10;
         g = [0;0;-9.81];
-        WorldSize = 100;
     end
     properties (SetAccess = private)
         Entities = [];
@@ -20,14 +21,20 @@ classdef Simulator < handle
         function [this] = Simulator()
             % CONSTRUCTOR - Construct an instance of the time simulator 
             % class representing a singular simulation.
-            
+
             % Parameters
-            this.AddEnginePaths;
+            this.AddEnginePaths;   
+
+            % Create a finite scene
+            this.World = World(this.WorldSize);
             % Create the dynamics world
-            this.World = DynamicsWorld(this.WorldSize);
+            this.Physics = DynamicsWorld(this.World);
             % Add impulse collision solver
-            this.World.AddSolver(ImpulseCollisionResolver());
+            this.Physics.AddSolver(ImpulseCollisionResolver());
         end
+        % Get/sets
+        
+
         function [this] = Simulate(this,duration)
             % This function executes the simulation sequence
 
@@ -38,10 +45,10 @@ classdef Simulator < handle
             this.AddEnginePaths();
 
             % Initialise the physics world with substeps
-            this.World.Initialise();
+            this.Physics.Initialise();
 
-            addlistener(this.World,"CollisionFeedback",@(src,evnt)this.OnCollisionCallback(src,evnt));
-            addlistener(this.World,"TriggerFeedback",@(src,evnt)this.OnTriggerCallback(src,evnt));
+            addlistener(this.Physics,"CollisionFeedback",@(src,evnt)this.OnCollisionCallback(src,evnt));
+            addlistener(this.Physics,"TriggerFeedback",@(src,evnt)this.OnTriggerCallback(src,evnt));
 
             % Initialise the graphics
             [ax] = this.InitialiseGraphics();
@@ -50,10 +57,13 @@ classdef Simulator < handle
             time = 0;
             while (time < duration && ~this.IsStopped)
                 fprintf("[t=%.2fs] Stepping.\n",time);
+                % Update statics (poses)
+                this.World.UpdateTransforms();
+
                 % Update visuals
                 this.UpdateGraphics(ax);
                 % Update physics
-                this.World.Step(this.TimeDelta);
+                this.Physics.Step(this.TimeDelta);
                 % Integrate the time
                 time = time + this.TimeDelta;
             end
@@ -85,12 +95,12 @@ classdef Simulator < handle
             % Add collider
             cl = entity.Collider;
             if ~isempty(cl)
-                this.World.AddCollider(cl);
+                this.Physics.AddCollider(cl);
             end
             % Add Rigid-body
             rb = entity.RigidBody;
             if ~isempty(rb)
-                this.World.AddRigidBody(rb);
+                this.Physics.AddRigidBody(rb);
             end
             % Add to entity-list
             this.Entities = vertcat(this.Entities,entity);
@@ -103,12 +113,12 @@ classdef Simulator < handle
             % Add collider
             cl = entity.Collider;
             if ~isempty(cl)
-                this.World.RemoveCollider(cl);
+                this.Physics.RemoveCollider(cl);
             end
             % Add Rigid-body
             rb = entity.RigidBody;
             if ~isempty(rb)
-                this.World.RemoveRigidBody(rb);
+                this.Physics.RemoveRigidBody(rb);
             end
 
             % Add the entity by its transform

@@ -28,7 +28,7 @@ end
 
 % Add an obstacle
 fixed = EntityCreator.Sphere("Obstacle");
-fixed.Transform.SetWorldPosition([0;0;2]);
+fixed.Transform.Inertial.Position = [0;0;2]; %SetWorldPosition([0;0;2]);
 fixed.Transform.IsStatic = true;
 % Add elements
 fixed.RigidBody = RigidBody();
@@ -38,7 +38,8 @@ sim.Add(fixed);
 
 % Add the ground plane
 ground = EntityCreator.Plane("Ground");
-ground.Transform.SetWorldScale([10;10;1]);
+ground.Transform.Inertial.Scale = [10;10;1];
+% ground.Transform.SetWorldScale([10;10;1]);
 ground.Transform.IsStatic = true;
 % Collisions
 ground.Renderer.Colour = "g";
@@ -46,11 +47,11 @@ sim.Add(ground);
 
 %% Simulator configuration
 sim.WorldSize = 15;
-sim.World.SubSteps = 10;
+sim.Physics.SubSteps = 10;
 % Numeric integrators
-sim.World.Integrator = EulerIntegrator();
+sim.Physics.Integrator = EulerIntegrator();
 % Collision solvers
 % sim.Physics.BroadPhaseSolver = OctreeSolver();
-sim.World.BroadPhaseSolver = SweepAndPrune();
+sim.Physics.BroadPhaseSolver = SweepAndPrune();
 % Simulate
 sim.Simulate(inf);
