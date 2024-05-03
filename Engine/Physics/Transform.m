@@ -13,7 +13,6 @@ classdef Transform < TreeElement
 
     properties (Hidden)
 %         PriorPosition = [];
-        HasChanged = false;
         Local = SO3.empty;
         Inertial = SO3.empty;
     end
@@ -34,25 +33,6 @@ classdef Transform < TreeElement
             this.Local = SO3.Zero;
             this.Inertial = SO3.Zero;
         end
-        % Get/sets
-%         function [p] = get.Position(this)
-%             p = this.Pose.Position;
-%         end
-%         function set.Position(this,p)
-%             this.Pose.Position = p;
-%         end
-%         function [q] = get.Rotation(this)
-%             q = this.Pose.Rotation;
-%         end
-%         function set.Rotation(this,q)
-%             this.Pose.Rotation = q;
-%         end
-%         function [s] = get.Scale(this)
-%             s = this.Pose.Scale;
-%         end
-%         function set.Scale(this,s)
-%             this.Pose.Scale = s;
-%         end
         % Kinematics (should be somewhere else?)
         function set.Velocity(this,v)
             assert(IsColumn(v,3),"Expecting a valid Cartesian linear velocity [3x1].");

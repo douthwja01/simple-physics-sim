@@ -39,7 +39,6 @@ sim.Add(fixed);
 % Add the ground plane
 ground = EntityCreator.Plane("Ground");
 ground.Transform.Inertial.Scale = [10;10;1];
-% ground.Transform.SetWorldScale([10;10;1]);
 ground.Transform.IsStatic = true;
 % Collisions
 ground.Renderer.Colour = "g";

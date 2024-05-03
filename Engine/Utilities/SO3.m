@@ -30,7 +30,7 @@ classdef SO3 < handle
             % Assign initial properties
             this.Position = p;
             this.Rotation = q;
-            this.HasChanged = false;
+            this.HasChanged = false; % Ignore initial assignments
         end
         % Get/sets
         function set.Position(this,p)

@@ -109,12 +109,11 @@ classdef World < handle
             % inertial and local properties depending on what properties
             % have been changed during the frame.
 
-%             if transform.Local.HasChanged && transform.inertial.HasChanged
-%                 warning( ...
-%                     "Transform on '%s' was updated by accessing both " + ...
-%                     "the local and inertial components. Biasing local.", ...
-%                     current.Entity.Name)
-%             end
+            if transform.Local.HasChanged && transform.inertial.HasChanged
+                warning("Local and Inertia properties of Transform '%s' " + ...
+                    "assigned in the same frame, unclear to do.", ...
+                    current.Entity.Name)
+            end
 
             if transform.Local.HasChanged 
                 % The change is a local one, recalculate inertial
