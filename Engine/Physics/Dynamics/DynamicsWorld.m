@@ -4,24 +4,22 @@ classdef DynamicsWorld < CollisionWorld
     % properties of the simulation.
 
     properties
-        Integrator = VerletIntegrator();    % Numerical integrators
         SubSteps = 5;
+        Integrator = VerletIntegrator();    % Numerical integrators
     end    
     properties (SetAccess = private)
-        Root = Transform();
-        % Timing
         EnableSubStepping = true;
         Gravity = [0;0;-9.81];
         Bodies = RigidBody.empty;
     end
     % Main
     methods
-        function [this] = DynamicsWorld(worldSize)
+        function [this] = DynamicsWorld(world)
             % DYNAMICSWORLD - Construct an instance of the dynamics world
             % object.
             
             % Call the parent
-            [this] = this@CollisionWorld(worldSize);
+            [this] = this@CollisionWorld(world);
         end
         % Get/sets
         function set.Integrator(this,int)
@@ -46,7 +44,6 @@ classdef DynamicsWorld < CollisionWorld
             else
                 this.EnableSubStepping = false;
             end
-            assert(~isempty(this.Root),"Root transform is missing.");
             assert(~isempty(this.Integrator),"Require a valid numerical integration method.");
 
         end
@@ -132,39 +129,6 @@ classdef DynamicsWorld < CollisionWorld
             bodyTransforms = [this.Bodies.Transform];
             % Use the integrator components to integrate
             this.Integrator.Integrate(bodyTransforms,dt);
-        end
-        % Constraints
-        function [this] = ApplyLinks(this)
-            % This function applys the set of link constraints to the
-            % system.
-            for i = 1:numel(this.Links)
-                this.Links(i).Apply();
-            end
-        end
-        function [this] = ApplyWorldConstraint(this)
-            % This function applies the world-constraint of a fixed sphere.
-
-            globeCenter = [0;0;10];
-            globeRadius = 10;
-
-            for i = 1:numel(this.Bodies)
-                object_i = this.Bodies(i);
-
-                transform_i = object_i.Entity.Transform;
-                collider_i = object_i.Entity.Collider;
-                
-                v = transform_i.position - globeCenter;
-                distance = norm(v);
-
-                % Check the constraint distance
-                delta = globeRadius - collider_i.Radius;
-                if distance <= delta
-                    continue;
-                end
-                unit_v = v/distance;
-                % Position
-                transform_i.position = globeCenter + delta*unit_v;
-            end
         end
     end
 end
