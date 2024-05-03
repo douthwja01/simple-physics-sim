@@ -161,7 +161,7 @@ classdef Transform < TreeElement
                 return
             end
             % Extract from the transform
-            p = T(4,1:3)';
+            p = T(1:3,4);
         end
         function [this] = SetWorldPosition(this,p)
             % Allow the setting of the transform's world position.
@@ -184,7 +184,7 @@ classdef Transform < TreeElement
             % Get the parent rotation
             qParent = this.Parent.GetWorldRotation();
             % Multiple local with parent world
-            q = qParent*q1;
+            q = qParent.Multiply(ql);
         end
         function [this] = SetWorldRotation(this,q)
             % Allow setting of the rotation in the world frame.
@@ -194,11 +194,10 @@ classdef Transform < TreeElement
                 this.SetLocalRotation(q);
                 return
             end
-
+            % Get the parent rotation
             qParent = this.Parent.GetWorldRotation();
             % Subtract the parent rotation
             qLocal = q.Multiply(qParent);
-
             % Assign the local rotation
             this.SetLocalRotation(qLocal);
         end
@@ -206,20 +205,42 @@ classdef Transform < TreeElement
         function [Ts] = GetWorldScaleMatrix(this)
             % Get the matrix representation of the scale
 
-            % [To fix after parentage]
-            Ts = this.GetLocalScaleMatrix();
+            Tl = this.GetLocalScaleMatrix();
+            if this.NumberOfParents == 0
+                Ts = Tl;
+                return
+            end
+            Tp = this.Parent.GetWorldScaleMatrix();
+            % Multiply by parent scale matrix
+            Ts = Tp*Tl;
         end
         function [s] = GetWorldScale(this)
             % Get the scale in the world-frame
 
-            % [To fix after parentage]
-            s = this.GetLocalScale();
+            sl = this.GetLocalScale();
+            if this.NumberOfParents == 0
+                s = sl;
+                return
+            end
+
+            sp = this.Parent.GetWorldScale();
+            % Multiply by parent scale matrix
+            s = sp.*sl;
         end
         function [this] = SetWorldScale(this,s)
             % Allow the setting of the world scale.
 
-            % [To fix after parentage]
-            this.SetLocalScale(s);
+            % Parent check
+            if this.NumberOfParents == 0
+                this.SetLocalScale(s);
+                return
+            end
+            % Get the parent world scale
+            sP = this.Parent.GetWorldScale();
+            % Extract the implicit local scales
+            sl = s./sP;
+            % Assign the local scale
+            this.SetLocalScale(sl);
         end
     end
     % (Local) Representation
