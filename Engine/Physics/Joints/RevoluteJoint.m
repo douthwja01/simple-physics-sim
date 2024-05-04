@@ -22,20 +22,24 @@ classdef RevoluteJoint < ActuatedJoint
     end
     methods (Access = protected)
         function [this] = OnJointPositionUpdate(this)
-            % On update of the joint position variable.
+            % This function updates the joint-pivot in response to an
+            % update of the joint-position value.
+
             switch this.Axis
                 case AxisCode.X
                     %this.Pivot.SetEulers(this.JointPosition,0,0);
-                    this.Pivot.SetRotationMatrix(R_x(this.JointPosition));
+                    R = R_x(this.JointPosition);
                 case AxisCode.Y
                     %this.Pivot.SetEulers(0,this.JointPosition,0);
-                    this.Pivot.SetRotationMatrix(R_y(this.JointPosition));
+                    R = R_y(this.JointPosition);
                 case AxisCode.Z
                     %this.Pivot.SetEulers(0,0,this.JointPosition);
-                    this.Pivot.SetRotationMatrix(R_z(this.JointPosition));
+                    R = R_z(this.JointPosition);
                 otherwise
                     error("Axis code not applicable.");
             end
+            % Set the pivot rotation
+            this.Pivot.Rotation = Quaternion.FromRotationMatrix(R);
         end
     end
 end

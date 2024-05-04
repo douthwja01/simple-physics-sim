@@ -42,9 +42,10 @@ classdef CollisionExtensions
             assert(plane.Code == ColliderCode.Plane,"Second collider must be a plane collider.");
 
             % Pull out the transforms
-            sWorldPosition = sphere.Transform.GetWorldPosition();
-            % Origin positions in the world
-            pWorldPosition = plane.Transform.GetWorldPosition();
+%             sWorldPosition = sphere.Transform.GetWorldPosition();
+%             pWorldPosition = plane.Transform.GetWorldPosition();
+            sWorldPosition = sphere.Transform.Inertial.Position;
+            pWorldPosition = plane.Transform.Inertial.Position;
 
             % Sphere properties
 		    aCenter = sWorldPosition;
@@ -75,8 +76,10 @@ classdef CollisionExtensions
             assert(sphere.Code == ColliderCode.Sphere,"Second collider must be a sphere collider.");
 
             % Origin positions in the world
-            sWorldPosition = sphere.Transform.GetWorldPosition();
-            bWorldPosition = box.Transform.GetWorldPosition();
+%             sWorldPosition = sphere.Transform.GetWorldPosition();
+%             bWorldPosition = box.Transform.GetWorldPosition();
+            sWorldPosition = sphere.Transform.Inertial.Position;
+            bWorldPosition = box.Transform.Inertial.Position;
 
             % Seperation axis (box to sphere)
             axisRay = Ray.FromPoints(bWorldPosition,sWorldPosition);
@@ -124,8 +127,10 @@ classdef CollisionExtensions
             pTransform = plane.Transform;
             bTransform = box.Transform;
             % Origin positions in the world
-            pWorldPosition = pTransform.GetWorldPosition();
-            bWorldPosition = bTransform.GetWorldPosition();
+%             pWorldPosition = pTransform.GetWorldPosition();
+%             bWorldPosition = bTransform.GetWorldPosition();
+            pWorldPosition = pTransform.Inertial.Position;
+            bWorldPosition = bTransform.Inertial.Position;
 
             % Create a ray using the plane origin
             axisRay = Ray.FromVector(pWorldPosition,plane.Normal);    
@@ -177,8 +182,10 @@ classdef CollisionExtensions
             transformA = boxA.Transform;
             transformB = boxB.Transform;
             % Origin positions in the world
-            aWorldPosition = transformA.GetWorldPosition();
-            bWorldPosition = transformB.GetWorldPosition();
+%             aWorldPosition = transformA.GetWorldPosition();
+%             bWorldPosition = transformB.GetWorldPosition();
+            aWorldPosition = transformA.Inertial.Position();
+            bWorldPosition = transformB.Inertial.Position();
 
             % Create a ray using the plane origin
             axisRay = Ray.FromPoints(aWorldPosition,bWorldPosition); 

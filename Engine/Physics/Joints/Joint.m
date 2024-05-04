@@ -7,13 +7,15 @@ classdef (Abstract) Joint < Element
         DegreesOfFreedom;
     end   
     properties
-        Location = SO3.Zero; % The joint location in the entity frame.
+        Location = SO3.empty; % The joint location in the entity frame.
     end
     
     methods
         function [this] = Joint()
             %JOINT Construct an instance of this class.
 
+            % Assign the joint location
+            this.Location = SO3.Zero;
         end
         % Get/sets
         function set.Location(this,l)
