@@ -1,10 +1,10 @@
 
 classdef RigidBody < Element
     properties (SetAccess = private)
-        Force = zeros(3,1);
         Mass = 1;
-        InverseMass = 1;
-        Inertia = 1;
+%         InverseMass = 1;
+        Inertia = eye(3);
+        CenterOfMass = [0.5;0;0];   % Location of the mass
         Gravity = -9.81;            % Local value of gravity (viable between instances)
         TakesGravity = true;        % Uses world gravity
         StaticFriction = 0.6;       % Static friction coefficient
@@ -17,8 +17,8 @@ classdef RigidBody < Element
 		IsSimulated = true;         % Is capable of movement
     end
 
-    properties (Access = private)
-        acceleration = zeros(3,1);
+    properties (SetAccess = private)
+%         acceleration = zeros(3,1);
         NetForce = zeros(3,1);
         NetTorque = zeros(3,1);
     end

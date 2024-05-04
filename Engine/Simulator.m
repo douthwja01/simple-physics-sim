@@ -3,13 +3,13 @@ classdef Simulator < handle
 
     properties
         TimeDelta = 0.01;
-        World = World.empty;
-        Physics = DynamicsWorld.empty;
+        Physics; %= DynamicsWorld.empty;
         % Contents
         WorldSize = 10;
         g = [0;0;-9.81];
     end
     properties (SetAccess = private)
+        World
         Entities = [];
     end
     properties (Access = private)
@@ -23,7 +23,6 @@ classdef Simulator < handle
 
             % Parameters
             this.AddEnginePaths;   
-
             % Create a finite scene
             this.World = World(this.WorldSize);
             % Create the dynamics world
@@ -32,8 +31,11 @@ classdef Simulator < handle
             this.Physics.AddSolver(ImpulseCollisionResolver());
         end
         % Get/sets
-        
-
+        function set.World(this,world)
+            assert(isa(world,"World"),"Expecting a valid world object.");
+            this.World = world;
+        end
+        % Interactions
         function [this] = Simulate(this,duration)
             % This function executes the simulation sequence
 
@@ -67,7 +69,6 @@ classdef Simulator < handle
                 time = time + this.TimeDelta;
             end
         end
-        % Add/remove the objects
         function [entities] = Find(this,property,value)
             % Find an entity in the simulator by a given property.
 

@@ -110,8 +110,9 @@ classdef DynamicsWorld < CollisionWorld
             % Isolate non-statics
             bodyTransforms = [this.Bodies.Transform];
             kinematicLogicals = ~[bodyTransforms.IsStatic];
-            % Extract the kinematics
             kinematicBodies = bodyTransforms(kinematicLogicals);
+            % Extract the kinematics
+%             kinematicBodies = bodyTransforms(kinematicLogicals);
             % Update the changes of everything
             this.Dynamics.Compute(kinematicBodies);
             % Use the integrator components to integrate
