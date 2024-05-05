@@ -102,21 +102,22 @@ classdef DynamicsWorld < CollisionWorld
         function [this] = SubStep(this,dt)
             % This function computes each physics substep.
 
-            % The step procedure
-            %this.ApplyGravity();
-            % Solve the collisions
+            % === Find/Solve the collisions
             this.FindResolveCollisions(dt);
 
             % Isolate non-statics
-            bodyTransforms = [this.Bodies.Transform];
-            kinematicLogicals = ~[bodyTransforms.IsStatic];
-            kinematicBodies = bodyTransforms(kinematicLogicals);
-            % Extract the kinematics
+            allTransforms = this.World.Root.Transform.ListChildrenOfType("Transform");
+%             bodyTransforms = [this.Bodies.Transform];
+%             kinematicLogicals = ~[bodyTransforms.IsStatic];
 %             kinematicBodies = bodyTransforms(kinematicLogicals);
-            % Update the changes of everything
-            this.Dynamics.Compute(kinematicBodies);
-            % Use the integrator components to integrate
-            this.Integrator.Integrate(kinematicBodies,dt);
+%             % Extract the kinematics
+%             kinematicBodies = bodyTransforms(kinematicLogicals);
+            
+            % === Update the changes of everything ===
+            this.Dynamics.Compute(allTransforms);
+            % === Integrate the state change ===
+            this.Integrator.Integrate(allTransforms,dt);
+            %             this.Integrator.Integrate(kinematicBodies,dt);
         end    
     end
 end

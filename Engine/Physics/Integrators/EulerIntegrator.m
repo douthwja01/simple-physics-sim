@@ -15,6 +15,10 @@ classdef EulerIntegrator < Integrator
             p0 = transform.Inertial.Position;
             q0 = transform.Inertial.Rotation;
 
+%             if transform.Entity.Name == "Box 2"
+%                 
+%             end
+
             v0 = transform.Velocity;
             w0 = transform.AngularVelocity;
 
@@ -29,12 +33,10 @@ classdef EulerIntegrator < Integrator
             rotation = q0 + dq*dt;
             position = p0 + v*dt;
 
+            % Set the new velocities
             transform.Velocity = v;
             transform.AngularVelocity = w;
-            % Set the world properties
-%             transform.SetWorldPosition(position);
-%             transform.SetWorldRotation(rotation);
-
+            % Set the new pose
             transform.Inertial.Position = position;
             transform.Inertial.Rotation = rotation;
         end

@@ -6,6 +6,7 @@ classdef FeatherstoneDynamics < DynamicsSolver
         Name = "Featherstone Dynamic solver.";
     end
     properties
+        g = [0;0;0;0;0;-9.81];
         Map = double.empty;
         Xup = cell.empty;   % Spacial transforms
         S = cell.empty;     % Spacial joint subspaces
@@ -17,23 +18,22 @@ classdef FeatherstoneDynamics < DynamicsSolver
         d = cell.empty;
         u = cell.empty;
         a = cell.empty;
-        g = [0;0;0;0;0;-9.81];
+        qdd = cell.empty;
     end
 
     % We treat a non-joint like a floating-joint
 
     % Interface
     methods
-        function [this] = Compute(this,bodies)
+        function [this] = Compute(this,transforms)
             % Compute the motion of the provided bodies utilitising the
             % given approach.
 
             % Reinitialise map
-            nBodies = numel(bodies);
-            this.Map = zeros(nBodies,2);
-
-            for i = 1:numel(bodies)
-                body_i = bodies(i);
+            n = numel(transforms);
+            this.Map = zeros(n,2);
+            for i = 1:numel(transforms)
+                body_i = transforms(i);
                 this.Map(i,1) = body_i.Uid;
                 if body_i.NumberOfParents > 0
                     this.Map(i,2) = body_i.Parent.Uid;
@@ -41,11 +41,29 @@ classdef FeatherstoneDynamics < DynamicsSolver
             end
 
             % Resolve velocities
-            this.ResolveVelocities(bodies);
+            this.ResolveVelocities(transforms);
             % Resolve forces
-            this.ResolveForces(bodies);
+            this.ResolveForces(transforms);
             % Resolve Accelerations
-            this.ResolveAccelerations(bodies);
+            this.ResolveAccelerations(transforms);
+
+            % Apply properties to transforms/joints
+            for i = 1:n
+                transform_i = transforms(i);
+                joint = transform_i.Entity.Joints;
+
+                if isa(joint,"MovableJoint")
+                    joint.JointAcceleration = this.qdd{i};
+                end
+
+                v_i = this.v{i};
+                a_i = this.a{i};
+                % == Pass velocity data to the transform ==
+                transform_i.AngularVelocity = v_i(1:3,1);
+                transform_i.Velocity = v_i(4:6,1);
+                transform_i.AngularAcceleration = a_i(1:3,1);
+                transform_i.Acceleration = a_i(4:6,1);
+            end
         end
     end
 
@@ -64,45 +82,49 @@ classdef FeatherstoneDynamics < DynamicsSolver
 
             for i = 1:n
                 transform_i = transforms(i);
-                fprintf("Calculating velocities for %s joints.\n",transform_i.Entity.Name);
                 
-                % Get the joint
-                XLink = FeatherstoneDynamics.FromSO3(transform_i.Local);    % Get the local transformation
-                joint = transform_i.Entity.Joints;
-                if isempty(joint)
-                    error("No joint defined for '%s'.",transform_i.Entity.Name);
-                end
-
-                % Get the spacial joint data
-                [XJ,S_i,vJ] = FeatherstoneDynamics.GetJointData(joint);
-                % Transformation through joint
-                Xup_i = XJ * XLink;
-
-                % Compute resulting velocity terms
+%                 fprintf("Calculating velocities for %s.\n",transform_i.Entity.Name);
+                
+                % Handle no joint case (world)
                 if transform_i.NumberOfParents == 0
-                    error("Shouldn't happen.");
-                end
+                    % Assume it is the world
+                    Xup_i = eye(6);
+                    S_i = [];
+                    v_i = zeros(6,1);
+                    c_i = zeros(6,1);
+                else
+                    % Get the joint
+                    joint = transform_i.Entity.Joints;
+                    [XJ,S_i,vJ] = FeatherstoneDynamics.GetJointData(joint);
+                    XTree_i = FeatherstoneDynamics.FromSO3(transform_i.Local);    % Get the local transformation
+                    % Local spacial joint transformation
+                    Xup_i = XJ * XTree_i;
 
-                % Parent velocity terms
-                v_p = zeros(6,1);
-                if joint.Code ~= JointCode.Floating
-                    v_p(1:3,1) = transform_i.Parent.AngularVelocity;
-                    v_p(4:6,1) = transform_i.Parent.Velocity;
-                end
+                    % Find parent frame properties
+                    [flag,pid] = this.GetParentIndex(transform_i.Uid); 
+                    if ~flag
+                        error("Something went wrong, no joint parent found.");
+                    end
 
-                % Calculate the velocity terms
-                v_i = Xup_i*v_p + vJ;
-                c_i = FeatherstoneDynamics.MotionCross(v_i) * vJ;
+                    % The parent is the world
+                    if isa(joint,"FloatingJoint")
+                        % Velocity is the floating joint state
+                        v_0 = [transform_i.AngularVelocity;transform_i.Velocity];
+                    else
+                        % The parent any other link
+                        v_0 = this.v{pid};
+                    end
+
+                    % Calculate the velocity terms
+                    v_i = Xup_i*v_0 + vJ;
+                    c_i = FeatherstoneDynamics.MotionCross(v_i) * vJ;
+                end
 
                 % Assign to containers
                 this.Xup{i} = Xup_i;
                 this.S{i} = S_i;
                 this.v{i} = v_i;
                 this.c{i} = c_i;
-
-                % Pass velocity data to the transform
-                transform_i.AngularVelocity = v_i(1:3,1);
-                transform_i.Velocity = v_i(4:6,1);
             end
         end
         function [this] = ResolveForces(this,transforms)
@@ -120,12 +142,15 @@ classdef FeatherstoneDynamics < DynamicsSolver
             % Calculate the inertial (force + velocity) contributions 
             for i = 1:1:n
                 transform_i = transforms(i);
-                fprintf("Calculating forces for %s joints.\n",transform_i.Entity.Name);
+%                 fprintf("Calculating forces for %s.\n",transform_i.Entity.Name);
                 
                 rb_i = transform_i.Entity.RigidBody;
                 v_i = this.v{i};
 
-                assert(~isempty(rb_i),"Cannot handle non-rigidbody components yet.");
+                if isempty(rb_i)
+                    continue;
+                end
+%                 assert(~isempty(rb_i),"Cannot handle non-rigidbody components yet.");
 
                 % Body properties
                 IA_i = FeatherstoneDynamics.Inertia(rb_i.Mass,rb_i.CenterOfMass,rb_i.Inertia);
@@ -144,7 +169,8 @@ classdef FeatherstoneDynamics < DynamicsSolver
                 % Get the joint
                 joint = transform_i.Entity.Joints;
                 if isempty(joint)
-                    error("No joint defined for '%s'.",transform_i.Entity.Name);
+%                     error("No joint defined for '%s'.",transform_i.Entity.Name);
+                    continue;
                 end
 
                 % Transform
@@ -207,71 +233,66 @@ classdef FeatherstoneDynamics < DynamicsSolver
             n = numel(transforms);
             this.a = cell(n,1);
 
-%             % Set the acceleration of all "floating-base" entities
-%             for i = 1:n
-%                 transform_i = transforms(i);
-%                 % Joint sanity check
-%                 joint = transform_i.Entity.Joints;
-%                 if isempty(joint)
-%                     error("No joint defined for '%s'.",transform_i.Entity.Name);
-%                 end
-% 
-%                 % Set the body acceleration (base for further frames)
-%                 if isa(joint,"FloatingJoint")
-%                     % Inerital acceleration only)
-%                     this.a{i} = - this.IA{i} \ this.pA{i};
-%                 end
-%             end
-
- 
             for i = 1:n
                 transform_i = transforms(i);
-                joint = transform_i.Entity.Joints;
-                fprintf("Calculating Accelerations for %s joint.\n",transform_i.Entity.Name);
-
-                % Find parent frame properties
-                [flag,pid] = this.GetParentIndex(transform_i.Uid);
-                if ~flag
-                    a_0 = zeros(6,1);
+                % Handle no joint case (world)
+                if transform_i.NumberOfParents == 0
+                    % Assume it is the world
+                    a_0 = -this.g;
                 else
-                    % Parent acceleration source
+                    % Get the joint
+                    joint = transform_i.Entity.Joints;
+
+                    % Find parent frame properties
+                    [flag,pid] = this.GetParentIndex(transform_i.Uid); 
+                    if ~flag
+                        error("Something went wrong, no joint parent found.");
+                    end
+
+                    % The parent is the world
                     if isa(joint,"FloatingJoint")
-                        a_0 = - this.IA{i} \ this.pA{i};                    % The (non-gravity) FB acceleration
+                        % Acceleration is the base inertial acceleration 
+                        a_0 = - this.IA{i} \ this.pA{i};
                     else
-                        a_0 = this.a{pid};                                  % The parent acceleration
-                    end                    
+                        % The parent any other link
+                        a_0 = this.a{pid};
+                    end
                 end
 
-                % Get the frame acceleration
+                % Calculate the frame acceleration
                 a_i = this.Xup{i} * a_0 + this.c{i};
 
-                % Calculate joint accelerations & accelerations due to joints
-                if isa(joint,"MovableJoint")
+                joint = transform_i.Entity.Joints;
+                % Add the joint acceleration 
+                if ~isempty(joint) && isa(joint,"MovableJoint")
                     % Get the acceleration through the joint subspace.
                     qdd_i = (this.u{i} - this.U{i}'*a_i)/this.d{i};
                     % The resulting acceleration of the link
                     a_i = a_i + this.S{i}*qdd_i;
+                    % Store the joint accelerations
+                    this.qdd{i} = qdd_i;
                 end
-                % Store the acceleration
+
+                % Record the frame acceleration 
                 this.a{i} = a_i;
             end
 
             % Apply gravity to floaters
             for i = 1:n
                 transform_i = transforms(i);
-                joint_i = transform_i.Entity.Joints;
+                if transform_i.IsStatic
+                    % Skip the world
+                    continue;
+                end
 
+                joint_i = transform_i.Entity.Joints;
+                if isempty(joint_i)
+                    continue
+                end
                 if joint_i.Code == JointCode.Floating
                     a_0 = - this.IA{i} \ this.pA{i};
                     this.a{i} = this.Xup{i} \ a_0 + this.g;
-                    a_i = this.a{i};
-                else
-                    a_i = this.a{i};
                 end
-
-                % == Pass velocity data to the transform ==
-                transform_i.AngularAcceleration = a_i(1:3,1);
-                transform_i.Acceleration = a_i(4:6,1);
             end
         end
         function [flag,ind,pid] = GetParentIndex(this,uid)
@@ -281,28 +302,35 @@ classdef FeatherstoneDynamics < DynamicsSolver
             % ind   - Its index in the map
             % pid   - The parent's uid
 
-            selectionLogical = this.Map(:,1) == uid;
-           
+            childLogical = this.Map(:,1) == uid;
+            pid = this.Map(childLogical,2);
+            parentLogical = this.Map(:,1) == pid;
+
             ind = -1;
             flag = false;
-            for i = 1:numel(selectionLogical)
-                if selectionLogical == 1
+            for i = 1:numel(parentLogical)
+                if parentLogical(i) == 1
                     ind = i;
                     flag = true;
                     break
                 end
             end
-
-            % Parent id 
-            pid = this.Map(selectionLogical,2);
         end
     end
     methods (Static)
         % Spacial mathmatics
-        function [XJ,SJ,vJ]  = GetJointData(joint)
+        function [XJ,SJ,vJ] = GetJointData(joint)
             % This function provides a breakout from the JCalc method to
             % the joint definitions
 
+            % Handle the null joint 
+            if isempty(joint)
+                XJ = eye(6);
+                SJ = [];
+                vJ = zeros(6,1);
+                return
+            end
+            % Get the joint data
             Tj = joint.GetJointTransformation();
             SJ = joint.GetMotionSubspace();
             vJ = [];
@@ -360,7 +388,7 @@ classdef FeatherstoneDynamics < DynamicsSolver
             % Construct the spacial cross matrix
             vm_cross = [vSkew,zeros(3);wSkew,vSkew];
         end
-        function [rbi] = Inertia(m,com,I)
+        function [M] = Inertia(m,com,I)
             % mcI  spatial rigid-body inertia from mass, CoM and rotational inertia.
             % mcI(m,c,I) calculates the spatial inertia matrix of a rigid body from its
             % mass, centre of mass (3D vector) and rotational inertia (3x3 matrix)
@@ -374,7 +402,7 @@ classdef FeatherstoneDynamics < DynamicsSolver
             % COM cross product matrix
             C = Skew(com);
             % Construct the spacial mass matrix
-            rbi = [ I + m*C*C', m*C; m*C', m*eye(3) ];
+            M = [ I + m*C*C', m*C; m*C', m*eye(3) ];
         end
         % Spacial matrix construction
         function [X] = FromElements(x,y,z,xa,ya,za)

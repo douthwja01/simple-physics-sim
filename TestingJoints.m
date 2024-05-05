@@ -16,6 +16,7 @@ for i = 1:numberOfLinks
         sprintf("Box %d",i), ...
         position, ...
         Quaternion.FromEulers(0,0,0));
+
     % Add elements
     entity_i.RigidBody = RigidBody();
     % Renderer
@@ -52,9 +53,12 @@ boxOne.Joints = FixedJoint();
 
 boxTwo = sim.Find("Name","Box 2");
 boxTwo.Joints = RevoluteJoint();
+boxTwo.Joints.Axis = AxisCode.Y;
+boxTwo.Transform.Parent = boxOne.Transform;
 
 boxThree = sim.Find("Name","Box 3");
 boxThree.Joints = RevoluteJoint();
+boxThree.Transform.Parent = boxTwo.Transform;
 
 % Simulate
 sim.WorldSize = 10;
