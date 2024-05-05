@@ -22,6 +22,14 @@ classdef (Abstract) Joint < Element
             assert(isa(l,"SO3"),"Expecting a valid pose for the joints position.");
             this.Location = l;
         end
+        function [T] = GetJointTransformation(this)
+            % This function computes the total joint transformation 
+            T = this.Location.GetMatrix();                                  % Just return its location
+        end
+    end
+    methods (Abstract)
+        [S] = GetMotionSubspace(this);
+        [T] = GetConstraintSubspace(this);
     end
 end
 

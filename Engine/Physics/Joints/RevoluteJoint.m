@@ -19,6 +19,17 @@ classdef RevoluteJoint < ActuatedJoint
             % Call the parent class
             [this] = this@ActuatedJoint();
         end
+        % Get/sets
+        function [S] = GetMotionSubspace(this)
+            % Get the motion subspace matrix for this joint.
+            a = AxisCode.GetVector(this.Axis);
+            S = [a;0;0;0];
+        end
+        function [T] = GetConstraintSubspace(this)
+            % Get the constraint subspace matrix for this joint.
+            a = ~AxisCode.GetVector(this.Axis);
+            T = [diag(a),zeros(3,2);zeros(3,2),eye(3)];
+        end
     end
     methods (Access = protected)
         function [this] = OnJointPositionUpdate(this)

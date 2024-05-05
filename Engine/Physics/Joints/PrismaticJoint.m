@@ -19,6 +19,21 @@ classdef PrismaticJoint < ActuatedJoint
             % Call the parent class
             [this] = this@ActuatedJoint();
         end
+        % Get/sets
+        function [S] = GetMotionSubspace(this)
+            % Get the motion subspace matrix for this joint.
+            a = AxisCode.GetVector(this.Axis);
+            S = [0;0;0;a];
+        end
+        function [T] = GetConstraintSubspace(this)
+            % Get the constraint subspace matrix for this joint.
+            a = ~AxisCode.GetVector(this.Axis);
+            % Logically select subspace
+            e = eye(3);
+            mat = e(:,a);
+            % Construct the constraint matrix
+            T = [eye(3),zeros(3,2);zeros(3),mat];
+        end
     end
     methods (Access = protected)
         function [this] = OnJointPositionUpdate(this)

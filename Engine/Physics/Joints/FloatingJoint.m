@@ -17,6 +17,14 @@ classdef FloatingJoint < MovableJoint
             [this] = this@MovableJoint();
         end
         % Get/sets
+        function [S] = GetMotionSubspace(this)
+            % Get the motion subspace matrix for this joint.
+            S = eye(this.DegreesOfFreedom);
+        end
+        function [T] = GetConstraintSubspace(this)
+            % Get the constraint subspace matrix for this joint.
+            T = [];                                                         % Constrained in no dimensions
+        end
     end
 end
 

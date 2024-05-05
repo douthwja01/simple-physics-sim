@@ -44,6 +44,13 @@ classdef (Abstract) MovableJoint < Joint
             assert(isnumeric(a),"Expecting a numeric joint acceleration.");
             this.JointAcceleration = a;
         end
+        function [T] = GetJointTransformation(this)
+            % This function computes the total joint transformation 
+            e = this.Pivot.GetMatrix();
+            T = this.Location.GetMatrix();  
+            % Multiply the location by the pivot                               
+            T = T*e;                                                        
+        end
     end
     methods (Abstract,Access=protected)
         % On update of the joint position
