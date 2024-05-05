@@ -16,8 +16,11 @@ classdef FeatherstoneDynamics < DynamicsSolver
         U = cell.empty;
         d = cell.empty;
         u = cell.empty;
+        a = cell.empty;
         g = [0;0;0;0;0;-9.81];
     end
+
+    % We treat a non-joint like a floating-joint
 
     % Interface
     methods
@@ -66,31 +69,31 @@ classdef FeatherstoneDynamics < DynamicsSolver
                 % Get the joint
                 XLink = FeatherstoneDynamics.FromSO3(transform_i.Local);    % Get the local transformation
                 joint = transform_i.Entity.Joints;
-
                 if isempty(joint)
-                    % Assume not articulated
-                    Xup_i = XLink;      
-                    S_i = zeros(6,1);                                       % No connection
-                    v_i = [transform_i.AngularVelocity;transform_i.Velocity];
-                    c_i = FeatherstoneDynamics.MotionCross(v_i);
-                else
-                    % Get the spacial joint data
-                    [XJ,S_i,vJ] = FeatherstoneDynamics.GetJointData(joint);
-                    % Transformation through joint
-                    Xup_i = XJ * XLink;
-                    % Compute resulting velocity terms
-                    if transform_i.NumberOfParents == 0
-                        v_i = zeros(6,1);
-                        c_i = zeros(6,1);
-                    else
-                        % Parent velocity terms
-                        v_p = zeros(6,1);
-                        v_p(1:3,1) = transform_i.Parent.AngularVelocity;
-                        v_p(4:6,1) = transform_i.Parent.Velocity;
-                        v_i = Xup_i*v_p + vJ;
-                        c_i = FeatherstoneDynamics.MotionCross(v_i) * vJ;
-                    end
+                    error("No joint defined for '%s'.",transform_i.Entity.Name);
                 end
+
+                % Get the spacial joint data
+                [XJ,S_i,vJ] = FeatherstoneDynamics.GetJointData(joint);
+                % Transformation through joint
+                Xup_i = XJ * XLink;
+
+                % Compute resulting velocity terms
+                if transform_i.NumberOfParents == 0
+                    error("Shouldn't happen.");
+                end
+
+                % Parent velocity terms
+                v_p = zeros(6,1);
+                if joint.Code ~= JointCode.Floating
+                    v_p(1:3,1) = transform_i.Parent.AngularVelocity;
+                    v_p(4:6,1) = transform_i.Parent.Velocity;
+                end
+
+                % Calculate the velocity terms
+                v_i = Xup_i*v_p + vJ;
+                c_i = FeatherstoneDynamics.MotionCross(v_i) * vJ;
+
                 % Assign to containers
                 this.Xup{i} = Xup_i;
                 this.S{i} = S_i;
@@ -138,6 +141,12 @@ classdef FeatherstoneDynamics < DynamicsSolver
             % Calculate the joint subspace inertial properites
             for i = n:-1:1
                 transform_i = transforms(i);
+                % Get the joint
+                joint = transform_i.Entity.Joints;
+                if isempty(joint)
+                    error("No joint defined for '%s'.",transform_i.Entity.Name);
+                end
+
                 % Transform
                 Xup_i = this.Xup{i};
                 c_i  = this.c{i};
@@ -146,29 +155,24 @@ classdef FeatherstoneDynamics < DynamicsSolver
                 S_i  = this.S{i};
                 Si_trans = transpose(S_i);
 
-                % Get the joint
-                joint = transform_i.Entity.Joints;
-                if isempty(joint)
+                % No joint properties to calculate
+                if ~isa(joint,"MovableJoint")
                     continue;
                 end
 
-                if isa(joint,"MovableJoint")
-                    % Get equivalent inputs
-                    if isa(joint,"ActuatedJoint")
-                        tau_i = joint.JointInput;
-                    else
-                        tau_i = zeros(joint.DegreesOfFreedom,1);
-                    end
-
-                    U_i = IA_i * S_i;
-                    d_i = Si_trans * U_i;
-                    u_i = tau_i - Si_trans*pA_i;
+                % Get equivalent inputs
+                if isa(joint,"ActuatedJoint")
+                    tau_i = joint.JointInput;
                 else
-                    U_i = double.empty;
-                    d_i = double.empty;
-                    u_i = double.empty;
+                    tau_i = zeros(joint.DegreesOfFreedom,1);
                 end
 
+                % Calculate inertial properties through the joint subspace
+                U_i = IA_i * S_i;
+                d_i = Si_trans * U_i;
+                u_i = tau_i - Si_trans*pA_i;
+
+                % Store the variables
                 this.U{i} = U_i;
                 this.d{i} = d_i;
                 this.u{i} = u_i;
@@ -200,45 +204,70 @@ classdef FeatherstoneDynamics < DynamicsSolver
             % This function computes the accelerations of all the provided
             % transforms.
 
-            
-            for i = 1:numel(transforms)
+            n = numel(transforms);
+            this.a = cell(n,1);
+
+%             % Set the acceleration of all "floating-base" entities
+%             for i = 1:n
+%                 transform_i = transforms(i);
+%                 % Joint sanity check
+%                 joint = transform_i.Entity.Joints;
+%                 if isempty(joint)
+%                     error("No joint defined for '%s'.",transform_i.Entity.Name);
+%                 end
+% 
+%                 % Set the body acceleration (base for further frames)
+%                 if isa(joint,"FloatingJoint")
+%                     % Inerital acceleration only)
+%                     this.a{i} = - this.IA{i} \ this.pA{i};
+%                 end
+%             end
+
+ 
+            for i = 1:n
                 transform_i = transforms(i);
-                fprintf("Calculating accelerations for %s joints.\n",transform_i.Entity.Name);
-                
-                Xup_i = this.Xup{i};
-                S_i = this.S{i};
-                c_i = this.c{i};
-
                 joint = transform_i.Entity.Joints;
+                fprintf("Calculating Accelerations for %s joint.\n",transform_i.Entity.Name);
 
-                % Condition 1: No joint
-                if isempty(joint)
-                    this.a{i} = Xup_i * -this.g + c_i;
-                    continue;
+                % Find parent frame properties
+                [flag,pid] = this.GetParentIndex(transform_i.Uid);
+                if ~flag
+                    a_0 = zeros(6,1);
+                else
+                    % Parent acceleration source
+                    if isa(joint,"FloatingJoint")
+                        a_0 = - this.IA{i} \ this.pA{i};                    % The (non-gravity) FB acceleration
+                    else
+                        a_0 = this.a{pid};                                  % The parent acceleration
+                    end                    
                 end
 
+                % Get the frame acceleration
+                a_i = this.Xup{i} * a_0 + this.c{i};
+
+                % Calculate joint accelerations & accelerations due to joints
                 if isa(joint,"MovableJoint")
-
-                else
-
+                    % Get the acceleration through the joint subspace.
+                    qdd_i = (this.u{i} - this.U{i}'*a_i)/this.d{i};
+                    % The resulting acceleration of the link
+                    a_i = a_i + this.S{i}*qdd_i;
                 end
-
-                
-                [flag,ind] = this.GetParentIndex(transform_i.Uid);
-                if ~flag 
-                    a_0 = -this.g;      % No joint, accelerate with gravity
-                else
-                    a_0 = this.a{ind};  % Joint, accelerate with parent
-                end
-
-                % Get the acceleration of the link
-                a_i = Xup_i * a_0 + c_i;
-                % Get the acceleration through the joint subspace.
-                qdd_i = (this.u{i} - this.U{i}'*a_i)/this.d{i};
-                % The resulting acceleration of the link
-                a_i = a_i + S_i*qdd_i;
                 % Store the acceleration
                 this.a{i} = a_i;
+            end
+
+            % Apply gravity to floaters
+            for i = 1:n
+                transform_i = transforms(i);
+                joint_i = transform_i.Entity.Joints;
+
+                if joint_i.Code == JointCode.Floating
+                    a_0 = - this.IA{i} \ this.pA{i};
+                    this.a{i} = this.Xup{i} \ a_0 + this.g;
+                    a_i = this.a{i};
+                else
+                    a_i = this.a{i};
+                end
 
                 % == Pass velocity data to the transform ==
                 transform_i.AngularAcceleration = a_i(1:3,1);
@@ -270,32 +299,25 @@ classdef FeatherstoneDynamics < DynamicsSolver
     end
     methods (Static)
         % Spacial mathmatics
-        function [Xj,S,vJ]  = GetJointData(joint)
+        function [XJ,SJ,vJ]  = GetJointData(joint)
             % This function provides a breakout from the JCalc method to
             % the joint definitions
-            switch joint.Code
-                case JointCode.Fixed
-                    % Create the fixed joint spacial properties
-                    Xj = eye(6);
-                    S = zeros(6,1);
-                    dq = 0;
-                case JointCode.Revolute
-                    % Create the revolute joint spacial properties
-                    q = joint.JointPosition;
-                    dq = joint.JointVelocity;
-                    Xj = FeatherstoneDynamics.FromRotation(R_x(q));
-                    S = [0;0;1;0;0;0];
-                case JointCode.Prismatic
-                    % Create the prismatic joint spacial properties
-                    q = joint.JointPosition;
-                    dq = joint.JointVelocity;
-                    Xj = FeatherstoneDynamics.FromTranslation([0;0;q]);
-                    S = [0;0;0;0;0;1];
-                otherwise
-                    error("Joint code %s not implemented.",joint.Code);
-            end
+
+            Tj = joint.GetJointTransformation();
+            SJ = joint.GetMotionSubspace();
+            vJ = [];
+            % Construct the spacial matrix
+            XJ = FeatherstoneDynamics.FromTranslationRotation(Tj(1:3,4),Tj(1:3,1:3));
             % The spacial joint velocity
-            vJ = S*dq;
+            if isa(joint,"MovableJoint") 
+                % Sanity checking
+                assert(size(SJ,1) == 6,"Motion subspace matrix rows must equate to 6.");
+                assert(size(SJ,2) == joint.DegreesOfFreedom,"Motion subspace matrix columns must equate to the dof.");
+                vJ = SJ*joint.JointVelocity;
+            else
+                % No additional joint velocity
+                vJ = zeros(6,1);
+            end
         end
         function [Xj,S]     = JointCalc( pitch, q )
             % jcalc  Calculate joint transform and motion subspace.

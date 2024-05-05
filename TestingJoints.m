@@ -2,6 +2,8 @@
 clear all;
 close all;
 addpath("Engine");
+addpath("Engine\Physics");
+
 
 sim = Simulator();
 
@@ -50,6 +52,9 @@ boxOne.Joints = FixedJoint();
 
 boxTwo = sim.Find("Name","Box 2");
 boxTwo.Joints = RevoluteJoint();
+
+boxThree = sim.Find("Name","Box 3");
+boxThree.Joints = RevoluteJoint();
 
 % Simulate
 sim.WorldSize = 10;
