@@ -4,23 +4,22 @@ classdef DynamicsWorld < CollisionWorld
     % properties of the simulation.
 
     properties
-        Integrator = VerletIntegrator();    % Numerical integrators
         SubSteps = 5;
+        Integrator = VerletIntegrator();    % Numerical integrators
     end    
     properties (SetAccess = private)
-        % Timing
         EnableSubStepping = true;
         Gravity = [0;0;-9.81];
         Bodies = RigidBody.empty;
     end
     % Main
     methods
-        function [this] = DynamicsWorld(worldSize)
+        function [this] = DynamicsWorld(world)
             % DYNAMICSWORLD - Construct an instance of the dynamics world
             % object.
             
             % Call the parent
-            [this] = this@CollisionWorld(worldSize);
+            [this] = this@CollisionWorld(world);
         end
         % Get/sets
         function set.Integrator(this,int)
@@ -45,6 +44,8 @@ classdef DynamicsWorld < CollisionWorld
             else
                 this.EnableSubStepping = false;
             end
+            assert(~isempty(this.Integrator),"Require a valid numerical integration method.");
+
         end
         function [this] = Step(this,dt)
             % This function steps the physics simulation.
@@ -52,9 +53,6 @@ classdef DynamicsWorld < CollisionWorld
             % Sanity check
             assert(isnumeric(dt),"Expecting a valid time step.");
             
-            % Solve the collisions
-%             this.ResolveCollisions(dt);
-
             % Step (or substep) the world
             if this.EnableSubStepping
                 subTimeDelta = dt/this.SubSteps;
@@ -78,12 +76,14 @@ classdef DynamicsWorld < CollisionWorld
                 % Temporary index
                 vec = 1:1:numel(this.Bodies);     
                 % Remove the object 
-                this.Bodies = this.Bodies(vec ~= body);
+                selectionLogicals = vec ~= body;
             else
                 assert(isa(body,"RigidBody"),"Expecting a valid 'RigidBody' object.");
                 % Remove a given solver from the array of collisions solvers.
-                this.Bodies = this.Bodies(this.Bodies ~= body);
+                selectionLogicals = this.Bodies ~= body;
             end
+            % Remove the body
+            this.Bodies = this.Bodies(selectionLogicals);
         end
         % World dynamics
         function [this] = SetGravity(this,g)
@@ -129,39 +129,6 @@ classdef DynamicsWorld < CollisionWorld
             bodyTransforms = [this.Bodies.Transform];
             % Use the integrator components to integrate
             this.Integrator.Integrate(bodyTransforms,dt);
-        end
-        % Constraints
-        function [this] = ApplyLinks(this)
-            % This function applys the set of link constraints to the
-            % system.
-            for i = 1:numel(this.Links)
-                this.Links(i).Apply();
-            end
-        end
-        function [this] = ApplyWorldConstraint(this)
-            % This function applies the world-constraint of a fixed sphere.
-
-            globeCenter = [0;0;10];
-            globeRadius = 10;
-
-            for i = 1:numel(this.Bodies)
-                object_i = this.Bodies(i);
-
-                transform_i = object_i.Entity.Transform;
-                collider_i = object_i.Entity.Collider;
-                
-                v = transform_i.position - globeCenter;
-                distance = norm(v);
-
-                % Check the constraint distance
-                delta = globeRadius - collider_i.Radius;
-                if distance <= delta
-                    continue;
-                end
-                unit_v = v/distance;
-                % Position
-                transform_i.position = globeCenter + delta*unit_v;
-            end
         end
     end
 end

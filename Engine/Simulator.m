@@ -3,10 +3,11 @@ classdef Simulator < handle
 
     properties
         TimeDelta = 0.01;
-        Physics;
+        World = World.empty;
+        Physics = DynamicsWorld.empty;
         % Contents
+        WorldSize = 10;
         g = [0;0;-9.81];
-        WorldSize = 100;
     end
     properties (SetAccess = private)
         Entities = [];
@@ -20,20 +21,26 @@ classdef Simulator < handle
         function [this] = Simulator()
             % CONSTRUCTOR - Construct an instance of the time simulator 
             % class representing a singular simulation.
-            
+
             % Parameters
-            this.AddEnginePaths;
+            this.AddEnginePaths;   
+
+            % Create a finite scene
+            this.World = World(this.WorldSize);
             % Create the dynamics world
-            this.Physics = DynamicsWorld(this.WorldSize);
+            this.Physics = DynamicsWorld(this.World);
             % Add impulse collision solver
             this.Physics.AddSolver(ImpulseCollisionResolver());
         end
+        % Get/sets
+        
+
         function [this] = Simulate(this,duration)
             % This function executes the simulation sequence
 
             % Sanity check
             assert(isscalar(duration) && duration > 0,"Expecting a scalar duration greater than zero.");
-            assert(~isempty(this.Physics),"Expecting a valid 'DynamicsWorld' managing physics.");
+            assert(~isempty(this.World),"Expecting a valid 'DynamicsWorld' managing physics.");
             
             this.AddEnginePaths();
 
@@ -50,6 +57,9 @@ classdef Simulator < handle
             time = 0;
             while (time < duration && ~this.IsStopped)
                 fprintf("[t=%.2fs] Stepping.\n",time);
+                % Update statics (poses)
+                this.World.UpdateTransforms();
+
                 % Update visuals
                 this.UpdateGraphics(ax);
                 % Update physics
@@ -78,6 +88,10 @@ classdef Simulator < handle
 
             % Sanity check
             assert(isa(entity,"Entity"),"Expecting a valid 'Entity'.");
+
+            % Add the entity by its transform
+            this.World.AddTransform(entity.Transform);
+
             % Add collider
             cl = entity.Collider;
             if ~isempty(cl)
@@ -106,6 +120,9 @@ classdef Simulator < handle
             if ~isempty(rb)
                 this.Physics.RemoveRigidBody(rb);
             end
+
+            % Add the entity by its transform
+            this.World.RemoveTransform(entity.Transform);
 
             % Delete the entity from the world
             if isnumeric(entity)

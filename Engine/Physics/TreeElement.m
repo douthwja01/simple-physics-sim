@@ -1,8 +1,7 @@
 classdef (Abstract) TreeElement < Element
-    % TREEELEMENT This class adds the tree behaviour elements to the base 
+    % TREEELEMENT - This class adds the tree behaviour elements to the base 
     % modelling element definition.
    
-    %% Main
     properties %(SetAccess = private)
         Parent;
         Children;
@@ -14,6 +13,7 @@ classdef (Abstract) TreeElement < Element
     properties (Constant,Access = private)
         OriginVertexName = "Origin Line";
     end
+    % Main
     methods
         % Constructor
         function [this] = TreeElement(entity)
@@ -71,10 +71,10 @@ classdef (Abstract) TreeElement < Element
                 end
             end
         end
-        function [n]    = get.NumberOfParents(this)
+        function [n] = get.NumberOfParents(this)
             n = numel(this.Parent);
         end
-        function [n]    = get.NumberOfChildren(this)
+        function [n] = get.NumberOfChildren(this)
             n = numel(this.Children);
         end
     end
@@ -358,7 +358,7 @@ classdef (Abstract) TreeElement < Element
             
             % No more children
             currentElement = sequence(end);
-            if currentElement.NumberOfChildren == 0                                 % End of child branch
+            if currentElement.NumberOfChildren == 0                         % End of child branch
                 return
             end
            
@@ -373,15 +373,15 @@ classdef (Abstract) TreeElement < Element
         function [sequence] = ParentWiseRecursiveList(sequence)
             % No more parents
             currentElement = sequence(end);
-            if currentElement.NumberOfParents == 0                               % End of parent branch
+            if currentElement.NumberOfParents == 0                          % End of parent branch
                 return
             end
            
             % Handle multiple child-branches
             for i = 1:currentElement.NumberOfParents                              
-                subSeq = currentElement.ParentWiseRecursiveList(...          % Create new branch with parent
+                subSeq = currentElement.ParentWiseRecursiveList(...         % Create new branch with parent
                     currentElement.Parent(i));                                 
-                sequence = vertcat(sequence,subSeq);                                % Concatinate parent branch
+                sequence = vertcat(sequence,subSeq);                        % Concatinate parent branch
             end
         end
         function [element,sequence] = ChildWiseRecursiveSearch(sequence,childParameter)
@@ -402,20 +402,20 @@ classdef (Abstract) TreeElement < Element
             end
             % "id" not found before hitting root
             if sequence(end).NumberOfChildren == 0
-                sequence = [];                                                  % Not found (kill the path)
+                sequence = [];                                              % Not found (kill the path)
                 return
             end
             % Handle multiple child-branches
             for i = 1:sequence(end).NumberOfChildren
-                tc_seq = sequence(end).Children(i);                             % Create new branch with child
+                tc_seq = sequence(end).Children(i);                         % Create new branch with child
                 [element,tc_seq] = sequence(end).ChildWiseRecursiveSearch(tc_seq,childParameter);	% Search child-branch      
                 % Check if a child-wise path exists
                 if ~isempty(tc_seq)                                         % If a path exists from this parent
-                    sequence = vertcat(sequence,tc_seq);                            % Add the child-path to the end of the sequence
+                    sequence = vertcat(sequence,tc_seq);                    % Add the child-path to the end of the sequence
                     return 
                 end
             end
-            sequence = [];                                                      % Of children found, no valid paths exist; kill path
+            sequence = [];                                                  % Of children found, no valid paths exist; kill path
         end
         function [element,sequence] = ParentWiseRecursiveSearch(sequence,parentParameter)
             % This function recursively moves up an "Element" hierarchy to a 
@@ -433,20 +433,20 @@ classdef (Abstract) TreeElement < Element
             end
             % "id" not found before hitting root
             if sequence(end).NumberOfParents == 0
-                sequence = [];                                                  % Not found (kill the path)
+                sequence = [];                                              % Not found (kill the path)
                 return
             end
             % Handle multiple parent-branches
             for i = 1:sequence(end).NumberOfParents
-                tp_seq = sequence(end).Parent(i);                                   % Create new branch with parent
+                tp_seq = sequence(end).Parent(i);                           % Create new branch with parent
                 [element,tp_seq] = sequence(end).ParentWiseRecursiveSearch(tp_seq,parentParameter);	% Search child-branch      
                 % Check if a parent-wise path exists
                 if ~isempty(tp_seq)                                         % If a path exists from this parent
-                    sequence = vertcat(sequence,tp_seq);                            % Add the parent-path to the end of the sequence
+                    sequence = vertcat(sequence,tp_seq);                    % Add the parent-path to the end of the sequence
                     return 
                 end
             end
-            sequence = [];                                                      % Of children found, no valid paths exist; kill path
+            sequence = [];                                                  % Of children found, no valid paths exist; kill path
         end
     end
 end

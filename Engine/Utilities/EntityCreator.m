@@ -75,14 +75,14 @@ classdef EntityCreator
                 position = zeros(3,1);
             end
             if nargin < 1
-                name = "Empty";
+                name = "New Entity";
             end
             
             % Entity box
             this = Entity(name);
             % Set the entity location
-            this.Transform.SetWorldPosition(position);
-            this.Transform.SetWorldRotation(rotation);
+            this.Transform.Inertial.Position = position;
+            this.Transform.Inertial.Rotation = rotation;
         end
     end
 end

@@ -45,8 +45,9 @@ classdef MeshRenderer < Renderer
             end
 
             % Transform plot
-            m = this.Transform.GetWorldMatrix();
-            set(this.Handle,"Matrix",m);
+            %m = this.Transform.GetWorldMatrix();
+%             set(this.Handle,"Matrix",m);
+            set(this.Handle,"Matrix",this.Transform.Inertial.GetMatrix());
         end
     end
     % Utilities

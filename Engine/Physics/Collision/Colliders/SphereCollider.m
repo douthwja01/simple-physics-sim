@@ -31,8 +31,11 @@ classdef SphereCollider < Collider
             a = AABBCollider([-r,r],[-r,r],[-r,r]);
 
             % Position & scale
-            p = this.Transform.GetWorldPosition();
-            scale = this.Transform.GetWorldScale();
+%             p = this.Transform.GetWorldPosition();
+%             scale = this.Transform.GetWorldScale();
+            p = this.Transform.Inertial.Position;
+            scale = this.Transform.Inertial.Scale;
+
             % Offset the aabb by the sphere's world position
             aabb = a * scale + p;
             % Assign the owner's cid
