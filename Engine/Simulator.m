@@ -3,13 +3,13 @@ classdef Simulator < handle
 
     properties
         TimeDelta = 0.01;
-        World = World.empty;
-        Physics = DynamicsWorld.empty;
         % Contents
         WorldSize = 10;
         g = [0;0;-9.81];
     end
     properties (SetAccess = private)
+        World;
+        Physics;
         Entities = [];
     end
     properties (Access = private)

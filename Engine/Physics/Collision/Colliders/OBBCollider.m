@@ -8,9 +8,10 @@ classdef OBBCollider < Collider
         Code = ColliderCode.OBB;
     end
     properties
-        Width = 1;
-        Depth = 1;
-        Height = 1;
+        Size = ones(3,1);
+    end
+    properties (SetAccess = private, Hidden)
+        ImaginaryRadius = 1;
     end
 
     % Main methods
@@ -20,6 +21,12 @@ classdef OBBCollider < Collider
 
             % Call the parent
             [this] = this@Collider();
+        end
+        % Get/sets
+        function set.Size(this,s)
+            assert(isscalar(s),"Expecting a size vector [3x1].");
+            this.Size = s;
+            this.RecalculateRadius();
         end
     end
     %% Collision Pairing
@@ -36,7 +43,48 @@ classdef OBBCollider < Collider
         function [isColliding,points] = CheckSphere(this,sphere)
             % Find the collision points between this OBB and a sphere.
 
-            % TO FILL
+            % Containers
+            isColliding = false;
+            boxPosition = this.Transform.Inertial.Position;
+            spherePosition = sphere.Transform.Inertial.Position;
+
+            relativePosition = spherePosition - boxPosition;
+            distance = norm(relativePosition);
+            % Simple spherical check first
+            if distance > (this.ImaginaryRadius + sphere.Radius)
+                points = ContactPoints();
+                return;
+            end
+
+            % Transform the sphere point into the local point
+            localSpherePosition = this.Transform.InverseTransformPoint(spherePosition);
+
+            % Calculate the closest point on the OBB to the sphere center
+            dimSizes = this.Size/2;
+            localClosestPoint = zeros(3,1);
+            localClosestPoint(1) = Clamp([-dimSizes(1),dimSizes(1)],localSpherePosition(1));
+            localClosestPoint(2) = Clamp([-dimSizes(2),dimSizes(2)],localSpherePosition(2));
+            localClosestPoint(3) = Clamp([-dimSizes(3),dimSizes(3)],localSpherePosition(3));
+
+            % Transform the local point back into world
+            closestPoint = this.Transform.TransformPoint(localClosestPoint);
+
+            collisionVector = closestPoint - spherePosition;
+            collisionDistance = norm(collisionVector);
+            collisionAxis = collisionVector/collisionDistance;
+            
+            % No collision if the distance to the nearest point is greater
+            % than the radius
+            isColliding = collisionDistance <= sphere.Radius;
+            if ~isColliding
+                points = ContactPoints();
+                return;
+            end
+
+            % Calculate the collision points
+            A = spherePosition + collisionAxis * (sphere.Radius  - collisionDistance);
+            B = spherePosition - collisionAxis * (sphere.Radius  - collisionDistance);
+            points = ContactPoints(A,B,collisionAxis,collisionDistance,isColliding);
         end
         function [isColliding,points] = CheckPlane(this,plane)
             % Find the collision points between this OBB box and a plane.
@@ -49,14 +97,14 @@ classdef OBBCollider < Collider
             pTransform = plane.Transform;
             bTransform = this.Transform;
             % Origin positions in the world
-            pWorldPosition = pTransform.GetWorldPosition();
-            bWorldPosition = bTransform.GetWorldPosition();
+            pWorldPosition = pTransform.Inertial.Position;
+            bWorldPosition = bTransform.Inertial.Position;
 
             % Create a ray using the plane origin
-            axisRay = Ray.FromVector(pWorldPosition,plane.Normal);    
+            axisRay = Ray.FromVector(pWorldPosition,plane.Normal);
             % Height of the box center above the plane
             centerToPlaneHeight = Ray.PointProjection(axisRay,bWorldPosition);
-            
+
             % Get the collider mesh
             collisionMesh = this.GetWorldMesh();
             vertexProjections = inf(collisionMesh.NumberOfVertices,1);
@@ -70,7 +118,7 @@ classdef OBBCollider < Collider
             % Get the smallest projected distance
             [smallestVertexProjection,minIndex] = min(vertexProjections);
             % No collision is occuring
-            isColliding = smallestVertexProjection < 0; 
+            isColliding = smallestVertexProjection < 0;
 
             if ~isColliding
                 points = ContactPoints();
@@ -107,21 +155,21 @@ classdef OBBCollider < Collider
             axes(4,:) = rotationData(1,:);
             axes(5,:) = rotationData(2,:);
             axes(6,:) = rotationData(3,:);
-        
-            for i = 1:3 
-                for j = 4:6 
+
+            for i = 1:3
+                for j = 4:6
                     crossAxes = cross(axes(i,:),axes(j,:));
                     axes = vertcat(axes,crossAxes);
                 end
             end
             % Check for no overlap on each axis
             for i = 1:15
-                if ~this.CheckAxisOverlap(this, aabb, axes(i,:)) 
+                if ~this.CheckAxisOverlap(this, aabb, axes(i,:))
                     flag = false;
                     return
                 end
             end
-        
+
             flag = true;
         end
         function [isColliding,points] = CheckOBB(this,obb)
@@ -131,20 +179,17 @@ classdef OBBCollider < Collider
             assert(this.Code == ColliderCode.OBB,"First collider must be a box collider.");
             assert(obb.Code == ColliderCode.OBB,"Second collider must be a box collider.");
 
-            % Pull out the transforms
-            transformA = this.Transform;
-            transformB = obb.Transform;
             % Origin positions in the world
-            aWorldPosition = transformA.GetWorldPosition();
-            bWorldPosition = transformB.GetWorldPosition();
+            aWorldPosition = this.Transform.Inertial.Position;
+            bWorldPosition = obb.Transform.Inertial.Position;
 
             % Create a ray using the plane origin
-            axisRay = Ray.FromPoints(aWorldPosition,bWorldPosition); 
-            reverseAxisRay = Ray.FromPoints(bWorldPosition,aWorldPosition); 
+            axisRay = Ray.FromPoints(aWorldPosition,bWorldPosition);
+            reverseAxisRay = Ray.FromPoints(bWorldPosition,aWorldPosition);
             % Get the orientated collision meshes
             collisionMeshA = this.GetWorldMesh();
             collisionMeshB = obb.GetWorldMesh();
-            
+
             % Find the greatest projection of A on the axis
             vertexProjectionsA = zeros(collisionMeshA.NumberOfVertices,1);
             % Get the projections on the axis vector
@@ -196,7 +241,7 @@ classdef OBBCollider < Collider
         function [n] = GetWorldFaceNormals(this)
             % The standard normals
             n_unit = [
-                 1,0,0;
+                1,0,0;
                 0, 1,0;
                 0,0, 1;
                 0,0,-1;
@@ -210,20 +255,23 @@ classdef OBBCollider < Collider
 
             mesh = MeshExtensions.UnitCube();
             % Transform the mesh by the box dimensions
-            mesh = mesh.ScaleBy(this.Width,this.Height,this.Depth);
+            mesh = mesh.ScaleBy(this.Size);
             % Transform the base mesh (by scale and position)
-            mesh = mesh.TransformBy(this.Transform.GetWorldMatrix());
+            mesh = mesh.TransformBy(this.Transform.Inertial.GetMatrix());
         end
-        function [aabb] = GetWorldAABB(this)
+        function [aabb,cid] = GetWorldAABB(this)
             % This function recalculates the bounding box from the collider
             % properties.
 
             % Get the mesh transformed in world coordinates
-            mesh = this.GetWorldMesh();
-            % Recompute AABB
-            aabb = AABBCollider.FromMesh(mesh);
+            r = this.ImaginaryRadius;
+            unit_aabb = AABB([-r,r],[-r,r],[-r,r]);
+            % Get the world properties
+            so3 = this.Transform.Inertial;
+            % Offset and scale the unit AABB
+            aabb = so3.Position + so3.Scale*unit_aabb;
             % Assign the owner's id
-            aabb.Cid = this.Cid;
+            cid = this.Cid;
         end
         function [h] = Draw(this,container)
             % Draw the mesh collider
@@ -240,12 +288,16 @@ classdef OBBCollider < Collider
         end
     end
     methods (Access = protected)
+        function [this] = RecalculateRadius(this)
+            % Recalculate the Imaginary radius value
+            this.ImaginaryRadius = sqrt(this.Size^2 + this.Height^2 + this.Depth^2);
+        end
         function [axisInterval] = GetAxisInterval(this,axis)
             % This function creates an interval defining the projection of
             % this shape onto a given axis.
 
             % Ensure same size
-            axis = axis'; 
+            axis = axis';
             % Define vertex data from limits
             vertices = this.GetVertices();
             % We need to loop through these points and get the minimum and

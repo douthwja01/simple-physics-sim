@@ -25,7 +25,7 @@ classdef PlaneCollider < Collider
     end
     % Legacy
     methods
-        function [aabb] = GetWorldAABB(this)
+        function [aabb,cid] = GetWorldAABB(this)
             % This function is called when the normal vector is changed in
             % order to update the mesh that defines the plane to match the
             % new normal.
@@ -34,19 +34,14 @@ classdef PlaneCollider < Collider
             w = this.Width;
             d = this.Depth;
             t = this.Thickness;
-            aabb = AABBCollider(0.5*[-w,w],0.5*[-d,d],[0,-t]);
+            aabb = AABB(0.5*[-w,w],0.5*[-d,d],[0,-t]);
 
-            % Position & scale
-%             p = this.Transform.GetWorldPosition();
-%             scale = this.Transform.GetWorldScale();
-
-            p = this.Transform.Inertial.Position;
-            scale = this.Transform.Inertial.Scale;
-
-            % Offset the aabb by the sphere's world position
-            aabb = aabb * scale + p;
-            % Assign the parent
-            aabb.Cid = this.Cid;
+            % Get the world properties
+            so3 = this.Transform.Inertial;
+            % Offset and scale the unit AABB
+            aabb = so3.Position + so3.Scale*aabb;
+            % Return the collider ID
+            cid = this.Cid;
         end
     end
 

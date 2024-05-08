@@ -62,8 +62,14 @@ classdef Mesh < handle
             point = this.Vertices(index,:)';
         end
         function [mesh] = ScaleBy(this,x,y,z)
+            if nargin == 2
+                s = [x(1);x(2);x(3)];
+            else
+                s = [x;y;z];
+            end
+            assert(numel(s) == 3,"Expecting an array of three scalar size variables.");
             % Scale the mesh by a set of dimensional values.
-            mesh = this.TransformBy(diag([x;y;z;0]));
+            mesh = this.TransformBy(diag([s;0]));
         end
         function [mesh] = TransformBy(this,Tf)
             % This function returns this mesh transformed by a given

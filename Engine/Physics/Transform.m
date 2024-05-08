@@ -63,7 +63,7 @@ classdef Transform < TreeElement
             % this transform.
 
             % Get the transformation matrix in the world
-            Rwl = this.GetRotationMatrix();
+            Rwl = this.Inertial.GetRotationMatrix();
             % Multiply by the matrix
             v_l = Rwl'*v_w;
         end
@@ -72,7 +72,7 @@ classdef Transform < TreeElement
             % frame.
 
             % Get the transformation matrix in the world
-            Rwl = this.GetRotationMatrix();
+            Rwl = this.Inertial.GetRotationMatrix();
             % Multiply by the matrix
             v_w = Rwl*v_l;
         end
@@ -81,9 +81,9 @@ classdef Transform < TreeElement
             % this transform.
 
             % Get the transformation matrix in the world
-            Twl = this.GetWorldMatrix();
+            Twl = this.Inertial.GetMatrix();
             % Invert the matrix and multiply
-            p_l = transpose(Twl)*[p_w;1];
+            p_l = Twl\[p_w;1];
             % Remove the loose element
             p_l = p_l(1:3,1);
         end
@@ -91,7 +91,7 @@ classdef Transform < TreeElement
             % Transform a point in this transform frame into the world frame.
 
             % Get the transformation matrix in the world
-            Twl = this.GetWorldMatrix();
+            Twl = this.Inertial.GetMatrix();
             % Multiply the matrix
             p_w = Twl*[p_l;1];
             % Remove the loose element

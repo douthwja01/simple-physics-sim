@@ -20,7 +20,7 @@ classdef SphereCollider < Collider
     end
     % Legacy
     methods
-        function [aabb] = GetWorldAABB(this)
+        function [aabb,cid] = GetWorldAABB(this)
             % Overrided needed, sphere colliders do not need a mesh
             % representation as a unitary radius is valid. However, for
             % AABB comparison, a primitive must be constructed any way to
@@ -28,18 +28,13 @@ classdef SphereCollider < Collider
 
             % Recompute AABB
             r = this.Radius;
-            a = AABBCollider([-r,r],[-r,r],[-r,r]);
-
-            % Position & scale
-%             p = this.Transform.GetWorldPosition();
-%             scale = this.Transform.GetWorldScale();
-            p = this.Transform.Inertial.Position;
-            scale = this.Transform.Inertial.Scale;
-
-            % Offset the aabb by the sphere's world position
-            aabb = a * scale + p;
-            % Assign the owner's cid
-            aabb.Cid = this.Cid;
+            unit_aabb = AABB([-r,r],[-r,r],[-r,r]);
+            % Get the world properties
+            so3 = this.Transform.Inertial;
+            % Offset and scale the unit AABB
+            aabb = so3.Position + so3.Scale*unit_aabb;
+            % Assign the owner's id
+            cid = this.Cid;
         end
     end
     %% Collision Pairing
@@ -93,9 +88,9 @@ classdef SphereCollider < Collider
             assert(plane.Code == ColliderCode.Plane,"Second collider must be a plane collider.");
 
             % Pull out the transforms
-            sWorldPosition = this.Transform.GetWorldPosition();
+            sWorldPosition = this.Transform.Inertial.Position;
             % Origin positions in the world
-            pWorldPosition = plane.Transform.GetWorldPosition();
+            pWorldPosition = plane.Transform.Inertial.Position;
 
             % Sphere properties
             aCenter = sWorldPosition;
@@ -128,7 +123,9 @@ classdef SphereCollider < Collider
         end
         function [isColliding,points] = CheckOBB(this,obb)
             % Find the collision points between a sphere and an OBB box.
-            points = obb.CheckSphere(this);
+            [isColliding,points] = obb.CheckSphere(this);
+            % Invert the result
+            points = points.Swap();
         end
         function [isColliding,points] = CheckMesh(this,mesh)
             % Find the collision points between a sphere and a mesh.

@@ -80,7 +80,7 @@ classdef (Abstract) Collider < Element
     % Further collider requirements
     methods (Abstract)
         % Provide a means to get the world AABB for the collider
-        [aabb] = GetWorldAABB(this);
+        [aabb,cid] = GetWorldAABB(this);
     end
 
     %% Internals
@@ -100,8 +100,6 @@ classdef (Abstract) Collider < Element
         [int] = GetAxisInterval(this,axis); % Each collider has a distinct answer
     end
     methods (Access = protected)
-        % Support utilities
-        
         % Event handles
         function [this] = OnCollision(this,colliderData)
             % When the on-collision event is triggered by the world.            

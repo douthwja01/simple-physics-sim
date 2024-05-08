@@ -4,7 +4,7 @@ classdef SweepAndPrune < BroadPhaseSolver
     % successive dimensions.
     
     properties
-        AABBs = AABBCollider.empty;
+        AABBs = AABB.empty;
     end
     methods 
         function [this] = SweepAndPrune()
@@ -24,17 +24,16 @@ classdef SweepAndPrune < BroadPhaseSolver
             assert(isa(colliders,"Collider"),"Expecting a list of 'collider' objects.");
             
             % Property initialisation
-            this.AABBs = AABBCollider.empty;
+            this.AABBs = AABB.empty;
             manifolds = Manifold.empty;
             numberOfColliders = numel(colliders);
 
             % Move through all colliders and construct/transform their
             % AABBs to be representive for this frame.
+            cids = zeros(numberOfColliders,1);
             for i = 1:numel(colliders)
                 % Transform the AABB  for i
-                this.AABBs(i) = colliders(i).GetWorldAABB();
-                % Ensure the result retains the parent association
-%                 this.AABBs(i).Cid = colliders(i).Cid;
+                [this.AABBs(i),cids(i)] = colliders(i).GetWorldAABB();
             end
            
             % 1. We want to move through the set of colliders and compair
@@ -45,24 +44,28 @@ classdef SweepAndPrune < BroadPhaseSolver
             % dimension, remove those that don't overlap.
 
             %% 1. Sweep (along the x-axis)
-            pairs = [];           
+            pairs = [];%"A",AABB.empty,"B",AABB.empty,"CidA",[],"CidB",[]);           
             for i = 1:numberOfColliders
                 collider_i = colliders(i);
                 for j = i+1:numberOfColliders
                     collider_j = colliders(j);
-
                     % Check if assessing self-collision
                     if collider_i.Cid == collider_j.Cid
                         continue
                     end
                     
                     % Compare x-bounds
-                    if ~this.AABBs(i).xBoundary.IntersectInterval(this.AABBs(j).xBoundary)
+                    if ~this.AABBs(i).Bounds(1).IntersectInterval(this.AABBs(j).Bounds(1))
                         continue
                     end
                     
+                    pair = struct( ...
+                        "A",this.AABBs(i), ...
+                        "B",this.AABBs(j), ...
+                        "CidA",cids(i),...
+                        "CidB",cids(j));
                     % Append the new intersecting manifold
-                    pairs = vertcat(pairs,[this.AABBs(i),this.AABBs(j)]);
+                    pairs = vertcat(pairs,pair);
                 end
             end
 
@@ -76,7 +79,7 @@ classdef SweepAndPrune < BroadPhaseSolver
             logicalIndices = false(numberOfPairs,1);
             for i = 1:numberOfPairs
                 % Evaluate the intersection, logically select if true.
-                if pairs(i,1).yBoundary.IntersectInterval(pairs(i,2).yBoundary)
+                if pairs(i).A.Bounds(2).IntersectInterval(pairs(i).B.Bounds(2))
                    logicalIndices(i) = true; 
                 end
             end
@@ -93,7 +96,7 @@ classdef SweepAndPrune < BroadPhaseSolver
             logicalIndices = false(numberOfPairs,1);
             for i = 1:numberOfPairs
                 % Evaluate the intersection, logically select if true.
-                if pairs(i,1).zBoundary.IntersectInterval(pairs(i,2).zBoundary)
+                if pairs(i).A.Bounds(3).IntersectInterval(pairs(i).B.Bounds(3))
                    logicalIndices(i) = true; 
                 end
             end
@@ -110,8 +113,8 @@ classdef SweepAndPrune < BroadPhaseSolver
             manifolds = Manifold.empty(0,numberOfPairs);
             for i = 1:numberOfPairs
                 % Select the colliders
-                first = colliders([colliders.Cid] == pairs(i,1).Cid);
-                second = colliders([colliders.Cid] == pairs(i,2).Cid);
+                first = colliders([colliders.Cid] == pairs(i).CidA);
+                second = colliders([colliders.Cid] == pairs(i).CidB);
                 % Create a collision manifold
                 manifolds(i) = Manifold(first,second);
             end

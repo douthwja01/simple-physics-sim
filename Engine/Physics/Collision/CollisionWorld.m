@@ -42,7 +42,7 @@ classdef CollisionWorld < handle
         end
     end
     % Utilities
-    methods 
+    methods
         % Resolve world Collisions
         function [this] = FindResolveCollisions(this,dt)
             % This function builds the lists of 'detected' collisions and
@@ -60,7 +60,7 @@ classdef CollisionWorld < handle
             [manifolds] = this.BroadPhaseSolver.ResolveManifolds(this.Colliders);
 
             % --- NARROW PHASE ---
-            % This routine solves the inter-particle collisions (brute force)   
+            % This routine solves the inter-particle collisions (brute force)
             for i = 1:numel(manifolds)
                 % Evaluate if there has been a collision for the pair.
                 this.TestCollision(manifolds(i).ColliderA,manifolds(i).ColliderB);
@@ -72,7 +72,7 @@ classdef CollisionWorld < handle
                 return;
             end
 
-            % -- RESOLUTION PHASE --- 
+            % -- RESOLUTION PHASE ---
             % This routine computes the collision resolution
             this.ResolveCollisions(dt);
 
@@ -86,7 +86,7 @@ classdef CollisionWorld < handle
         function [this] = AddCollider(this,collider)
             % Add a given collider to the collison world.
 
-            % Sanity check 
+            % Sanity check
             assert(isa(collider,"Collider"),"Expecting a valid 'Collider' element.");
             % Add to set
             this.Colliders = vertcat(this.Colliders,collider);
@@ -94,15 +94,15 @@ classdef CollisionWorld < handle
         function [this] = RemoveCollider(this,collider)
             % Remove a collider from the collision world.
 
-            % Sanity check 
+            % Sanity check
             assert(isa(collider,"Collider"),"Expecting a valid 'Collider' element.");
             % Remove a given solver from the array of collisions solvers.
             this.Colliders = this.Colliders(this.Colliders ~= collider);
-        end     
+        end
         % Managing collision NarrowPhaseSolvers
         function [this] = AddSolver(this,solver)
             assert(isa(solver,"CollisionResolver"),"Expecting a valid narrow-phase collision solver.");
-            
+
             % Add a given solver to the array of collision solvers.
             this.Resolvers = vertcat(this.Resolvers,solver);
         end
@@ -133,10 +133,10 @@ classdef CollisionWorld < handle
             this.TriggerCallback = addlistener(this,"Trigger",eventHandle);
         end
     end
-    
+
     % Internals
     methods (Access = private)
-         function [this] = ResolveCollisions(this,dt)
+        function [this] = ResolveCollisions(this,dt)
             % This function solves the set of identified collisions by
             % invoking the collision solvers.
 
@@ -151,7 +151,7 @@ classdef CollisionWorld < handle
                 % Solve the collisions
                 this.Resolvers(i).Resolve(this.Collisions,dt);
             end
-         end
+        end
         function TestCollision(this,collider_i,collider_j)
             % Evaluate an individual collision instance
 
@@ -190,7 +190,7 @@ classdef CollisionWorld < handle
             end
         end
         function SendColliderEvents(this)
-            % Notify the colliders of the events they are participating in. 
+            % Notify the colliders of the events they are participating in.
 
             % Notify the triggers world events.
             for i = 1:numel(this.Triggers)
@@ -216,7 +216,7 @@ classdef CollisionWorld < handle
             for i = 1:numel(this.Collisions)
                 % Collision instance
                 manifold_i = this.Collisions(i);
-                
+
                 % Send to the collider instance(s)
                 if ~manifold_i.ColliderA.IsTrigger
                     % Extract data
