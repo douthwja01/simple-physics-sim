@@ -233,5 +233,34 @@ classdef CollisionExtensions
                 isColliding);
         end
     end
+    % Math
+    methods (Static)
+        function [axisInterval] = GetAxisInterval(vertices,axis)
+            % This function creates an interval defining the projection of
+            % this shape onto a given axis.
+
+            % Ensure dimensions
+            query = [axis(1);axis(2);axis(3)];
+
+            % We need to loop through these points and get the minimum and
+            % maximums on the provided axis (axis is assumed to be
+            % arbitrary)
+
+            imin = inf; imax = -inf;
+            for i = 1:size(vertices,1)
+                projection = dot(query,vertices(i,:));
+                % If the projection is greater record it.
+                if projection > imax
+                    imax = projection;
+                end
+                % If the projection is smaller record it.
+                if projection < imin
+                    imin = projection;
+                end
+            end
+            % Return an interval capturing it.
+            axisInterval = Interval(imin,imax);
+        end
+    end
 end
 

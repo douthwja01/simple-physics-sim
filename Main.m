@@ -12,8 +12,7 @@ gridPoints = CreateGrid([0;0;4],numberOfObjects,numberPerColumn,1.5);
 for i = 1:numberOfObjects
     % Place the object
     entity_i = EntityCreator.Box(sprintf("Object %d (Box)",i),gridPoints(:,i),Quaternion.Zero);
-%     entity_i.Transform.Position = entity_i.Transform.Position + 2*rand(3,1);
-    
+ 
     % Add elements
     entity_i.RigidBody = RigidBody();
     entity_i.Renderer.Alpha = 0.2;

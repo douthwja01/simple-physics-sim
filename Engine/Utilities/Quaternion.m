@@ -120,7 +120,7 @@ classdef Quaternion < handle
             Q = Quaternion(q0);
         end
         % Conversions
-        function [R] = GetRotationMatrix(this)
+        function [R] = GetMatrix(this)
             % This function computes the rotation matrix of the quaternion
             % variables describing the 3D rotations of 3D body.
 

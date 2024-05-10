@@ -21,6 +21,8 @@ classdef OBBCollider < Collider
 
             % Call the parent
             [this] = this@Collider();
+            % Recalculate 
+            this.RecalculateRadius();
         end
         % Get/sets
         function set.Size(this,s)
@@ -93,51 +95,66 @@ classdef OBBCollider < Collider
             assert(this.Code == ColliderCode.OBB,"First collider must be a box collider.");
             assert(plane.Code == ColliderCode.Plane,"Second collider must be a plane collider.");
 
-            % Pull out the transforms
-            pTransform = plane.Transform;
-            bTransform = this.Transform;
-            % Origin positions in the world
-            pWorldPosition = pTransform.Inertial.Position;
-            bWorldPosition = bTransform.Inertial.Position;
+            n = plane.normal;
+            s03 = this.Transform.Inertial;
+            orientation = s03.Quaternion.GetMatrix();
+            position = s03.Position;
 
-            % Create a ray using the plane origin
-            axisRay = Ray.FromVector(pWorldPosition,plane.Normal);
-            % Height of the box center above the plane
-            centerToPlaneHeight = Ray.PointProjection(axisRay,bWorldPosition);
+            plen = ...
+                this.Size(1) * abs(dot(n,orientation(:,1))) + ...
+                this.Size(2) * abs(dot(n,orientation(:,2))) + ...
+                this.Size(3) * abs(dot(n,orientation(:,3)));
 
-            % Get the collider mesh
-            collisionMesh = this.GetWorldMesh();
-            vertexProjections = inf(collisionMesh.NumberOfVertices,1);
-            for i = 1:collisionMesh.NumberOfVertices
-                % A given collision vertex
-                coordinate = collisionMesh.Vertices(i,:)';
-                % Its projection on the separation vector
-                [vertexProjections(i)] = Ray.PointProjection(axisRay,coordinate);
-            end
+            dist = dot(n,position) - plane.Distance;
+        
+            isColliding = abs(dist) < plen;
 
-            % Get the smallest projected distance
-            [smallestVertexProjection,minIndex] = min(vertexProjections);
-            % No collision is occuring
-            isColliding = smallestVertexProjection < 0;
 
-            if ~isColliding
-                points = ContactPoints();
-                return;
-            end
-            % The penetrating vertex
-            deepestPointOfAInB = collisionMesh.Vertices(minIndex,:)';
-            % The point on the plane closet to the vertex
-            deepestPointOfBInA = pWorldPosition - centerToPlaneHeight*axisRay.Direction;
-            % +ve depth to be resolved
-            toResolve = abs(smallestVertexProjection);
-
-            % Create the points
-            points = ContactPoints( ...
-                deepestPointOfAInB, ...
-                deepestPointOfBInA, ...
-                axisRay.Direction,...
-                toResolve,...
-                isColliding);
+%             % Pull out the transforms
+%             pTransform = plane.Transform;
+%             bTransform = this.Transform;
+%             % Origin positions in the world
+%             pWorldPosition = pTransform.Inertial.Position;
+%             bWorldPosition = bTransform.Inertial.Position;
+% 
+%             % Create a ray using the plane origin
+%             axisRay = Ray.FromVector(pWorldPosition,plane.Normal);
+%             % Height of the box center above the plane
+%             centerToPlaneHeight = Ray.PointProjection(axisRay,bWorldPosition);
+% 
+%             % Get the collider mesh
+%             collisionMesh = this.GetWorldMesh();
+%             vertexProjections = inf(collisionMesh.NumberOfVertices,1);
+%             for i = 1:collisionMesh.NumberOfVertices
+%                 % A given collision vertex
+%                 coordinate = collisionMesh.Vertices(i,:)';
+%                 % Its projection on the separation vector
+%                 [vertexProjections(i)] = Ray.PointProjection(axisRay,coordinate);
+%             end
+% 
+%             % Get the smallest projected distance
+%             [smallestVertexProjection,minIndex] = min(vertexProjections);
+%             % No collision is occuring
+%             isColliding = smallestVertexProjection < 0;
+% 
+%             if ~isColliding
+%                 points = ContactPoints();
+%                 return;
+%             end
+%             % The penetrating vertex
+%             deepestPointOfAInB = collisionMesh.Vertices(minIndex,:)';
+%             % The point on the plane closet to the vertex
+%             deepestPointOfBInA = pWorldPosition - centerToPlaneHeight*axisRay.Direction;
+%             % +ve depth to be resolved
+%             toResolve = abs(smallestVertexProjection);
+% 
+%             % Create the points
+%             points = ContactPoints( ...
+%                 deepestPointOfAInB, ...
+%                 deepestPointOfBInA, ...
+%                 axisRay.Direction,...
+%                 toResolve,...
+%                 isColliding);
         end
         function [isColliding,points] = CheckCapsule(this,capsule)
             % Find the collision points between an OBB and a capsule.
@@ -146,31 +163,80 @@ classdef OBBCollider < Collider
         function [isColliding,points] = CheckAABB(this,aabb)
             % Find the collision points between an OBB and an AABB.
 
-            rotationData = this.Transform.Rotation;
+           % Find the collision points between two OBB boxes.
 
-            axes = zeros(6,3);
-            axes(1,:) = [1, 0, 0];
-            axes(2,:) = [0, 1, 0];
-            axes(3,:) = [0, 0, 1];
-            axes(4,:) = rotationData(1,:);
-            axes(5,:) = rotationData(2,:);
-            axes(6,:) = rotationData(3,:);
+            % Sanity check
+            assert(this.Code == ColliderCode.OBB,"First collider must be a box collider.");
+            assert(obb.Code == ColliderCode.OBB,"Second collider must be a box collider.");
 
-            for i = 1:3
-                for j = 4:6
-                    crossAxes = cross(axes(i,:),axes(j,:));
-                    axes = vertcat(axes,crossAxes);
-                end
-            end
-            % Check for no overlap on each axis
-            for i = 1:15
-                if ~this.CheckAxisOverlap(this, aabb, axes(i,:))
-                    flag = false;
-                    return
-                end
+            % Variables
+            isColliding = false;
+            so3A = this.Transform.Inertial;
+            so3B = aabb.Transform.Inertial;
+
+            distance = norm(so3B.Position - so3A.Position);
+            if distance > (this.ImaginaryRadius + aabb.ImaginaryRadius)
+                points = ContactPoints();
+                return;
             end
 
-            flag = true;
+            % Array of testable axes
+            axesA = so3A.Rotation.GetMatrix();
+            axes = [axesA;eye(3)];
+            for i = 1:3 
+                for  j = 4:6
+                    axes = vertcat(axes,cross(axes(i,:),axes(j,:)));
+                end
+            end
+
+            aVertices = this.GetVertices();
+            bVertices = aabb.GetVertices();
+            minSeparation = inf;
+            minSeparationAxis = zeros(3,1);
+            for i = 1:size(axes,1)
+                queryAxis = [axes(i,1);axes(i,2);axes(i,3)];
+                % If the axis is basically parallel
+                axisLength = norm(queryAxis);
+                if axisLength < 0.0001
+                    continue
+                end
+                % Normalise the axis
+                queryAxis = queryAxis/axisLength;
+                % Project this obb on the axis
+                [projectionA] = CollisionExtensions.GetAxisInterval(aVertices,queryAxis);
+                [projectionB] = CollisionExtensions.GetAxisInterval(bVertices,queryAxis);
+                
+                % Intersection projections along the axis
+                overlap = projectionA.Intersect(projectionB);
+                % An axis exists with no overlap, no collision
+                if isempty(overlap)
+                    isColliding = false;
+                    points = ContactPoints();
+                    return;
+                end
+
+                % If the separation is less than recorded
+                if overlap.Span < minSeparation
+                    minAProjection = projectionA;
+                    minBProjection = projectionB;
+                    minSeparation = overlap.Span;
+                    minSeparationAxis = queryAxis;
+                end
+
+            end
+            
+            % Calculate the collision points based on the minimum separation axis
+            pointAinB = so3A.Position + (minAProjection.Span/2) * minSeparationAxis;
+            pointBinA = so3B.Position - (minBProjection.Span/2) * minSeparationAxis;
+
+            isColliding = true;
+            % Construct the points
+            points = ContactPoints( ...
+                pointAinB, ...
+                pointBinA, ...
+                -minSeparationAxis, ...
+                minSeparation, ...
+                isColliding);
         end
         function [isColliding,points] = CheckOBB(this,obb)
             % Find the collision points between two OBB boxes.
@@ -179,53 +245,74 @@ classdef OBBCollider < Collider
             assert(this.Code == ColliderCode.OBB,"First collider must be a box collider.");
             assert(obb.Code == ColliderCode.OBB,"Second collider must be a box collider.");
 
-            % Origin positions in the world
-            aWorldPosition = this.Transform.Inertial.Position;
-            bWorldPosition = obb.Transform.Inertial.Position;
+            % Variables
+            isColliding = false;
+            so3A = this.Transform.Inertial;
+            so3B = obb.Transform.Inertial;
 
-            % Create a ray using the plane origin
-            axisRay = Ray.FromPoints(aWorldPosition,bWorldPosition);
-            reverseAxisRay = Ray.FromPoints(bWorldPosition,aWorldPosition);
-            % Get the orientated collision meshes
-            collisionMeshA = this.GetWorldMesh();
-            collisionMeshB = obb.GetWorldMesh();
-
-            % Find the greatest projection of A on the axis
-            vertexProjectionsA = zeros(collisionMeshA.NumberOfVertices,1);
-            % Get the projections on the axis vector
-            for i = 1:collisionMeshA.NumberOfVertices
-                [vertexProjectionsA(i)] = Ray.PointProjection(axisRay,collisionMeshA.Vertices(i,:)');
-            end
-            % Maximum vertex extent from A towards B
-            [maxAProjection] = max(vertexProjectionsA);
-
-            % Find the greatest projection of B on the axis
-            vertexProjectionsB = zeros(collisionMeshB.NumberOfVertices,1);
-            % Get the projections on the axis vector
-            for i = 1:collisionMeshB.NumberOfVertices
-                [vertexProjectionsB(i)] = Ray.PointProjection(reverseAxisRay,collisionMeshB.Vertices(i,:)');
-            end
-            % Minimum vertex extent from B towards A (min w.r.t to ray direction)
-            [maxBProjection] = max(vertexProjectionsB);
-
-            % CHECK IF THIS EXCEEDS THE SEPARATION OF THE TWO OBJECTS
-            depth = (maxAProjection + maxBProjection) - axisRay.Magnitude;
-            % Is colliding
-            isColliding = depth > 0;
-            if ~isColliding
+            distance = norm(so3B.Position - so3A.Position);
+            if distance > (this.ImaginaryRadius + obb.ImaginaryRadius)
                 points = ContactPoints();
                 return;
             end
-            % Get the points violating the opposing geometry
-            deepestPointOfAInB = Ray.ProjectDistance(axisRay,maxAProjection);
-            deepestPointOfBInA = Ray.ProjectDistance(reverseAxisRay,maxBProjection);
 
-            % Create the points
+            % Array of testable axes
+            axesA = so3A.Rotation.GetMatrix();
+            axesB = so3B.Rotation.GetMatrix();
+            axes = [axesA;axesB];
+            for i = 1:3 
+                for  j = 4:6
+                    axes = vertcat(axes,cross(axes(i,:),axes(j,:)));
+                end
+            end
+
+            aVertices = this.GetVertices();
+            bVertices = obb.GetVertices();
+            minSeparation = inf;
+            minSeparationAxis = zeros(3,1);
+            for i = 1:size(axes,1)
+                queryAxis = [axes(i,1);axes(i,2);axes(i,3)];
+                % If the axis is basically parallel
+                axisLength = norm(queryAxis);
+                if axisLength < 0.0001
+                    continue
+                end
+                % Normalise the axis
+                queryAxis = queryAxis/axisLength;
+                % Project this obb on the axis
+                [projectionA] = CollisionExtensions.GetAxisInterval(aVertices,queryAxis);
+                [projectionB] = CollisionExtensions.GetAxisInterval(bVertices,queryAxis);
+                
+                % Intersection projections along the axis
+                overlap = projectionA.Intersect(projectionB);
+                % An axis exists with no overlap, no collision
+                if isempty(overlap)
+                    isColliding = false;
+                    points = ContactPoints();
+                    return;
+                end
+
+                % If the separation is less than recorded
+                if overlap.Span < minSeparation
+                    minAProjection = projectionA;
+                    minBProjection = projectionB;
+                    minSeparation = overlap.Span;
+                    minSeparationAxis = queryAxis;
+                end
+
+            end
+            
+            % Calculate the collision points based on the minimum separation axis
+            pointAinB = so3A.Position + (minAProjection.Span/2) * minSeparationAxis;
+            pointBinA = so3B.Position - (minBProjection.Span/2) * minSeparationAxis;
+
+            isColliding = true;
+            % Construct the points
             points = ContactPoints( ...
-                deepestPointOfAInB, ...
-                deepestPointOfBInA, ...
-                reverseAxisRay.Direction,...
-                depth,...
+                pointAinB, ...
+                pointBinA, ...
+                -minSeparationAxis, ...
+                minSeparation, ...
                 isColliding);
         end
         function [isColliding,points] = CheckTriangle(this,triangle)
@@ -248,7 +335,7 @@ classdef OBBCollider < Collider
                 0,-1,0;
                 -1,0,0];
             % Return the rotated normals
-            n = this.Transform.GetWorldRotationMatrix()*n_unit;
+            n = n_unit*this.Transform.Inertial.Rotation.GetMatrix();
         end
         function [mesh] = GetWorldMesh(this)
             % Calculate the boxes mesh in the world frame.
@@ -288,36 +375,28 @@ classdef OBBCollider < Collider
         end
     end
     methods (Access = protected)
+        function [vertices] = GetVertices(this)
+
+            maxExtents = this.Size/2;
+            minExtents = -maxExtents;
+            vertices = zeros(8,3);
+            vertices(1,:) = [maxExtents(1),maxExtents(2),maxExtents(3)];
+            vertices(2,:) = [maxExtents(1),maxExtents(2),minExtents(3)];
+            vertices(3,:) = [maxExtents(1),minExtents(2),minExtents(3)];
+            vertices(4,:) = [maxExtents(1),minExtents(2),maxExtents(3)];
+            vertices(5,:) = [minExtents(1),minExtents(2),minExtents(3)];
+            vertices(6,:) = [minExtents(1),minExtents(2),maxExtents(3)];
+            vertices(7,:) = [minExtents(1),maxExtents(2),maxExtents(3)];
+            vertices(8,:) = [minExtents(1),maxExtents(2),minExtents(3)];
+            % Transform
+            temp = [vertices,ones(8,1)];
+            T = this.Transform.Inertial.GetMatrix();
+            temp = T*temp';
+            vertices = temp(1:3,:)';
+        end
         function [this] = RecalculateRadius(this)
             % Recalculate the Imaginary radius value
-            this.ImaginaryRadius = sqrt(this.Size^2 + this.Height^2 + this.Depth^2);
-        end
-        function [axisInterval] = GetAxisInterval(this,axis)
-            % This function creates an interval defining the projection of
-            % this shape onto a given axis.
-
-            % Ensure same size
-            axis = axis';
-            % Define vertex data from limits
-            vertices = this.GetVertices();
-            % We need to loop through these points and get the minimum and
-            % maximums on the provided axis (axis is assumed to be
-            % arbitrary)
-
-            imin = inf; imax = -inf;
-            for i = 1:size(vertices,1)
-                projection = dot(axis,vertices);
-                % If the projection is greater record it.
-                if projection > imax
-                    imax = projection;
-                end
-                % If the projection is smaller record it.
-                if projection < imin
-                    imin = projection;
-                end
-            end
-            % Return an interval capturing it.
-            axisInterval = Interval(imin,imax);
+            this.ImaginaryRadius = norm(this.Size);
         end
     end
 end

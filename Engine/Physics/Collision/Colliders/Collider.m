@@ -96,9 +96,6 @@ classdef (Abstract) Collider < Element
         [isColliding,points] = CheckTriangle(this,triangle);
         [isColliding,points] = CheckMesh(this,mesh);
     end
-    methods (Abstract, Access = protected)
-        [int] = GetAxisInterval(this,axis); % Each collider has a distinct answer
-    end
     methods (Access = protected)
         % Event handles
         function [this] = OnCollision(this,colliderData)

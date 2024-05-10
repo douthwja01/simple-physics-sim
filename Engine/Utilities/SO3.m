@@ -57,7 +57,7 @@ classdef SO3 < handle
             % This function returns the current transformation matrix.
 
             % Extract the state
-            Rq = this.Rotation.GetRotationMatrix();
+            Rq = this.Rotation.GetMatrix();
             % Create the matrix
             Tq = [Rq,this.Position;zeros(1,3),1];
             % The scale matrix
