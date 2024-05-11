@@ -1,5 +1,6 @@
 classdef AABB < handle
-    % An Axis-Aligned Bounding Box (AABB) collider primitive
+    % An Axis-Aligned Bounding Box (AABB) boundary primitive for use in and
+    % outside "AABBColliders" as a way of defining a 3D region.
     
     properties (Dependent) 
         Min;
@@ -199,18 +200,41 @@ classdef AABB < handle
             % All axes intersect
             flag = true;
         end
-        function [flag] = IntersectAABB(this,other)
+        function [int]  = IntersectAABB(this,other)
             % Test for overlap of two AABBs
 
+            % Default to empty intersection
+            int = [];
+            
+            xIntersection = this.Bounds(1).Intersect(other.Bounds(1));
+            if isempty(xIntersection)
+                return;
+            end
+            yIntersection = this.Bounds(2).Intersect(other.Bounds(2));
+            if isempty(yIntersection)
+                return;
+            end
+            zIntersection = this.Bounds(3).Intersect(other.Bounds(3));
+            if isempty(zIntersection)
+                return;
+            end
+            % Create intersection interval
+            int = AABB();
+            int.Bounds(1) = xIntersection;
+            int.Bounds(2) = yIntersection;
+            int.Bounds(3) = zIntersection;
+        end
+        function [flag] = HasIntersection(this,other)
+            % Faster simpled boolean comparison.
             flag = false;
-            if ~this.Bounds(1).IntersectInterval(other.Bounds(1))
-                return
+            if ~this.Bounds(1).HasIntersection(other.Bounds(1))
+                return;
             end
-            if ~this.Bounds(2).IntersectInterval(other.Bounds(2))
-                return
+            if ~this.Bounds(2).HasIntersection(other.Bounds(2))
+                return;
             end
-            if ~this.Bounds(3).IntersectInterval(other.Bounds(3))
-                return
+            if ~this.Bounds(3).HasIntersection(other.Bounds(3))
+                return;
             end
             flag = true;
         end
@@ -263,9 +287,37 @@ classdef AABB < handle
             end
         end        
         % General
+        function [h] = Draw(this,container,colour)
+            % Draw the AABB to the container
+            if nargin < 3
+                colour = 'b';
+            end
+            if nargin < 2
+                container = gca;
+            end
+            mesh = this.ToMesh();
+            h = mesh.Draw(container,colour);
+        end
         function [mesh] = ToMesh(this)
             % Create a mesh from the current AABB instance.
             mesh = MeshExtensions.CuboidFromExtents(this.Min,this.Max);
+        end
+        function [v] = ToVertices(this)
+            % This function converts the AABB to vertices points.
+
+            % Express the bounds as dimension ranges
+            aabb_min = this.Min;
+            aabb_max = this.Max;
+            % Define vertex data from limits
+            v = zeros(8,3);
+            v(1,:) = [aabb_max(1),aabb_max(2),aabb_max(3)];
+            v(2,:) = [aabb_max(1),aabb_max(2),aabb_min(3)];
+            v(3,:) = [aabb_max(1),aabb_min(2),aabb_min(3)];
+            v(4,:) = [aabb_max(1),aabb_min(2),aabb_max(3)];
+            v(5,:) = [aabb_min(1),aabb_min(2),aabb_min(3)];
+            v(6,:) = [aabb_min(1),aabb_min(2),aabb_max(3)];
+            v(7,:) = [aabb_min(1),aabb_max(2),aabb_max(3)];
+            v(8,:) = [aabb_min(1),aabb_max(2),aabb_min(3)];
         end
     end
     % AABB Tools

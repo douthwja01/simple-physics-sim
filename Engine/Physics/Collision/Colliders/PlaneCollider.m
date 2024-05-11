@@ -23,28 +23,6 @@ classdef PlaneCollider < Collider
             this.Normal = n;
         end
     end
-    % Legacy
-    methods
-        function [aabb,cid] = GetWorldAABB(this)
-            % This function is called when the normal vector is changed in
-            % order to update the mesh that defines the plane to match the
-            % new normal.
-
-            % Recompute AABB
-            w = this.Width;
-            d = this.Depth;
-            t = this.Thickness;
-            aabb = AABB(0.5*[-w,w],0.5*[-d,d],[0,-t]);
-
-            % Get the world properties
-            so3 = this.Transform.Inertial;
-            % Offset and scale the unit AABB
-            aabb = so3.Position + so3.Scale*aabb;
-            % Return the collider ID
-            cid = this.Cid;
-        end
-    end
-
     %% Collision Pairing
     methods
         function [isColliding,points] = CheckPoint(this,point)
@@ -56,7 +34,7 @@ classdef PlaneCollider < Collider
         function [isColliding,points] = CheckRay(this,ray)
             % Find the collision points between the plane and a ray.
         end
-        function [isColliding,points] = CheckSphere(this,sphere)
+        function [isColliding,points] = CheckSphere(this,sphere)            % [TO DONE]
             % Find the collision points between this plane and a sphere.
             points = sphere.CheckPlane(this);
         end
@@ -113,15 +91,15 @@ classdef PlaneCollider < Collider
                 toResolve,...
                 isColliding);
         end
-        function [isColliding,points] = CheckCapsule(this,capsule)
+        function [isColliding,points] = CheckCapsule(this,capsule)          % [DONE]
             % Find the collision points between a plane and a capsule.
             points = capsule.CheckPlane(this);
         end
-        function [isColliding,points] = CheckAABB(this,aabb)
+        function [isColliding,points] = CheckAABB(this,aabb)                % [DONE]
             % Find the collision points between a plane and an AABB.
             points = aabb.CheckPlane(this);
         end
-        function [isColliding,points] = CheckOBB(this,obb)
+        function [isColliding,points] = CheckOBB(this,obb)                  % [DONE]   
             % Find the collision points between a plane and an obb.
             points = obb.CheckPlane(this);
         end
@@ -130,19 +108,48 @@ classdef PlaneCollider < Collider
 
             % [TO FILL]
         end
-        function [isColliding,points] = CheckMesh(this,mesh)
+        function [isColliding,points] = CheckMesh(this,mesh)                % [DONE]
             % Find the collision points between a plane and a mesh.
             points = mesh.CheckPlane(this);
         end
     end
+    %% Utilties
+    methods 
+        function [aabb,cid] = GetWorldAABB(this)
+            % This function is called when the normal vector is changed in
+            % order to update the mesh that defines the plane to match the
+            % new normal.
 
-    %% Support
-    methods (Access = protected)
-        function [int] = GetAxisInterval(this,axis)
-            % This function gets the projection of this collider on a given
-            % axis.
+            % Recompute AABB
+            w = this.Width;
+            d = this.Depth;
+            t = this.Thickness;
+            aabb = AABB(0.5*[-w,w],0.5*[-d,d],[0,-t]);
 
-
+            % Get the world properties
+            so3 = this.Transform.Inertial;
+            % Offset and scale the unit AABB
+            aabb = so3.Position + so3.Scale*aabb;
+            % Return the collider ID
+            cid = this.Cid;
+        end
+        function [h] = Draw(this,container,colour)
+            % Allow the drawing of this collider to a given container.
+            if nargin < 3
+                colour = 'b';
+            end
+            if nargin < 2
+                container = gca;
+            end
+            % Generate patch
+            mesh = MeshExtensions.Plane( ...
+                this.Transform.Inertial.Position, ...
+                this.Normal, ...
+                this.Width, ...
+                this.Height);  
+            % Draw
+            h = mesh.Draw(container,colour);
+            set(h,"FaceAlpha",0.2);
         end
     end
 end

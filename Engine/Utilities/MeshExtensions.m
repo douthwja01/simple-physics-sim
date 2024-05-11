@@ -175,8 +175,8 @@ classdef MeshExtensions
             % a dimensions provided.
             
             % Sanity check
-            assert(IsColumn(minExtents,3),"Expecting two vectors defining min:max in each dimension");
-            assert(IsColumn(maxExtents,3),"Expecting a column vector of dimension maximums [3x1].")
+            assert(numel(minExtents) == 3,"Expecting two vectors defining min:max in each dimension");
+            assert(numel(maxExtents) == 3,"Expecting a column vector of dimension maximums [3x1].")
             
             % Define vertex data from limits
             vertices = zeros(8,3);

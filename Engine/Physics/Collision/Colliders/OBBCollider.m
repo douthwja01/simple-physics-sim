@@ -22,13 +22,13 @@ classdef OBBCollider < Collider
             % Call the parent
             [this] = this@Collider();
             % Recalculate 
-            this.RecalculateRadius();
+            this.RecalculateProperties();
         end
         % Get/sets
         function set.Size(this,s)
             assert(isscalar(s),"Expecting a size vector [3x1].");
             this.Size = s;
-            this.RecalculateRadius();
+            this.RecalculateProperties();
         end
     end
     %% Collision Pairing
@@ -156,18 +156,18 @@ classdef OBBCollider < Collider
 %                 toResolve,...
 %                 isColliding);
         end
-        function [isColliding,points] = CheckCapsule(this,capsule)
+        function [isColliding,points] = CheckCapsule(this,capsule)          % [DONE]
             % Find the collision points between an OBB and a capsule.
             points = capsule.CheckOBB(this);
         end
-        function [isColliding,points] = CheckAABB(this,aabb)
+        function [isColliding,points] = CheckAABB(this,aabb)                % [DONE]
             % Find the collision points between an OBB and an AABB.
 
            % Find the collision points between two OBB boxes.
 
             % Sanity check
             assert(this.Code == ColliderCode.OBB,"First collider must be a box collider.");
-            assert(obb.Code == ColliderCode.OBB,"Second collider must be a box collider.");
+            assert(aabb.Code == ColliderCode.AABB,"Second collider must be a AABB collider.");
 
             % Variables
             isColliding = false;
@@ -175,20 +175,22 @@ classdef OBBCollider < Collider
             so3B = aabb.Transform.Inertial;
 
             distance = norm(so3B.Position - so3A.Position);
-            if distance > (this.ImaginaryRadius + aabb.ImaginaryRadius)
+            if distance > (this.ImaginaryRadius + obb.ImaginaryRadius)
                 points = ContactPoints();
                 return;
             end
 
             % Array of testable axes
-            axesA = so3A.Rotation.GetMatrix();
-            axes = [axesA;eye(3)];
+            axesA = so3A.Rotation.GetMatrix()'; % [Should not be transposed?]
+            axesB = eye(3);
+            axes = [axesA;axesB];
             for i = 1:3 
                 for  j = 4:6
                     axes = vertcat(axes,cross(axes(i,:),axes(j,:)));
                 end
             end
-
+            
+            % Get the transformed vertices
             aVertices = this.GetVertices();
             bVertices = aabb.GetVertices();
             minSeparation = inf;
@@ -222,13 +224,11 @@ classdef OBBCollider < Collider
                     minSeparation = overlap.Span;
                     minSeparationAxis = queryAxis;
                 end
-
             end
             
             % Calculate the collision points based on the minimum separation axis
             pointAinB = so3A.Position + (minAProjection.Span/2) * minSeparationAxis;
             pointBinA = so3B.Position - (minBProjection.Span/2) * minSeparationAxis;
-
             isColliding = true;
             % Construct the points
             points = ContactPoints( ...
@@ -238,7 +238,7 @@ classdef OBBCollider < Collider
                 minSeparation, ...
                 isColliding);
         end
-        function [isColliding,points] = CheckOBB(this,obb)
+        function [isColliding,points] = CheckOBB(this,obb)                  % [DONE]
             % Find the collision points between two OBB boxes.
 
             % Sanity check
@@ -257,8 +257,8 @@ classdef OBBCollider < Collider
             end
 
             % Array of testable axes
-            axesA = so3A.Rotation.GetMatrix();
-            axesB = so3B.Rotation.GetMatrix();
+            axesA = so3A.Rotation.GetMatrix()'; % [Should not be transposed?]
+            axesB = so3B.Rotation.GetMatrix()';
             axes = [axesA;axesB];
             for i = 1:3 
                 for  j = 4:6
@@ -306,6 +306,15 @@ classdef OBBCollider < Collider
             pointAinB = so3A.Position + (minAProjection.Span/2) * minSeparationAxis;
             pointBinA = so3B.Position - (minBProjection.Span/2) * minSeparationAxis;
 
+%             aLine = [so3A.Position,pointAinB]';
+%             bLine = [so3B.Position,pointBinA]';
+% 
+%             plot3(gca,aLine(:,1),aLine(:,2),aLine(:,3),"r","LineWidth",2);
+%             plot3(gca,bLine(:,1),bLine(:,2),bLine(:,3),"b","LineWidth",2);
+% 
+%             plot3(gca,pointAinB(1),pointAinB(2),pointAinB(3),"r^");
+%             plot3(gca,pointBinA(1),pointBinA(2),pointBinA(3),"b^");
+
             isColliding = true;
             % Construct the points
             points = ContactPoints( ...
@@ -318,7 +327,7 @@ classdef OBBCollider < Collider
         function [isColliding,points] = CheckTriangle(this,triangle)
             % Find the collision points between an obb and a triangle.
         end
-        function [isColliding,points] = CheckMesh(this,mesh)
+        function [isColliding,points] = CheckMesh(this,mesh)                % [DONE]
             % Find the collision points between an OOB and a mesh.
             points = mesh.CheckOBB(this);
         end
@@ -394,9 +403,9 @@ classdef OBBCollider < Collider
             temp = T*temp';
             vertices = temp(1:3,:)';
         end
-        function [this] = RecalculateRadius(this)
+        function [this] = RecalculateProperties(this)
             % Recalculate the Imaginary radius value
-            this.ImaginaryRadius = norm(this.Size);
+            this.ImaginaryRadius = norm(this.Size/2);
         end
     end
 end

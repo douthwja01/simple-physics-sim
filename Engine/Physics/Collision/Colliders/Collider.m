@@ -81,6 +81,8 @@ classdef (Abstract) Collider < Element
     methods (Abstract)
         % Provide a means to get the world AABB for the collider
         [aabb,cid] = GetWorldAABB(this);
+        % Provide a means of visualising the collider
+        [h] = Draw(container,colour);
     end
 
     %% Internals
