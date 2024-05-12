@@ -73,7 +73,7 @@ classdef AABBCollider < Collider
         end
         function [isColliding,points] = CheckCapsule(this,capsule)          % [DONE]
             % Find the collision points between an AABB and a capsule.
-            points = capsule.CheckAABB(this);
+            [isColliding,points] = capsule.CheckAABB(this);
         end
         function [isColliding,points] = CheckAABB(this,aabb)
             % Find the collision points between an AABB and an AABB.
@@ -157,14 +157,14 @@ classdef AABBCollider < Collider
         end
         function [isColliding,points] = CheckOBB(this,obb)                  % [DONE]
             % Find the collision points between an AABB and an OBB box.
-            points = obb.CheckAABB(this);
+            [isColliding,points] = obb.CheckAABB(this);
         end
         function [isColliding,points] = CheckTriangle(this,triangle)
             % Find the collision points between an aabb and a triangle.
         end
         function [isColliding,points] = CheckMesh(this,mesh)                % [DONE]
             % Find the collision points between an AABB and a mesh.
-            points = mesh.CheckAABB(this);
+            [isColliding,points] = mesh.CheckAABB(this);
         end
     end
     %% Utilities

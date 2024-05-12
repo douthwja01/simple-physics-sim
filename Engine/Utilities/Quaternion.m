@@ -158,6 +158,25 @@ classdef Quaternion < handle
     %% (Static) Support methods
     methods (Static)
         % Operations
+        function [r] = RotateVector(q,v)
+            % This function rotates a vector by a given quaternion.
+
+            % Extract the vector part of the quaternion
+            u = [q.X;q.Y;q.Z]; % The vector part
+            % Extract the scalar part of the quaternion
+            s = q.W;
+            % Do the math
+            r = 2 * dot(u, v) * u + (s*s - dot(u, u)) * v + 2 * s * cross(u, v);
+        end
+        function [Q] = VectorArgument(v1,v2)
+            % This function calculates the rotational argument between two
+            % given vectors and returns that expressed as a quaternion.
+
+
+            axis = cross(v1, v2);
+            w = sqrt((norm(v1) ^ 2) * (norm(v2) ^ 2)) + dot(v1, v2);
+            Q = Quaternion(axis(1),axis(2),axis(3),w);
+        end
         function [dQ] = Rate(Q,omega)
             % Compute the quaternion differential
 

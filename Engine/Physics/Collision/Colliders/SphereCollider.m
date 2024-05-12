@@ -36,7 +36,6 @@ classdef SphereCollider < Collider
             % Check this collider against a second sphere collider
 
             % Sanity check
-            assert(this.Code == ColliderCode.Sphere,"First collider must be a sphere collider.");
             assert(sphere.Code == ColliderCode.Sphere,"Second collider must be a sphere collider.");
 
             % Pull out the world positions
@@ -46,19 +45,18 @@ classdef SphereCollider < Collider
             % Separation axis
             seperationAxis = positionA - positionB;
             distance = norm(seperationAxis);
-            unitSeperationAxis = seperationAxis/distance;
-            % Points furthest towards each other
-            pointAinB = positionA + unitSeperationAxis*this.Radius;
-            pointBinA = positionB - unitSeperationAxis*sphere.Radius;
             % The overlap distance
             depth = distance - (this.Radius + sphere.Radius);
-            isColliding = ~(depth > 0);
+            isColliding = depth <= 0;
             % No collision
             if ~isColliding
                 points = ContactPoints();
                 return;
             end
-
+            % Points furthest towards each other
+            unitSeperationAxis = seperationAxis/distance;
+            pointAinB = positionA + unitSeperationAxis*this.Radius;
+            pointBinA = positionB - unitSeperationAxis*sphere.Radius;
             % Collision points
             points = ContactPoints( ...
                 pointAinB, ...
@@ -72,45 +70,59 @@ classdef SphereCollider < Collider
 
             % Sanity check
             assert(plane.Code == ColliderCode.Plane,"Second collider must be a plane collider.");
-
+            
             % Pull out the transforms
-            sWorldPosition = this.Transform.Inertial.Position;
-            % Origin positions in the world
-            pWorldPosition = plane.Transform.Inertial.Position;
+            sphereSo3 = this.Transform.Inertial;
+            planeSo3  = plane.Transform.Inertial;
 
             % Sphere properties
-            aCenter = sWorldPosition;
-            aRadius = this.Radius; % * sTransform.GetWorldScale();
-            planeNormal = plane.Normal/norm(plane.Normal);
+		    spherePosition = sphereSo3.Position;
+            sphereRadius = this.Radius; 
+
+            planeNormal = planeSo3.Rotation.GetMatrix()*plane.Normal;
+            planeNormal = planeNormal/norm(planeNormal);
 
             % Planar projection
-            distance = dot(sWorldPosition - pWorldPosition,planeNormal);
-
+            distance = dot(sphereSo3.Position - planeSo3.Position,planeNormal);
+            
             % Is it colliding
-            isColliding = ~(distance > aRadius);
+            isColliding = ~(distance > sphereRadius);
             if ~isColliding
-                points = ContactPoints();
+			    points = ContactPoints();
                 return;
             end
             % Calculate the scalar distance to be resolved
-            toResolve = distance - aRadius;
-            sDepth = aCenter - planeNormal * aRadius;
-            pDepth = aCenter - planeNormal * toResolve;
+            toResolve = sphereRadius - distance;
+		    sphereInPlane = spherePosition - planeNormal * sphereRadius;
+		    planeInSphere = spherePosition - planeNormal * (sphereRadius - toResolve);
+
+%             For debugging
+%             plot3(gca,sphereInPlane(1),sphereInPlane(2),sphereInPlane(3),"r^");
+%             plot3(gca,planeInSphere(1),planeInSphere(2),planeInSphere(3),"b^");
+
             % Return the collision points
-            points = ContactPoints(pDepth,sDepth,planeNormal,toResolve,isColliding);
+            points = ContactPoints( ...
+                planeInSphere, ...
+                sphereInPlane, ...
+                planeNormal, ...
+                toResolve, ...
+                isColliding);
         end
         function [isColliding,points] = CheckCapsule(this,capsule)          % [DONE]
             % Find the collision points between a sphere and a capsule.
-            points = capsule.CheckSphere(this);
+            [isColliding,points] = capsule.CheckSphere(this);
         end
-        function [isColliding,points] = CheckAABB(this,aabb)
+        function [isColliding,points] = CheckAABB(this,aabb)                % [DONE]
             % Find the collision points between a sphere and an AABB.
             
-            so3 = this.Transform.Inertial;
-            abbSo3 = aabb.Transform.Inertial;
+            % Sanity check
+            assert(aabb.Code == ColliderCode.AABB,"Expecting a valid AABB collider.");
+
+            spherePosition = this.Transform.Inertial.Position;
+            boxPosition = aabb.Transform.Inertial.Position;
 
             % Check spherical separation first
-            relativePosition = abbSo3.Position - so3.Position;
+            relativePosition = boxPosition - spherePosition;
             distance = norm(relativePosition);
             if distance > aabb.ImaginaryRadius + this.Radius
                 isColliding = false;
@@ -119,23 +131,15 @@ classdef SphereCollider < Collider
             end
             
             % Point inside or on boundary of AABB
-            nearest = aabb.NearestPoint(so3.Position);
-
-            nearestVector = nearest - so3.Position;
+            nearest = aabb.NearestPoint(spherePosition);
+            nearestVector = nearest - spherePosition;
             distance = norm(nearestVector);
             unitSeperationAxis = nearestVector/distance;
             % Collision data
             isColliding = distance < this.Radius;
-            spherePointInBox = so3.Position + this.Radius*unitSeperationAxis;
+            spherePointInBox = spherePosition + this.Radius*unitSeperationAxis;
             boxPointInSphere = nearest;
             depth = norm(spherePointInBox - boxPointInSphere);
-
-%             line = [so3.Position,nearest]';
-%             plot3(gca,line(:,1),line(:,2),line(:,3),"r","LineWidth",2);
-%             %aabb.Draw(gca,"g",0.2);         
-%             plot3(gca,spherePointInBox(1),spherePointInBox(2),spherePointInBox(3),"r^","LineWidth",2);
-%             plot3(gca,boxPointInSphere(1),boxPointInSphere(2),boxPointInSphere(3),"b^","LineWidth",2);
-
             % Collision points
             points = ContactPoints( ...
                 spherePointInBox, ...
@@ -152,7 +156,7 @@ classdef SphereCollider < Collider
         end
         function [isColliding,points] = CheckMesh(this,mesh)                % [DONE]
             % Find the collision points between a sphere and a mesh.
-            points = mesh.CheckSphere(this);
+            [isColliding,points] = mesh.CheckSphere(this);
         end
     end
     %% Utilities

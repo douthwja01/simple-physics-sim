@@ -10,6 +10,7 @@ classdef PlaneCollider < Collider
         Depth = 1;
         Thickness = 0.05;
         Normal = [0;0;1];
+        Distance = 0; % The position of the plane along the normal
     end
     methods
         function [this] = PlaneCollider()
@@ -36,72 +37,39 @@ classdef PlaneCollider < Collider
         end
         function [isColliding,points] = CheckSphere(this,sphere)            % [TO DONE]
             % Find the collision points between this plane and a sphere.
-            points = sphere.CheckPlane(this);
+            [isColliding,points] = sphere.CheckPlane(this);
         end
         function [isColliding,points] = CheckPlane(this,plane)
             % Find the collision points between this OBB box and a plane.
 
             % Sanity check
-            assert(this.Code == ColliderCode.OBB,"First collider must be a box collider.");
             assert(plane.Code == ColliderCode.Plane,"Second collider must be a plane collider.");
-
-            % Pull out the transforms
-            pTransform = plane.Transform;
-            bTransform = this.Transform;
-            % Origin positions in the world
-            pWorldPosition = pTransform.GetWorldPosition();
-            bWorldPosition = bTransform.GetWorldPosition();
-
-            % Create a ray using the plane origin
-            axisRay = Ray.FromVector(pWorldPosition,plane.Normal);
-            % Height of the box center above the plane
-            centerToPlaneHeight = Ray.PointProjection(axisRay,bWorldPosition);
-
-            % Get the collider mesh
-            collisionMesh = this.GetWorldMesh();
-            vertexProjections = inf(collisionMesh.NumberOfVertices,1);
-            for i = 1:collisionMesh.NumberOfVertices
-                % A given collision vertex
-                coordinate = collisionMesh.Vertices(i,:)';
-                % Its projection on the separation vector
-                [vertexProjections(i)] = Ray.PointProjection(axisRay,coordinate);
-            end
-
-            % Get the smallest projected distance
-            [smallestVertexProjection,minIndex] = min(vertexProjections);
-            % No collision is occuring
-            isColliding = smallestVertexProjection < 0;
-
+            
+            % The plane argument
+            normalArg = cross(this.Normal,plane.Normal);
+            % If the arguement is null.
+            isColliding = norm(normalArg) > 0 || (this.Distance == plane.Distance);
+            % No collision, abort
             if ~isColliding
                 points = ContactPoints();
                 return;
             end
-            % The penetrating vertex
-            deepestPointOfAInB = collisionMesh.Vertices(minIndex,:)';
-            % The point on the plane closet to the vertex
-            deepestPointOfBInA = pWorldPosition - centerToPlaneHeight*axisRay.Direction;
-            % +ve depth to be resolved
-            toResolve = abs(smallestVertexProjection);
 
-            % Create the points
-            points = ContactPoints( ...
-                deepestPointOfAInB, ...
-                deepestPointOfBInA, ...
-                axisRay.Direction,...
-                toResolve,...
-                isColliding);
+
+            % Return the points structure
+            points = ContactPoints(AinB,BinA,axis,depth,isColliding);
         end
         function [isColliding,points] = CheckCapsule(this,capsule)          % [DONE]
             % Find the collision points between a plane and a capsule.
-            points = capsule.CheckPlane(this);
+            [isColliding,points] = capsule.CheckPlane(this);
         end
         function [isColliding,points] = CheckAABB(this,aabb)                % [DONE]
             % Find the collision points between a plane and an AABB.
-            points = aabb.CheckPlane(this);
+            [isColliding,points] = aabb.CheckPlane(this);
         end
         function [isColliding,points] = CheckOBB(this,obb)                  % [DONE]   
             % Find the collision points between a plane and an obb.
-            points = obb.CheckPlane(this);
+            [isColliding,points] = obb.CheckPlane(this);
         end
         function [isColliding,points] = CheckTriangle(this,triangle)
             % Find the collision points between the plane and a triangle.
@@ -110,28 +78,62 @@ classdef PlaneCollider < Collider
         end
         function [isColliding,points] = CheckMesh(this,mesh)                % [DONE]
             % Find the collision points between a plane and a mesh.
-            points = mesh.CheckPlane(this);
+            [isColliding,points] = mesh.CheckPlane(this);
         end
     end
     %% Utilties
     methods 
+        function [p] = PlaneEquation(this,point)
+            % This function determines whether a given point lies on one
+            % side of the plane.
+            % +1 - In front of the plane
+            %  0 - On the plane
+            % -1 - Behind the plane
+
+            d = dot(point,this.Normal);
+            p = d - self.distance;
+        end
+        function [p] = NearestPoint(this,point)
+            % This function retrieves the point on the plant nearest to a
+            % given point.
+
+            R = this.Transform.Inertial.Rotation.GetMatrix();
+
+            normal = R*this.Normal;
+
+            dist = dot(normal,point) - this.Distance;
+            scaled_dist = normal*dist;
+            p = point - scaled_dist;
+        end
         function [aabb,cid] = GetWorldAABB(this)
             % This function is called when the normal vector is changed in
             % order to update the mesh that defines the plane to match the
             % new normal.
 
-            % Recompute AABB
-            w = this.Width;
-            d = this.Depth;
-            t = this.Thickness;
-            aabb = AABB(0.5*[-w,w],0.5*[-d,d],[0,-t]);
+            % Recompute AABB...
 
-            % Get the world properties
+            % Generate patch
+            mesh = MeshExtensions.UnitPlane();
+            % Scale to configuration dimensions
+            toSize = mesh.ScaleBy(this.Depth,this.Width,1);
+            % Transform by transformation in space
             so3 = this.Transform.Inertial;
-            % Offset and scale the unit AABB
-            aabb = so3.Position + so3.Scale*aabb;
+            mesh = toSize.TransformBy(so3.GetMatrix());
+            
+            % aabb from extents
+            aabb = AABB.FromMesh(mesh);
+
+%             this.Draw();
             % Return the collider ID
             cid = this.Cid;
+        end
+        function [this] = Normalize(this)
+            % Normalize the plane object (this.Normal doesn't have to be
+            % unitary).
+            
+            mag = norm(this.Normal);
+            this.Normal = this.Normal/mag;
+            this.Distance = this.Distance/mag;
         end
         function [h] = Draw(this,container,colour)
             % Allow the drawing of this collider to a given container.
@@ -142,11 +144,12 @@ classdef PlaneCollider < Collider
                 container = gca;
             end
             % Generate patch
-            mesh = MeshExtensions.Plane( ...
-                this.Transform.Inertial.Position, ...
-                this.Normal, ...
-                this.Width, ...
-                this.Height);  
+            mesh = MeshExtensions.UnitPlane();
+            % Scale to configuration dimensions
+            toSize = mesh.ScaleBy(this.Depth,this.Width,1);
+            % Transform by transformation in space
+            so3 = this.Transform.Inertial;
+            mesh = toSize.TransformBy(so3.GetMatrix());
             % Draw
             h = mesh.Draw(container,colour);
             set(h,"FaceAlpha",0.2);
