@@ -35,6 +35,11 @@ classdef PlaneCollider < Collider
         function [isColliding,points] = CheckRay(this,ray)
             % Find the collision points between the plane and a ray.
         end
+        function [isColliding,points] = CheckTriangle(this,triangle)
+            % Find the collision points between the plane and a triangle.
+
+            % [TO FILL]
+        end
         function [isColliding,points] = CheckSphere(this,sphere)            % [TO DONE]
             % Find the collision points between this plane and a sphere.
             [isColliding,points] = sphere.CheckPlane(this);
@@ -45,6 +50,13 @@ classdef PlaneCollider < Collider
             % Sanity check
             assert(plane.Code == ColliderCode.Plane,"Second collider must be a plane collider.");
             
+            so3PlaneA = this.Transform.Inertial;
+            so3PlaneB = plane.Transform.Inertial;
+
+%             thisPlaneNormal = so3PlaneA
+
+            so3PlaneA.Rotation.GetMatrix();
+
             % The plane argument
             normalArg = cross(this.Normal,plane.Normal);
             % If the arguement is null.
@@ -77,11 +89,7 @@ classdef PlaneCollider < Collider
             % Find the collision points between a plane and an obb.
             [isColliding,points] = obb.CheckPlane(this);
         end
-        function [isColliding,points] = CheckTriangle(this,triangle)
-            % Find the collision points between the plane and a triangle.
 
-            % [TO FILL]
-        end
         function [isColliding,points] = CheckMesh(this,mesh)                % [DONE]
             % Find the collision points between a plane and a mesh.
             [isColliding,points] = mesh.CheckPlane(this);

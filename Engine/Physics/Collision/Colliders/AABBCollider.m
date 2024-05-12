@@ -95,6 +95,9 @@ classdef AABBCollider < Collider
         function [isColliding,points] = CheckRay(this,ray)
             % Find the collision points between an aabb and a ray.
         end
+        function [isColliding,points] = CheckTriangle(this,triangle)
+            % Find the collision points between an aabb and a triangle.
+        end
         function [isColliding,points] = CheckSphere(this,sphere)            % [DONE]
             % Check this collider against a second sphere collider
             [isColliding,points] = sphere.CheckAABB(this);
@@ -102,24 +105,24 @@ classdef AABBCollider < Collider
         function [isColliding,points] = CheckPlane(this,plane)              % [DONE]
             % Find the collisions points between an AABB and a plane.
 
-            % Get kinem
+            % Get statics
             boxSo3 = this.Transform.Inertial;
             planeSo3 = plane.Transform.Inertial;
             % Normal in the inertial frame
             planeNormal = planeSo3.Rotation.GetMatrix()*plane.Normal;
             
             % Get the AABB vertices
-            aabbInterval    = CollisionExtensions.GetAxisInterval(this.GetVertices(),planeNormal);
-            planeInterval   = dot(planeNormal,planeSo3.Position);
-            isColliding     = aabbInterval.Contains(planeInterval);
+            boxInterval    = CollisionExtensions.GetAxisInterval(this.GetVertices(),planeNormal);
+            planeInterval  = dot(planeNormal,planeSo3.Position);
+            isColliding    = boxInterval.Contains(planeInterval);
             % No Collision possible
             if ~isColliding
                 points = ContactPoints();
                 return;
             end
             % The point in the box
-            extentProjection = aabbInterval.Span/2;
-            toResolve = planeInterval - aabbInterval.Min;
+            extentProjection = boxInterval.Span/2;
+            toResolve = planeInterval - boxInterval.Min;
             % Calculate points
             boxPointInPlane = boxSo3.Position - extentProjection*planeNormal;
             planePointInBox = boxSo3.Position - (extentProjection - toResolve)*planeNormal;
@@ -142,7 +145,7 @@ classdef AABBCollider < Collider
             % Find the collision points between an AABB and a capsule.
             [isColliding,points] = capsule.CheckAABB(this);
         end
-        function [isColliding,points] = CheckAABB(this,aabb)
+        function [isColliding,points] = CheckAABB(this,aabb)                % [DONE]
             % Find the collision points between an AABB and an AABB.
 
             % Sanity check
@@ -179,7 +182,7 @@ classdef AABBCollider < Collider
             axes = eye(3);
             for i = 1:size(axes,1)
                 queryAxis = [axes(i,1);axes(i,2);axes(i,3)];
-
+                % Project vertices onto axes
                 [projectionA] = CollisionExtensions.GetAxisInterval(aVertices,queryAxis);
                 [projectionB] = CollisionExtensions.GetAxisInterval(bVertices,queryAxis);
 
@@ -225,9 +228,6 @@ classdef AABBCollider < Collider
         function [isColliding,points] = CheckOBB(this,obb)                  % [DONE]
             % Find the collision points between an AABB and an OBB box.
             [isColliding,points] = obb.CheckAABB(this);
-        end
-        function [isColliding,points] = CheckTriangle(this,triangle)
-            % Find the collision points between an aabb and a triangle.
         end
         function [isColliding,points] = CheckMesh(this,mesh)                % [DONE]
             % Find the collision points between an AABB and a mesh.

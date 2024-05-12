@@ -42,8 +42,14 @@ classdef OBBCollider < Collider
         function [isColliding,points] = CheckRay(this,ray)
             % Find the collision points between an obb and a ray.
         end
+        function [isColliding,points] = CheckTriangle(this,triangle)
+            % Find the collision points between an obb and a triangle.
+        end
         function [isColliding,points] = CheckSphere(this,sphere)            % [DONE]
             % Find the collision points between this OBB and a sphere.
+
+            % Sanity check
+            assert(sphere.Code == ColliderCode.Sphere,"Expecting a second sphere collider.");
 
             % Containers
             isColliding = false;
@@ -88,86 +94,58 @@ classdef OBBCollider < Collider
             B = spherePosition - collisionAxis * (sphere.Radius  - collisionDistance);
             points = ContactPoints(A,B,collisionAxis,collisionDistance,isColliding);
         end
-        function [isColliding,points] = CheckPlane(this,plane)
+        function [isColliding,points] = CheckPlane(this,plane)              % [DONE]
             % Find the collision points between this OBB box and a plane.
 
             % Sanity check
-            assert(this.Code == ColliderCode.OBB,"First collider must be a box collider.");
-            assert(plane.Code == ColliderCode.Plane,"Second collider must be a plane collider.");
+            assert(plane.Code == ColliderCode.Plane,"Expecting a second plane collider.");
 
-            n = plane.normal;
-            s03 = this.Transform.Inertial;
-            orientation = s03.Quaternion.GetMatrix();
-            position = s03.Position;
+            % Get statics
+            boxSo3 = this.Transform.Inertial;
+            planeSo3 = plane.Transform.Inertial;
+            % Normal in the inertial frame
+            planeNormal = planeSo3.Rotation.GetMatrix()*plane.Normal;
+            
+            % Get the AABB vertices
+            boxInterval   = CollisionExtensions.GetAxisInterval(this.GetVertices(),planeNormal);
+            planeInterval = dot(planeNormal,planeSo3.Position);
+            isColliding   = boxInterval.Contains(planeInterval);
+            % No Collision possible
+            if ~isColliding
+                points = ContactPoints();
+                return;
+            end
+            % The point in the box
+            extentProjection = boxInterval.Span/2;
+            toResolve = planeInterval - boxInterval.Min;
+            % Calculate points
+            boxPointInPlane = boxSo3.Position - extentProjection*planeNormal;
+            planePointInBox = boxSo3.Position - (extentProjection - toResolve)*planeNormal;
 
-            plen = ...
-                this.Size(1) * abs(dot(n,orientation(:,1))) + ...
-                this.Size(2) * abs(dot(n,orientation(:,2))) + ...
-                this.Size(3) * abs(dot(n,orientation(:,3)));
+%             % Debugging
+%             aLine = [boxSo3.Position,boxPointInPlane]';
+%             bLine = [boxPointInPlane,planePointInBox]';
+%             plot3(gca,aLine(:,1),aLine(:,2),aLine(:,3),"r","LineWidth",2);
+%             plot3(gca,bLine(:,1),bLine(:,2),bLine(:,3),"b","LineWidth",2);
 
-            dist = dot(n,position) - plane.Distance;
-        
-            isColliding = abs(dist) < plen;
+            % Return the collision points
+            points = ContactPoints( ...
+                boxPointInPlane, ...
+                planePointInBox, ...
+                planeNormal, ...
+                toResolve, ...
+                isColliding);
 
-
-%             % Pull out the transforms
-%             pTransform = plane.Transform;
-%             bTransform = this.Transform;
-%             % Origin positions in the world
-%             pWorldPosition = pTransform.Inertial.Position;
-%             bWorldPosition = bTransform.Inertial.Position;
-% 
-%             % Create a ray using the plane origin
-%             axisRay = Ray.FromVector(pWorldPosition,plane.Normal);
-%             % Height of the box center above the plane
-%             centerToPlaneHeight = Ray.PointProjection(axisRay,bWorldPosition);
-% 
-%             % Get the collider mesh
-%             collisionMesh = this.GetWorldMesh();
-%             vertexProjections = inf(collisionMesh.NumberOfVertices,1);
-%             for i = 1:collisionMesh.NumberOfVertices
-%                 % A given collision vertex
-%                 coordinate = collisionMesh.Vertices(i,:)';
-%                 % Its projection on the separation vector
-%                 [vertexProjections(i)] = Ray.PointProjection(axisRay,coordinate);
-%             end
-% 
-%             % Get the smallest projected distance
-%             [smallestVertexProjection,minIndex] = min(vertexProjections);
-%             % No collision is occuring
-%             isColliding = smallestVertexProjection < 0;
-% 
-%             if ~isColliding
-%                 points = ContactPoints();
-%                 return;
-%             end
-%             % The penetrating vertex
-%             deepestPointOfAInB = collisionMesh.Vertices(minIndex,:)';
-%             % The point on the plane closet to the vertex
-%             deepestPointOfBInA = pWorldPosition - centerToPlaneHeight*axisRay.Direction;
-%             % +ve depth to be resolved
-%             toResolve = abs(smallestVertexProjection);
-% 
-%             % Create the points
-%             points = ContactPoints( ...
-%                 deepestPointOfAInB, ...
-%                 deepestPointOfBInA, ...
-%                 axisRay.Direction,...
-%                 toResolve,...
-%                 isColliding);
         end
         function [isColliding,points] = CheckCapsule(this,capsule)          % [DONE]
             % Find the collision points between an OBB and a capsule.
-            points = capsule.CheckOBB(this);
+            [isColliding,points] = capsule.CheckOBB(this);
         end
         function [isColliding,points] = CheckAABB(this,aabb)                % [DONE]
             % Find the collision points between an OBB and an AABB.
 
-           % Find the collision points between two OBB boxes.
-
             % Sanity check
-            assert(this.Code == ColliderCode.OBB,"First collider must be a box collider.");
-            assert(aabb.Code == ColliderCode.AABB,"Second collider must be a AABB collider.");
+            assert(aabb.Code == ColliderCode.AABB,"Expecting a second AABB collider.");
 
             % Variables
             isColliding = false;
@@ -242,8 +220,7 @@ classdef OBBCollider < Collider
             % Find the collision points between two OBB boxes.
 
             % Sanity check
-            assert(this.Code == ColliderCode.OBB,"First collider must be a box collider.");
-            assert(obb.Code == ColliderCode.OBB,"Second collider must be a box collider.");
+            assert(obb.Code == ColliderCode.OBB,"Expecting a second OBB collider.");
 
             % Variables
             isColliding = false;
@@ -306,12 +283,11 @@ classdef OBBCollider < Collider
             pointAinB = so3A.Position + (minAProjection.Span/2) * minSeparationAxis;
             pointBinA = so3B.Position - (minBProjection.Span/2) * minSeparationAxis;
 
+%             % Debugging 
 %             aLine = [so3A.Position,pointAinB]';
 %             bLine = [so3B.Position,pointBinA]';
-% 
 %             plot3(gca,aLine(:,1),aLine(:,2),aLine(:,3),"r","LineWidth",2);
 %             plot3(gca,bLine(:,1),bLine(:,2),bLine(:,3),"b","LineWidth",2);
-% 
 %             plot3(gca,pointAinB(1),pointAinB(2),pointAinB(3),"r^");
 %             plot3(gca,pointBinA(1),pointBinA(2),pointBinA(3),"b^");
 
@@ -324,12 +300,9 @@ classdef OBBCollider < Collider
                 minSeparation, ...
                 isColliding);
         end
-        function [isColliding,points] = CheckTriangle(this,triangle)
-            % Find the collision points between an obb and a triangle.
-        end
         function [isColliding,points] = CheckMesh(this,mesh)                % [DONE]
             % Find the collision points between an OOB and a mesh.
-            points = mesh.CheckOBB(this);
+            [isColliding,points] = mesh.CheckOBB(this);
         end
     end
     % Support
