@@ -26,8 +26,33 @@ classdef PlaneCollider < Collider
     end
     %% Collision Pairing
     methods
-        function [isColliding,points] = CheckPoint(this,point)
-            % Find the collision points between the plane and a point.
+        function [isColliding,points] = CheckPoint(this,point)              % [DONE, TO TEST]
+            % Find the collision points between the plane and a point
+            
+            result = this.PlaneEquation(point);
+
+            isColliding = false;
+            if result ~= 0
+                points = ContactPoints();
+                return;
+            end
+
+            so3 = this.Transform.Inertial;
+            normal = so3.Rotation.GetMatrix()*this.Normal;
+
+            relativePosition = point - so3.Position;
+
+            distance = dot(relativePosition,normal);
+            % The plane surface point (closest)
+            closestPlanePoint = point - distance*normal;
+
+            % Create the points structure
+            points = ContactPoints( ...
+                point, ...
+                closestPlanePoint, ...
+                normal, ...
+                abs(distance), ...
+                isColliding);
         end
         function [isColliding,points] = CheckLine(this,line)
             % Find the collision points between the plane and a line.
