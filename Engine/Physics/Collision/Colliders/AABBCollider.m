@@ -48,10 +48,46 @@ classdef AABBCollider < Collider
     end
     %% Collision Pairing
     methods
-        function [isColliding,points] = CheckPoint(this,point)
+        function [isColliding,points] = CheckPoint(this,point)              % [DONE, TO TEST]
             % Find the collision points between an aabb and a point.
 
-            % [TO FILL]
+            aabb = this.GetTransformedAABB();
+            % Simple boundary check
+            isColliding = aabb.Contains(point);
+            if ~isColliding
+                points = ContactPoints();
+                return;
+            end
+
+            boxPoint = zeros(3,1);
+
+            if abs(point(1) - aabb.Bounds(1).Max) < abs(point(1) - aabb.Bounds(1).Min)
+                boxPoint(1) = aabb.Bounds(1).Max;
+            else
+                boxPoint(1) = aabb.Bounds(1).Min;
+            end
+            if abs(point(2) - aabb.Bounds(2).Max) < abs(point(2) - aabb.Bounds(2).Min)
+                boxPoint(2) = aabb.Bounds(2).Max;
+            else
+                boxPoint(2) = aabb.Bounds(2).Min;
+            end
+            if abs(point(3) - aabb.Bounds(3).Max) < abs(point(3) - aabb.Bounds(3).Min)
+                boxPoint(3) = aabb.Bounds(3).Max;
+            else
+                boxPoint(3) = aabb.Bounds(3).Min;
+            end
+
+            axis = point - boxPoint;
+            distanceFromSurface = norm(axis);
+            axis = axis/distanceFromSurface;
+
+            % Contact points
+            points = ContactPoints( ...
+                boxPoint, ...
+                point, ...
+                axis, ...
+                distanceFromSurface, ...
+                isColliding);
         end
         function [isColliding,points] = CheckLine(this,line)
             % Find the collision points between an aabb and a line.
@@ -63,13 +99,44 @@ classdef AABBCollider < Collider
             % Check this collider against a second sphere collider
             [isColliding,points] = sphere.CheckAABB(this);
         end
-        function [isColliding,points] = CheckPlane(this,plane)
+        function [isColliding,points] = CheckPlane(this,plane)              % [DONE]
             % Find the collisions points between an AABB and a plane.
 
-            % [TO FILL]
+            % Get kinem
+            boxSo3 = this.Transform.Inertial;
+            planeSo3 = plane.Transform.Inertial;
+            % Normal in the inertial frame
+            planeNormal = planeSo3.Rotation.GetMatrix()*plane.Normal;
+            
+            % Get the AABB vertices
+            aabbInterval    = CollisionExtensions.GetAxisInterval(this.GetVertices(),planeNormal);
+            planeInterval   = dot(planeNormal,planeSo3.Position);
+            isColliding     = aabbInterval.Contains(planeInterval);
+            % No Collision possible
+            if ~isColliding
+                points = ContactPoints();
+                return;
+            end
+            % The point in the box
+            extentProjection = aabbInterval.Span/2;
+            toResolve = planeInterval - aabbInterval.Min;
+            % Calculate points
+            boxPointInPlane = boxSo3.Position - extentProjection*planeNormal;
+            planePointInBox = boxSo3.Position - (extentProjection - toResolve)*planeNormal;
+
+%             % Debugging
+%             aLine = [boxSo3.Position,boxPointInPlane]';
+%             bLine = [boxPointInPlane,planePointInBox]';
+%             plot3(gca,aLine(:,1),aLine(:,2),aLine(:,3),"r","LineWidth",2);
+%             plot3(gca,bLine(:,1),bLine(:,2),bLine(:,3),"b","LineWidth",2);
 
             % Return the collision points
-            points = ContactPoints(pDepth,sDepth,planeNormal,toResolve,isColliding);
+            points = ContactPoints( ...
+                boxPointInPlane, ...
+                planePointInBox, ...
+                planeNormal, ...
+                toResolve, ...
+                isColliding);
         end
         function [isColliding,points] = CheckCapsule(this,capsule)          % [DONE]
             % Find the collision points between an AABB and a capsule.

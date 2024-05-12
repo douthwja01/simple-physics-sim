@@ -42,7 +42,7 @@ classdef OBBCollider < Collider
         function [isColliding,points] = CheckRay(this,ray)
             % Find the collision points between an obb and a ray.
         end
-        function [isColliding,points] = CheckSphere(this,sphere)
+        function [isColliding,points] = CheckSphere(this,sphere)            % [DONE]
             % Find the collision points between this OBB and a sphere.
 
             % Containers

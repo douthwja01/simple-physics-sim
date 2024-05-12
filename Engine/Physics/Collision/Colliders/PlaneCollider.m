@@ -55,9 +55,15 @@ classdef PlaneCollider < Collider
                 return;
             end
 
+            error("Not implemented");
 
             % Return the points structure
-            points = ContactPoints(AinB,BinA,axis,depth,isColliding);
+            points = ContactPoints( ...
+                AinB, ...
+                BinA, ...
+                axis, ...
+                depth, ...
+                isColliding);
         end
         function [isColliding,points] = CheckCapsule(this,capsule)          % [DONE]
             % Find the collision points between a plane and a capsule.
@@ -91,7 +97,7 @@ classdef PlaneCollider < Collider
             % -1 - Behind the plane
 
             d = dot(point,this.Normal);
-            p = d - self.distance;
+            p = d - this.Distance;
         end
         function [p] = NearestPoint(this,point)
             % This function retrieves the point on the plant nearest to a

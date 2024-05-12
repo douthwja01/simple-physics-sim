@@ -20,8 +20,29 @@ classdef SphereCollider < Collider
     end
     %% Collision Pairing
     methods
-        function [isColliding,points] = CheckPoint(this,point)
+        function [isColliding,points] = CheckPoint(this,point)              % [DONE,TO TEST]
             % Check the collision points between a sphere and a point.
+            sphereSo3 = this.Transform.Inertial;
+            relativePosition = point - sphereSo3.Position;
+            distance = norm(relativePosition); 
+            depth = distance - this.Radius;
+            isColliding = depth < 0;
+            % No collision
+            if ~isColliding
+                points = ContactPoints();
+                return;
+            end
+            % Collision occurring
+            axis = relativePosition/distance;
+            pointInSphere = point;
+            sphereCircumferencePoint = sphereSo3.Position + axis*this.Radius;
+            % Return the points structure
+            points = ContactPoints( ...
+                pointInSphere, ...
+                sphereCircumferencePoint, ...
+                axis, ...
+                abs(depth), ...
+                isColliding);
         end
         function [isColliding,points] = CheckLine(this,line)
             % Check the collision points between a sphere and a line.
@@ -65,7 +86,7 @@ classdef SphereCollider < Collider
                 depth, ...
                 isColliding);
         end
-        function [isColliding,points] = CheckPlane(this,plane)
+        function [isColliding,points] = CheckPlane(this,plane)              % [DONE]
             % Find the collisions points between a sphere and a plane.
 
             % Sanity check
