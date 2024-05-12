@@ -40,11 +40,11 @@ classdef PlaneCollider < Collider
 
             % [TO FILL]
         end
-        function [isColliding,points] = CheckSphere(this,sphere)            % [TO DONE]
+        function [isColliding,points] = CheckSphere(this,sphere)            % [DONE]
             % Find the collision points between this plane and a sphere.
             [isColliding,points] = sphere.CheckPlane(this);
         end
-        function [isColliding,points] = CheckPlane(this,plane)
+        function [isColliding,points] = CheckPlane(this,plane)              % [DONE,TO TEST]
             % Find the collision points between this OBB box and a plane.
 
             % Sanity check
@@ -52,13 +52,11 @@ classdef PlaneCollider < Collider
             
             so3PlaneA = this.Transform.Inertial;
             so3PlaneB = plane.Transform.Inertial;
-
-%             thisPlaneNormal = so3PlaneA
-
-            so3PlaneA.Rotation.GetMatrix();
+            planeNormalA = so3PlaneA.Rotation.GetMatrix()*this.Normal;
+            planeNormalB = so3PlaneB.Rotation.GetMatrix()*plane.Normal;
 
             % The plane argument
-            normalArg = cross(this.Normal,plane.Normal);
+            normalArg = cross(planeNormalA,planeNormalB);
             % If the arguement is null.
             isColliding = norm(normalArg) > 0 || (this.Distance == plane.Distance);
             % No collision, abort
@@ -67,12 +65,30 @@ classdef PlaneCollider < Collider
                 return;
             end
 
-            error("Not implemented");
+            relativeVector = so3PlaneB.Position - so3PlaneA.Position;
+            % Projection of center "A"
+            aProjection = dot(planeNormalB,relativeVector);
+            % Projection of center "B" 
+            bProjection = dot(planeNormalA,relativeVector);
+            % The closest points on the respective planes
+            planeAPointOnB = so3PlaneA.Position + aProjection*planeNormalB;
+            planeBPointOnA = so3PlaneB.Position - bProjection*planeNormalA;
 
+%             % Debugging
+%             aLine = [so3PlaneA.Position,planeAPointOnB]';
+%             bLine = [so3PlaneB.Position,planeBPointOnA]';
+%             plot3(gca,aLine(:,1),aLine(:,2),aLine(:,3),"r","LineWidth",2);
+%             plot3(gca,bLine(:,1),bLine(:,2),bLine(:,3),"b","LineWidth",2);
+%             plot3(gca,planeAPointOnB(1),planeAPointOnB(2),planeAPointOnB(3),"r^","LineWidth",2);
+%             plot3(gca,planeBPointOnA(1),planeBPointOnA(2),planeBPointOnA(3),"b^","LineWidth",2);
+
+            % To check
+            axis = relativeVector/norm(relativeVector);
+            depth = 0;  
             % Return the points structure
             points = ContactPoints( ...
-                AinB, ...
-                BinA, ...
+                planeAPointOnB, ...
+                planeBPointOnA, ...
                 axis, ...
                 depth, ...
                 isColliding);
@@ -89,7 +105,6 @@ classdef PlaneCollider < Collider
             % Find the collision points between a plane and an obb.
             [isColliding,points] = obb.CheckPlane(this);
         end
-
         function [isColliding,points] = CheckMesh(this,mesh)                % [DONE]
             % Find the collision points between a plane and a mesh.
             [isColliding,points] = mesh.CheckPlane(this);
