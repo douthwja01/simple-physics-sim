@@ -133,6 +133,9 @@ classdef MeshExtensions
         function [mesh] = Plane(center,normal,width,height)
             % Generates a planar mesh at a given position, with a provided
             % normal.
+            % center - the position of the plane center
+            % normal - the vector normal defining the orientation
+            
 
             % Sanity check
             assert(IsColumn(center,3),"Expecting a position coordinate [3x1].");
@@ -140,7 +143,9 @@ classdef MeshExtensions
             assert(isscalar(width),"Expecting a scalar width.");
             assert(isscalar(height),"Expecting a scalar height.");
 
+   
             % Scalar extents
+            unitNormal = [0;0;1];
             unitWidth = width/2;
             unitHeight = height/2;
 
@@ -149,12 +154,21 @@ classdef MeshExtensions
             bottomLeft  = [-unitWidth;-unitHeight;0];
             topRight    = [unitWidth;unitHeight;0];
             bottomRight = [unitWidth;-unitHeight;0];
+
+            q = Quaternion.VectorArgument(unitNormal,normal);
+
+            topLeft     = Quaternion.RotateVector(q,topLeft);
+            bottomLeft  = Quaternion.RotateVector(q,bottomLeft);
+            topRight    = Quaternion.RotateVector(q,topRight);
+            bottomRight = Quaternion.RotateVector(q,bottomRight);
+
             % Create the vertices
             vertices = zeros(4,3);
             vertices(1,:) = (center + topRight)'; 
             vertices(2,:) = (center + bottomRight)';
             vertices(3,:) = (center + topLeft)';
             vertices(4,:) = (center + bottomLeft)';
+
             % Assign the faces
             faces = [3,1,2;3,4,2];
             % Create the mesh object
@@ -175,8 +189,8 @@ classdef MeshExtensions
             % a dimensions provided.
             
             % Sanity check
-            assert(IsColumn(minExtents,3),"Expecting two vectors defining min:max in each dimension");
-            assert(IsColumn(maxExtents,3),"Expecting a column vector of dimension maximums [3x1].")
+            assert(numel(minExtents) == 3,"Expecting two vectors defining min:max in each dimension");
+            assert(numel(maxExtents) == 3,"Expecting a column vector of dimension maximums [3x1].")
             
             % Define vertex data from limits
             vertices = zeros(8,3);

@@ -1,21 +1,14 @@
-classdef AABB < Boundary
-    % An Axis-Aligned Bounding Box (AABB) collider primitive
+classdef AABB < handle
+    % An Axis-Aligned Bounding Box (AABB) boundary primitive for use in and
+    % outside "AABBColliders" as a way of defining a 3D region.
     
-    properties (Constant)
-        Code = ColliderCode.AABB;
-    end
     properties (Dependent) 
         Min;
         Max;
-    end  
-    properties
-        Cid = uint32.empty;      % Identity code
-    end
+    end 
     % Intervals in each dimensions
     properties (SetAccess = private)
-        xBoundary = Interval.empty;
-        yBoundary = Interval.empty;
-        zBoundary = Interval.empty;
+        Bounds = Interval.empty(0,3);
     end
     methods
         % Constructor
@@ -39,72 +32,59 @@ classdef AABB < Boundary
             end
 
             % Parameterise
-            this.xBoundary = Interval(xRange(1),xRange(2));
-            this.yBoundary = Interval(yRange(1),yRange(2));
-            this.zBoundary = Interval(zRange(1),zRange(2));
+            this.Bounds(1) = Interval(xRange(1),xRange(2));
+            this.Bounds(2) = Interval(yRange(1),yRange(2));
+            this.Bounds(3) = Interval(zRange(1),zRange(2));
         end
         % Get/sets
-        function set.Cid(this,cid)
-            assert(isa(cid,"uint32"),"Expecting a 'uint32' cid code.");
-            this.Cid = cid;
-        end
         function [m] = get.Min(this)
-            m = [this.xBoundary.Min;
-                this.yBoundary.Min;
-                this.zBoundary.Min];
+            m = [this.Bounds.Min];
         end
         function set.Min(this,m)
             assert(numel(m)==3,"Expecting a valid 3D minimum array [3x1].");
-            this.xBoundary.Min = m(1);
-            this.yBoundary.Min = m(2);
-            this.zBoundary.Min = m(3);
+            this.Bounds(1).Min = m(1);
+            this.Bounds(2).Min = m(2);
+            this.Bounds(3).Min = m(3);
         end
         function [m] = get.Max(this)
-            m = [this.xBoundary.Max;
-                this.yBoundary.Max;
-                this.zBoundary.Max];
+            m = [this.Bounds.Max];
         end
         function set.Max(this,m)
             assert(numel(m)==3,"Expecting a valid 3D maximum array [3x1].");
-            this.xBoundary.Max = m(1);
-            this.yBoundary.Max = m(2);
-            this.zBoundary.Max = m(3);
+            this.Bounds(1).Max = m(1);
+            this.Bounds(2).Max = m(2);
+            this.Bounds(3).Max = m(3);
         end
         % Operators
         function [result] = plus(obj1,obj2)
             % How addition is done with AABBs.
         
             result = AABB();
-
             if isa(obj1,"AABB")
-                % Pass Cid
-                result.Cid = obj1.Cid;
                 switch true
                     case isscalar(obj2)
-                        result.xBoundary = obj1.xBoundary + obj2;
-                        result.yBoundary = obj1.yBoundary + obj2;
-                        result.zBoundary = obj1.zBoundary + obj2;
+                        result.Bounds(1) = obj1.Bounds(1) + obj2;
+                        result.Bounds(2) = obj1.Bounds(2) + obj2;
+                        result.Bounds(3) = obj1.Bounds(3) + obj2;
                     case IsColumn(obj2,3)
-                        result.xBoundary = obj1.xBoundary + obj2(1);
-                        result.yBoundary = obj1.yBoundary + obj2(2);
-                        result.zBoundary = obj1.zBoundary + obj2(3);
+                        result.Bounds(1) = obj1.Bounds(1) + obj2(1);
+                        result.Bounds(2) = obj1.Bounds(2) + obj2(2);
+                        result.Bounds(3) = obj1.Bounds(3) + obj2(3);
                     otherwise
                         error("Input not correct.");
                 end
             end
 
             if isa(obj2,"AABB")
-                % Pass Cid
-                result.Cid = obj2.Cid;
                 switch true
                     case isscalar(obj1)
-                        result.xBoundary = obj2.xBoundary + obj1;
-                        result.yBoundary = obj2.yBoundary + obj1;
-                        result.zBoundary = obj2.zBoundary + obj1;
+                        result.Bounds(1) = obj2.Bounds(1) + obj1;
+                        result.Bounds(2) = obj2.Bounds(2) + obj1;
+                        result.Bounds(3) = obj2.Bounds(3) + obj1;
                     case IsColumn(obj1,3)
-                        result.xBoundary = obj2.xBoundary + obj1(1);
-                        result.yBoundary = obj2.yBoundary + obj1(2);
-                        result.zBoundary = obj2.zBoundary + obj1(3);
+                        result.Bounds(1) = obj2.Bounds(1) + obj1(1);
+                        result.Bounds(2) = obj2.Bounds(2) + obj1(2);
+                        result.Bounds(3) = obj2.Bounds(3) + obj1(3);
                     otherwise
                         error("Input not correct.");
                 end
@@ -116,34 +96,30 @@ classdef AABB < Boundary
             result = AABB();
 
             if isa(obj1,"AABB")
-                % Pass Cid
-                result.Cid = obj1.Cid;
                 switch true
                     case isscalar(obj2)
-                        result.xBoundary = obj1.xBoundary - obj2;
-                        result.yBoundary = obj1.yBoundary - obj2;
-                        result.zBoundary = obj1.zBoundary - obj2;
+                        result.Bounds(1) = obj1.Bounds(1) - obj2;
+                        result.Bounds(2) = obj1.Bounds(2) - obj2;
+                        result.Bounds(3) = obj1.Bounds(3) - obj2;
                     case IsColumn(obj2,3)
-                        result.xBoundary = obj1.xBoundary - obj2(1);
-                        result.yBoundary = obj1.yBoundary - obj2(2);
-                        result.zBoundary = obj1.zBoundary - obj2(3);
+                        result.Bounds(1) = obj1.Bounds(1) - obj2(1);
+                        result.Bounds(2) = obj1.Bounds(2) - obj2(2);
+                        result.Bounds(3) = obj1.Bounds(3) - obj2(3);
                     otherwise
                         error("Input not correct.");
                 end
             end
 
             if isa(obj2,"AABB")
-                % Pass Cid
-                result.Cid = obj2.Cid;
                 switch true
                     case isscalar(obj1)
-                        result.xBoundary = obj2.xBoundary - obj1;
-                        result.yBoundary = obj2.yBoundary - obj1;
-                        result.zBoundary = obj2.zBoundary - obj1;
+                        result.Bounds(1) = obj2.Bounds(1) - obj1;
+                        result.Bounds(2) = obj2.Bounds(2) - obj1;
+                        result.Bounds(3) = obj2.Bounds(3) - obj1;
                     case IsColumn(obj1,3)
-                        result.xBoundary = obj2.xBoundary - obj1(1);
-                        result.yBoundary = obj2.yBoundary - obj1(2);
-                        result.zBoundary = obj2.zBoundary - obj1(3);
+                        result.Bounds(1) = obj2.Bounds(1) - obj1(1);
+                        result.Bounds(2) = obj2.Bounds(2) - obj1(2);
+                        result.Bounds(3) = obj2.Bounds(3) - obj1(3);
                     otherwise
                         error("Input not correct.");
                 end
@@ -157,18 +133,16 @@ classdef AABB < Boundary
             if isa(obj1,"AABB")
                 % Sanity check
                 assert(isnumeric(obj2),"Expecting a second numeric input.");
-                % Pass Cid
-                result.Cid = obj1.Cid;
                 % Create a temporary output copy (includes Cid)
                 switch true
                     case isscalar(obj2)
-                        result.xBoundary = obj1.xBoundary*obj2;
-                        result.yBoundary = obj1.yBoundary*obj2;
-                        result.zBoundary = obj1.zBoundary*obj2;
+                        result.Bounds(1) = obj1.Bounds(1)*obj2;
+                        result.Bounds(2) = obj1.Bounds(2)*obj2;
+                        result.Bounds(3) = obj1.Bounds(3)*obj2;
                     case IsColumn(obj2,3)
-                        result.xBoundary = obj1.xBoundary*obj2(1);
-                        result.yBoundary = obj1.yBoundary*obj2(2);
-                        result.zBoundary = obj1.zBoundary*obj2(3);
+                        result.Bounds(1) = obj1.Bounds(1)*obj2(1);
+                        result.Bounds(2) = obj1.Bounds(2)*obj2(2);
+                        result.Bounds(3) = obj1.Bounds(3)*obj2(3);
                     otherwise
                         error("Input not correct.");
                 end
@@ -179,17 +153,15 @@ classdef AABB < Boundary
             if isa(obj2,"AABB")
                 % Sanity check
                 assert(isnumeric(obj1),"Expecting a second numeric input.");
-                % Pass Cid
-                result.Cid = obj2.Cid;
                 switch true
                     case isscalar(obj1)
-                        result.xBoundary = obj2.xBoundary*obj1;
-                        result.yBoundary = obj2.yBoundary*obj1;
-                        result.zBoundary = obj2.zBoundary*obj1;
+                        result.Bounds(1) = obj2.Bounds(1)*obj1;
+                        result.Bounds(2) = obj2.Bounds(2)*obj1;
+                        result.Bounds(3) = obj2.Bounds(3)*obj1;
                     case IsColumn(obj1,3)
-                        result.xBoundary = obj2.xBoundary*obj1(1);
-                        result.yBoundary = obj2.yBoundary*obj1(2);
-                        result.zBoundary = obj2.zBoundary*obj1(3);
+                        result.Bounds(1) = obj2.Bounds(1)*obj1(1);
+                        result.Bounds(2) = obj2.Bounds(2)*obj1(2);
+                        result.Bounds(3) = obj2.Bounds(3)*obj1(3);
                     otherwise
                         error("Input not correct.");
                 end
@@ -197,6 +169,7 @@ classdef AABB < Boundary
             end
         end
     end
+
     methods
         % Boundary checks       
         function [flag] = IntersectRay(this,ray,t_enter,t_exit)
@@ -212,33 +185,56 @@ classdef AABB < Boundary
 
             flag = false;
             % X-axis check
-            if ~this.xBoundary.IntersectRay(ray.Origin(1), ray.Direction(1), t_enter, t_exit) 
+            if ~this.Bounds(1).IntersectRay(ray.Origin(1), ray.Direction(1), t_enter, t_exit) 
                 return;    
             end
             % Y-axis
-            if ~this.yBoundary.IntersectRay(ray.Origin(2), ray.Direction(2), t_enter, t_exit) 
+            if ~this.Bounds(2).IntersectRay(ray.Origin(2), ray.Direction(2), t_enter, t_exit) 
                 return;    
             end
             % Z-axis    
-            if ~this.zBoundary.IntersectRay(ray.Origin(3), ray.Direction(3), t_enter, t_exit) 
+            if ~this.Bounds(3).IntersectRay(ray.Origin(3), ray.Direction(3), t_enter, t_exit) 
                 return;  
             end
 
             % All axes intersect
             flag = true;
         end
-        function [flag] = IntersectAABB(this,other)
+        function [int]  = IntersectAABB(this,other)
             % Test for overlap of two AABBs
 
+            % Default to empty intersection
+            int = [];
+            
+            xIntersection = this.Bounds(1).Intersect(other.Bounds(1));
+            if isempty(xIntersection)
+                return;
+            end
+            yIntersection = this.Bounds(2).Intersect(other.Bounds(2));
+            if isempty(yIntersection)
+                return;
+            end
+            zIntersection = this.Bounds(3).Intersect(other.Bounds(3));
+            if isempty(zIntersection)
+                return;
+            end
+            % Create intersection interval
+            int = AABB();
+            int.Bounds(1) = xIntersection;
+            int.Bounds(2) = yIntersection;
+            int.Bounds(3) = zIntersection;
+        end
+        function [flag] = HasIntersection(this,other)
+            % Faster simpled boolean comparison.
             flag = false;
-            if ~this.xBoundary.IntersectInterval(other.xBoundary)
-                return
+            if ~this.Bounds(1).HasIntersection(other.Bounds(1))
+                return;
             end
-            if ~this.yBoundary.IntersectInterval(other.yBoundary)
-                return
+            if ~this.Bounds(2).HasIntersection(other.Bounds(2))
+                return;
             end
-            if ~this.zBoundary.IntersectInterval(other.zBoundary)
-                return
+            if ~this.Bounds(3).HasIntersection(other.Bounds(3))
+                return;
             end
             flag = true;
         end
@@ -264,11 +260,11 @@ classdef AABB < Boundary
             assert(isa(axisCode,"AxisCode"),"Expecting a valid axis-code enum.");
             switch axisCode
                 case AxisCode.X
-                    range = this.xBoundary.Range;
+                    range = this.Bounds(1).Range;
                 case AxisCode.Y
-                    range = this.yBoundary.Range;
+                    range = this.Bounds(2).Range;
                 case AxisCode.Z
-                    range = this.zBoundary.Range;
+                    range = this.Bounds(3).Range;
                 otherwise
                     error("Invalid axis-code for AABB range export.");
             end
@@ -281,22 +277,18 @@ classdef AABB < Boundary
 
             switch axisCode
                 case AxisCode.X
-                    flag = this.xBoundary.Contains(value);
+                    flag = this.Bounds(1).Contains(value);
                 case AxisCode.Y
-                    flag = this.yBoundary.Contains(value);
+                    flag = this.Bounds(2).Contains(value);
                 case AxisCode.Z
-                    flag = this.zBoundary.Contains(value);
+                    flag = this.Bounds(3).Contains(value);
                 otherwise
                     error("Invalid axis-code for AABB checks.");
             end
         end        
         % General
-        function [mesh] = ToMesh(this)
-            % Create a mesh from the current AABB instance.
-            mesh = MeshExtensions.CuboidFromExtents(this.Min,this.Max);
-        end
         function [h] = Draw(this,container,colour)
-            % Draw this mesh to a given graphical container
+            % Draw the AABB to the container
             if nargin < 3
                 colour = 'b';
             end
@@ -305,6 +297,27 @@ classdef AABB < Boundary
             end
             mesh = this.ToMesh();
             h = mesh.Draw(container,colour);
+        end
+        function [mesh] = ToMesh(this)
+            % Create a mesh from the current AABB instance.
+            mesh = MeshExtensions.CuboidFromExtents(this.Min,this.Max);
+        end
+        function [v] = ToVertices(this)
+            % This function converts the AABB to vertices points.
+
+            % Express the bounds as dimension ranges
+            aabb_min = this.Min;
+            aabb_max = this.Max;
+            % Define vertex data from limits
+            v = zeros(8,3);
+            v(1,:) = [aabb_max(1),aabb_max(2),aabb_max(3)];
+            v(2,:) = [aabb_max(1),aabb_max(2),aabb_min(3)];
+            v(3,:) = [aabb_max(1),aabb_min(2),aabb_min(3)];
+            v(4,:) = [aabb_max(1),aabb_min(2),aabb_max(3)];
+            v(5,:) = [aabb_min(1),aabb_min(2),aabb_min(3)];
+            v(6,:) = [aabb_min(1),aabb_min(2),aabb_max(3)];
+            v(7,:) = [aabb_min(1),aabb_max(2),aabb_max(3)];
+            v(8,:) = [aabb_min(1),aabb_max(2),aabb_min(3)];
         end
     end
     % AABB Tools

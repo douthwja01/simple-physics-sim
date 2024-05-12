@@ -20,7 +20,7 @@ classdef ContactPoints
             end
 
             % Ensure numeric consistency
-            assert(d > 0,"Expecting a positive depth value")
+            assert(d >= 0,"Expecting a positive depth value")
             % Assign parameters
             this.A = a;
             this.B = b;

@@ -1,9 +1,12 @@
-classdef (Abstract) MeshCollider < Collider
+classdef MeshCollider < Collider
     %MESHCOLLIDER defines a collider that uses a mesh as a reference for
     %its collision properties.
     
+    properties (Constant)
+        Code = ColliderCode.Mesh;
+    end
     properties
-        Mesh = Mesh.empty;  % Mesh defining the collider
+        Mesh = Mesh.empty;
     end
     
     methods
@@ -19,7 +22,7 @@ classdef (Abstract) MeshCollider < Collider
             this.Mesh = mesh;
         end
     end
-    % Utilities
+    % Legacy
     methods
         function [mesh] = GetWorldMesh(this)
             % Get the mesh tranformed into world space.
@@ -55,6 +58,59 @@ classdef (Abstract) MeshCollider < Collider
             mesh = this.GetWorldMesh();
             % Draw the collider to the container
             h = mesh.Draw(container,"r");
+        end
+    end
+    %% Collision Pairing
+    methods
+        function [isColliding,points] = CheckPoint(this,point)
+            % Find the collision points between a mesh and a point.
+
+            % [TO FILL]
+        end
+        function [isColliding,points] = CheckLine(this,line)
+            % Find the collision points between a mesh and a line.
+
+            % [TO FILL]
+        end
+        function [isColliding,points] = CheckRay(this,ray)
+            % Find the collision points between a mesh and a ray.
+
+            % [TO FILL]
+        end
+        function [isColliding,points] = CheckSphere(this,sphere)
+            % Find the collision points between this mesh and a sphere.
+            
+            % [TO FILL]
+        end
+        function [isColliding,points] = CheckPlane(this,plane)
+            % Find the collision points between this mesh and a plane.
+
+            % [TO FILL]
+        end
+        function [isColliding,points] = CheckCapsule(this,capsule)
+            % Find the collision points between a mesh and a capsule.
+
+            % [TO FILL]
+        end
+        function [isColliding,points] = CheckAABB(this,aabb)
+            % Find the collision points between a mesh and an AABB.
+
+            % [TO FILL]
+        end
+        function [isColliding,points] = CheckOBB(this,obb)
+            % Find the collision points between a mesh and an obb.
+
+            % [TO FILL]
+        end
+        function [isColliding,points] = CheckTriangle(this,triangle)
+            % Find the collision points between the mesh and a triangle.
+
+            % [TO FILL]
+        end
+        function [isColliding,points] = CheckMesh(this,mesh)
+            % Find the collision points between a mesh and a mesh.
+            
+            % [TO FILL]
         end
     end
 end

@@ -119,7 +119,7 @@ classdef Interval < Boundary
             % Ah. we missed the interval    
             flag = t_exit >= t_enter;
         end
-        function [flag] = IntersectInterval(this,other)
+        function [flag] = HasIntersection(this,other)
             % Test two intervals for intersection
             flag = true;
             if this.Min > other.Max || this.Max < other.Min
@@ -132,6 +132,29 @@ classdef Interval < Boundary
             if this.Min > value || this.Max < value
                 flag = false;
             end
+        end
+        function [int] = Intersect(this,other)
+            % Get the actual interval of intersection
+
+            if ~this.HasIntersection(other)
+                int = [];
+                return;
+            end
+
+            % Intersection upper bound
+            if ~other.Contains(this.Max)
+                max = other.Max;
+            else
+                max = this.Max;
+            end
+            % Intersection lower bound
+            if ~this.Contains(other.Min)
+                min = this.Min;
+            else
+                min = other.Min;
+            end
+            % Interval
+            int = Interval(min,max);
         end
     end
 end

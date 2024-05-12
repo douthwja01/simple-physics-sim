@@ -84,7 +84,6 @@ classdef ImpulseCollisionResolver < CollisionResolver
                 % Recalulate the relative velocity
                 relativeVelocity = velocityB - velocityA;
                 relativeSpeed = dot(relativeVelocity, collisionNormal);
-
                 % Tangent vector
                 tangent = relativeVelocity - relativeSpeed * collisionNormal;
                 % Safe normalize
@@ -112,6 +111,9 @@ classdef ImpulseCollisionResolver < CollisionResolver
                 if hasRigidBodyB && bodyB.IsSimulated
                     tfB.Velocity = velocityB + frictionVector * inverseMassB;
                 end
+
+                % Should be adding an impulse directly to the object to
+                % create the implied velocity?
             end
         end
     end

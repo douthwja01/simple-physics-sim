@@ -7,7 +7,7 @@ classdef (Abstract) Collider < Element
     end
     properties
         IsTrigger = false;
-        Cid = uint8.empty;
+        Cid = uint32.empty;
         ShowEventsInConsole = false;
     end
     events
@@ -42,16 +42,64 @@ classdef (Abstract) Collider < Element
         end
     end
 
-    % Further collider requirements
-    methods (Abstract)
-        % Evaluate collision between this and another collider primitive.
-        [points] = TestCollision(colliderB);
-        % Provide a means to get the world AABB for the collider
-        [aabb] = GetWorldAABB(this);
+    methods
+        function [isColliding,points] = TestCollision(this,collider)
+            % This function provides a general-purpose interface for
+            % evaluating any collider against another.
+            
+            switch collider.Code
+                case ColliderCode.None
+                    isColliding = false;
+                    points = ContactPoints.empty;
+                case ColliderCode.Point
+                    [isColliding,points] = this.CheckPoints(collider);
+                case ColliderCode.Line
+                    [isColliding,points] = this.CheckLine(collider);
+                case ColliderCode.Ray
+                    [isColliding,points] = this.CheckRay(collider);
+                case ColliderCode.Sphere
+                    [isColliding,points] = this.CheckSphere(collider);
+                case ColliderCode.Plane
+                    [isColliding,points] = this.CheckPlane(collider);
+                case ColliderCode.Capsule
+                    [isColliding,points] = this.CheckCapsule(collider);
+                case ColliderCode.AABB
+                    [isColliding,points] = this.CheckAABB(collider);
+                case ColliderCode.OBB
+                    [isColliding,points] = this.CheckOBB(collider);
+                case ColliderCode.Triangle
+                    [isColliding,points] = this.CheckTriangle(collider);
+                case ColliderCode.Mesh
+                    [isColliding,points] = this.CheckMesh(collider);
+                otherwise
+                    error("Collider code not recognised.");
+            end
+        end
     end
 
-    % Internals
+    % Further collider requirements
+    methods (Abstract)
+        % Provide a means to get the world AABB for the collider
+        [aabb,cid] = GetWorldAABB(this);
+        % Provide a means of visualising the collider
+        [h] = Draw(container,colour);
+    end
+
+    %% Internals
+    methods (Abstract)
+        [isColliding,points] = CheckPoint(this,point);
+        [isColliding,points] = CheckLine(this,line);
+        [isColliding,points] = CheckRay(this,ray);
+        [isColliding,points] = CheckSphere(this,sphere);
+        [isColliding,points] = CheckPlane(this,plant);
+        [isColliding,points] = CheckCapsule(this,capsule);
+        [isColliding,points] = CheckAABB(this,aabb);
+        [isColliding,points] = CheckOBB(this,obb);
+        [isColliding,points] = CheckTriangle(this,triangle);
+        [isColliding,points] = CheckMesh(this,mesh);
+    end
     methods (Access = protected)
+        % Event handles
         function [this] = OnCollision(this,colliderData)
             % When the on-collision event is triggered by the world.            
 
