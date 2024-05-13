@@ -58,11 +58,7 @@ classdef Simulator < handle
             addlistener(this.Physics,"TriggerFeedback",@(src,evnt)this.OnTriggerCallback(src,evnt));
 
             % Update routine
-            t_accu = 0;
-%             t_slice = 0.25; % Time elapsed between updates
-            t_last = 0;
-            t_elapsed = 0;
-            timer = tic;
+            t_accu = 0; t_last = 0; t_elapsed = 0; timer = tic;
             while t_elapsed < duration && ~this.IsStopped
                 % Compute loop time
                 t_delta = toc(timer);
@@ -75,7 +71,7 @@ classdef Simulator < handle
                 
                 fprintf("[t=%.2fs] Stepping.\n",t_elapsed);
 
-                % Compute the samepl
+                % Compute the sample
                 while t_accu > this.SampleRate
                     % Update physics
                     this.Physics.Step(this.FixedTimeDelta);
