@@ -47,7 +47,7 @@ classdef DynamicsWorld < CollisionWorld
             % Initialise the dynamic world.
 
             % Validate substepping
-            if this.EnableSubStepping && this.Substeps > 1
+            if this.EnableSubStepping && this.SubSteps == 1
                 error("Cannot enable substepping, substeps must be greater than one.");
             end
 

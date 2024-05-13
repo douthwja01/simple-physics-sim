@@ -67,6 +67,8 @@ classdef Simulator < handle
                 % Compute loop time
                 t_delta = toc(timer);
                 timer = tic;
+                % Cap the maximum delta
+                t_delta = min([t_delta,this.SampleRate]);
                 % Compute the time data
                 t_last = t_last + t_delta;
                 t_accu = t_accu + t_delta;
