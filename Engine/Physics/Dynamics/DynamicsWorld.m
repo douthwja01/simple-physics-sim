@@ -3,13 +3,16 @@ classdef DynamicsWorld < CollisionWorld
     % Physics world primitive responsible for managing the dynamic
     % properties of the simulation.
 
+    properties (Constant)
+        Name = "Physics calculation module.";
+    end
     properties
         Dynamics = RNEDynamics();           % Dynamics calculation approach
         Integrator = VerletIntegrator();    % Numerical integration approach
+        EnableSubStepping = true;
         SubSteps = 5;
     end    
     properties (SetAccess = private)
-        EnableSubStepping = true;
         Gravity = [0;0;-9.81];
         Bodies = RigidBody.empty;
     end
@@ -44,11 +47,10 @@ classdef DynamicsWorld < CollisionWorld
             % Initialise the dynamic world.
 
             % Validate substepping
-            if this.SubSteps > 1
-                this.EnableSubStepping = true;
-            else
-                this.EnableSubStepping = false;
+            if this.EnableSubStepping && this.Substeps > 1
+                error("Cannot enable substepping, substeps must be greater than one.");
             end
+
             % Configuration sanity check
             assert(~isempty(this.Dynamics),"Cannot initialise, no dynamics element assigned.");
             assert(~isempty(this.Integrator),"Cannot initialise, no valid numerical integration method assigned.");
@@ -66,17 +68,24 @@ classdef DynamicsWorld < CollisionWorld
                     this.SubStep(subTimeDelta);
                 end
             else
-                this.SubStep(this.TimeDelta);
+                this.SubStep(dt);
             end
         end
         % Add/remove rigidbodies
         function [this] = AddRigidBody(this,body)
             % Sanity check
+            if isempty(body)
+                return
+            end
             assert(isa(body,"RigidBody"),"Expecting a valid RigidBody object.");
             % Add a given body to the list of objects.
             this.Bodies = vertcat(this.Bodies,body);
         end
         function [this] = RemoveRigidBody(this,body)
+            % Sanity check
+            if isempty(body)
+                return
+            end
             % Delete a given body from the physics world.
             if isnumeric(body)
                 % Temporary index
@@ -102,6 +111,9 @@ classdef DynamicsWorld < CollisionWorld
         function [this] = SubStep(this,dt)
             % This function computes each physics substep.
 
+            % Update statics (poses) (will change through integration)
+            this.World.UpdateTransforms();
+            
             % === Find/Solve the collisions
             this.FindResolveCollisions(dt);
 

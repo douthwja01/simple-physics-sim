@@ -1,4 +1,4 @@
-classdef (Abstract) Integrator < handle
+classdef (Abstract) Integrator < SimElement
     % INTEGRATOR - The base definition for modules integrating the state of
     % the simulator.
 

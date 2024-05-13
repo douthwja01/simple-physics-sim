@@ -2,8 +2,10 @@ classdef Simulator < handle
     % SIMULATOR - The master simulator class.
 
     properties
-        TimeDelta = 0.01;
-        Physics; %= DynamicsWorld.empty;
+        FixedTimeDelta = 0.01;  % Fixed physics step
+        SampleRate = 0.25;      % Time between physics updates
+        Physics;
+        Graphics;
         % Contents
         WorldSize = 10;
         g = [0;0;-9.81];
@@ -25,7 +27,9 @@ classdef Simulator < handle
             this.AddEnginePaths;   
             % Create a finite scene
             this.World = World(this.WorldSize);
-            % Create the dynamics world
+            % Create a graphics handler
+            this.Graphics = MatlabFigureGraphics();
+            % Create a dynamics handler
             this.Physics = DynamicsWorld(this.World);
             % Add impulse collision solver
             this.Physics.AddSolver(ImpulseCollisionResolver());
@@ -47,26 +51,38 @@ classdef Simulator < handle
 
             % Initialise the physics world with substeps
             this.Physics.Initialise();
+            % Initialise the graphics output
+            this.Graphics.Initialise(this.WorldSize);
 
             addlistener(this.Physics,"CollisionFeedback",@(src,evnt)this.OnCollisionCallback(src,evnt));
             addlistener(this.Physics,"TriggerFeedback",@(src,evnt)this.OnTriggerCallback(src,evnt));
 
-            % Initialise the graphics
-            [ax] = this.InitialiseGraphics();
-
             % Update routine
-            time = 0;
-            while (time < duration && ~this.IsStopped)
-                fprintf("[t=%.2fs] Stepping.\n",time);
-                % Update statics (poses)
-                this.World.UpdateTransforms();
+            t_accu = 0;
+%             t_slice = 0.25; % Time elapsed between updates
+            t_last = 0;
+            t_elapsed = 0;
+            timer = tic;
+            while t_elapsed < duration && ~this.IsStopped
+                % Compute loop time
+                t_delta = toc(timer);
+                timer = tic;
+                % Compute the time data
+                t_last = t_last + t_delta;
+                t_accu = t_accu + t_delta;
+                
+                fprintf("[t=%.2fs] Stepping.\n",t_elapsed);
 
+                % Compute the samepl
+                while t_accu > this.SampleRate
+                    % Update physics
+                    this.Physics.Step(this.FixedTimeDelta);
+                    t_accu = t_accu - this.SampleRate;
+                end
                 % Update visuals
-                this.UpdateGraphics(ax);
-                % Update physics
-                this.Physics.Step(this.TimeDelta);
+                this.Graphics.Update();
                 % Integrate the time
-                time = time + this.TimeDelta;
+                t_elapsed = t_elapsed + t_delta;
             end
         end
         function [entities] = Find(this,property,value)
@@ -91,17 +107,12 @@ classdef Simulator < handle
 
             % Add the entity by its transform
             this.World.AddTransform(entity.Transform);
-
             % Add collider
-            cl = entity.Collider;
-            if ~isempty(cl)
-                this.Physics.AddCollider(cl);
-            end
+            this.Physics.AddCollider(entity.Collider);
             % Add Rigid-body
-            rb = entity.RigidBody;
-            if ~isempty(rb)
-                this.Physics.AddRigidBody(rb);
-            end
+            this.Physics.AddRigidBody(entity.RigidBody);
+            % Add renderer
+            this.Graphics.AddRenderer(entity.Renderer);
             % Add to entity-list
             this.Entities = vertcat(this.Entities,entity);
         end
@@ -110,17 +121,12 @@ classdef Simulator < handle
 
             % Sanity check
             assert(isa(entity,"Entity"),"Expecting a valid 'Entity' object.");
-            % Add collider
-            cl = entity.Collider;
-            if ~isempty(cl)
-                this.Physics.RemoveCollider(cl);
-            end
-            % Add Rigid-body
-            rb = entity.RigidBody;
-            if ~isempty(rb)
-                this.Physics.RemoveRigidBody(rb);
-            end
-
+            % Remove collider
+            this.Physics.RemoveCollider(entity.Collider);
+            % Remove Rigid-body
+            this.Physics.RemoveRigidBody(entity.RigidBody);
+            % Remove renderer
+            this.Graphics.RemoveRenderer(entity.Renderer);
             % Add the entity by its transform
             this.World.RemoveTransform(entity.Transform);
 
@@ -139,41 +145,6 @@ classdef Simulator < handle
     end
     % Internals
     methods (Access = private)
-        function [ax,this] = InitialiseGraphics(this)
-            % Draw the state of the world
-
-            fig = figure("Name","Simulation");
-            ax = axes(fig);
-            hold on;
-            set(ax,"View",[35,35])
-            grid on;
-            box on;
-            axis equal;
-            xlabel(ax,"X (m)");
-            ylabel(ax,"Y (m)");
-            zlabel(ax,"Z (m)");
-            axisLimits = this.WorldSize/2;
-            xlim(ax,[-axisLimits,axisLimits]);
-            ylim(ax,[-axisLimits,axisLimits]);
-            zlim(ax,[0,this.WorldSize]);
-            % Register for key presses
-            set(fig,'KeyPressFcn',@(src,evnt)OnKeyPressCallback(this,src,evnt));
-        end
-        function [this] = UpdateGraphics(this,ax)
-            % This function updates the graphical handles of all the
-            % objects.
-
-            for i = 1:numel(this.Entities)
-                % Get the renderer frome the entity
-                renderer_i = this.Entities(i).Renderer;
-                if isempty(renderer_i)
-                    continue;
-                end
-                % Entities
-                renderer_i.Update(ax);
-            end
-            drawnow;
-        end
         function [this] = AddEnginePaths(this)
             % Confirm all subdirectories are on the path.
 

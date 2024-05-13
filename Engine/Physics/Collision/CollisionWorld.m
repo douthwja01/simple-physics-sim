@@ -1,4 +1,4 @@
-classdef CollisionWorld < handle
+classdef CollisionWorld < SimElement
     % Collision world primitive responsible for managing the collision
     % properties of the simulation.
 
@@ -87,16 +87,21 @@ classdef CollisionWorld < handle
             % Add a given collider to the collison world.
 
             % Sanity check
+            if isempty(collider)
+                return
+            end
             assert(isa(collider,"Collider"),"Expecting a valid 'Collider' element.");
-            % Add to set
+            % Add collider to the set
             this.Colliders = vertcat(this.Colliders,collider);
         end
         function [this] = RemoveCollider(this,collider)
             % Remove a collider from the collision world.
-
+            if isempty(collider)
+                return
+            end
             % Sanity check
             assert(isa(collider,"Collider"),"Expecting a valid 'Collider' element.");
-            % Remove a given solver from the array of collisions solvers.
+            % Remove a given collider from the array of collisions solvers.
             this.Colliders = this.Colliders(this.Colliders ~= collider);
         end
         % Managing collision NarrowPhaseSolvers

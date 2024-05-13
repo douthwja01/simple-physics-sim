@@ -425,7 +425,7 @@ classdef FeatherstoneDynamics < DynamicsSolver
             % Multiply the translation and rotation
             X = FeatherstoneDynamics.FromTranslationRotation( ...
                 so3.Position, ...
-                so3.Rotation.GetRotationMatrix());
+                so3.Rotation.GetMatrix());
         end
         function [X]  = FromTranslationRotation(p,R)
             % From the positions and rotation.

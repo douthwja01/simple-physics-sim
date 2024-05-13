@@ -2,7 +2,7 @@
 classdef RigidBody < Element
     properties (SetAccess = private)
         Mass = 1;
-%         InverseMass = 1;
+        InverseMass = 1;
         Inertia = eye(3);
         CenterOfMass = [0.5;0;0];   % Location of the mass
         Gravity = -9.81;            % Local value of gravity (viable between instances)
@@ -18,7 +18,6 @@ classdef RigidBody < Element
     end
 
     properties (SetAccess = private)
-%         acceleration = zeros(3,1);
         NetForce = zeros(3,1);
         NetTorque = zeros(3,1);
     end
