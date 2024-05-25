@@ -2,16 +2,16 @@ classdef Simulator < handle
     % SIMULATOR - The master simulator class.
 
     properties
-        FixedTimeDelta = 0.01;  % Fixed physics step
-        SampleRate = 0.25;      % Time between physics updates
-        Physics;
+        FixedTimeDelta = 0.01;  % The fixed physics step
+        SampleRate = 0.1;       % Time between physics updates
+        % Modules
         Graphics;
         % Contents
         WorldSize = 10;
         g = [0;0;-9.81];
     end
     properties (SetAccess = private)
-        World
+        World;
         Entities = [];
     end
     properties (Access = private)
@@ -23,42 +23,35 @@ classdef Simulator < handle
             % CONSTRUCTOR - Construct an instance of the time simulator 
             % class representing a singular simulation.
 
-            % Parameters
+            % Ensure all paths are available (needed for first run)
             this.AddEnginePaths;   
-            % Create a finite scene
-            this.World = World(this.WorldSize);
+            % Create the dynamics world
+            this.World = DynamicsWorld(this.WorldSize);
+            % Add impulse collision solver
+            this.World.AddSolver(ImpulseCollisionResolver());
             % Create a graphics handler
             this.Graphics = MatlabFigureGraphics();
-            % Create a dynamics handler
-            this.Physics = DynamicsWorld(this.World);
-            % Add impulse collision solver
-            this.Physics.AddSolver(ImpulseCollisionResolver());
         end
         % Get/sets
-        function set.World(this,world)
-            assert(isa(world,"World"),"Expecting a valid world object.");
-            this.World = world;
-        end
-        % Interactions
         function [this] = Simulate(this,duration)
             % This function executes the simulation sequence
 
             % Sanity check
             assert(isscalar(duration) && duration > 0,"Expecting a scalar duration greater than zero.");
-            assert(~isempty(this.World),"Expecting a valid 'DynamicsWorld' managing physics.");
+            assert(~isempty(this.World),"Expecting a valid physics-world object, something went wrong.");
+            assert(this.FixedTimeDelta < this.SampleRate,"Input sample rate should not be greater than the fixed-physics rate.");
             
-            this.AddEnginePaths();
-
             % Initialise the physics world with substeps
-            this.Physics.Initialise();
+            this.World.Initialise();
             % Initialise the graphics output
             this.Graphics.Initialise(this.WorldSize);
-
-            addlistener(this.Physics,"CollisionFeedback",@(src,evnt)this.OnCollisionCallback(src,evnt));
-            addlistener(this.Physics,"TriggerFeedback",@(src,evnt)this.OnTriggerCallback(src,evnt));
+            % Callback registration
+            addlistener(this.World,"CollisionFeedback",@(src,evnt)this.OnCollisionCallback(src,evnt));
+            addlistener(this.World,"TriggerFeedback",@(src,evnt)this.OnTriggerCallback(src,evnt));
 
             % Update routine
-            t_accu = 0; t_last = 0; t_elapsed = 0; timer = tic;
+            timer = tic;
+            t_accu = 0; t_last = 0; t_elapsed = 0;
             while t_elapsed < duration && ~this.IsStopped
                 % Compute loop time
                 t_delta = toc(timer);
@@ -71,10 +64,10 @@ classdef Simulator < handle
                 
                 fprintf("[t=%.2fs] Stepping.\n",t_elapsed);
 
-                % Compute the sample
+                % Compute the samepl
                 while t_accu > this.SampleRate
                     % Update physics
-                    this.Physics.Step(this.FixedTimeDelta);
+                    this.World.Step(this.FixedTimeDelta);
                     t_accu = t_accu - this.SampleRate;
                 end
                 % Update visuals
@@ -105,10 +98,13 @@ classdef Simulator < handle
 
             % Add the entity by its transform
             this.World.AddTransform(entity.Transform);
+
+            % Add the entity by its transform
+            this.World.AddTransform(entity.Transform);
             % Add collider
-            this.Physics.AddCollider(entity.Collider);
+            this.World.AddCollider(entity.Collider);
             % Add Rigid-body
-            this.Physics.AddRigidBody(entity.RigidBody);
+            this.World.AddRigidBody(entity.RigidBody);
             % Add renderer
             this.Graphics.AddRenderer(entity.Renderer);
             % Add to entity-list
@@ -119,12 +115,12 @@ classdef Simulator < handle
 
             % Sanity check
             assert(isa(entity,"Entity"),"Expecting a valid 'Entity' object.");
-            % Remove collider
-            this.Physics.RemoveCollider(entity.Collider);
-            % Remove Rigid-body
-            this.Physics.RemoveRigidBody(entity.RigidBody);
             % Remove renderer
             this.Graphics.RemoveRenderer(entity.Renderer);
+            % Remove collider
+            this.World.RemoveCollider(entity.Collider);
+            % Remove Rigid-body
+            this.World.RemoveRigidBody(entity.RigidBody);
             % Add the entity by its transform
             this.World.RemoveTransform(entity.Transform);
 
@@ -141,7 +137,8 @@ classdef Simulator < handle
             end
         end
     end
-    % Internals
+
+    %% Internals
     methods (Access = private)
         function [this] = AddEnginePaths(this)
             % Confirm all subdirectories are on the path.
@@ -155,9 +152,6 @@ classdef Simulator < handle
             % If elements are not on the path, add them
             Path.AddAllSubfolders(repoPath);
         end
-    end
-    % Callbacks
-    methods (Access = private)
         function [this] = OnCollisionCallback(this,source,event)
             % Do nothing when a collision occurs.
         end

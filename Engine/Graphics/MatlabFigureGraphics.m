@@ -1,4 +1,4 @@
-classdef MatlabFigureGraphics < GraphicsElement
+classdef MatlabFigureGraphics < GraphicsModule
     % A basic graphics element designed to output visuals to the matlab
     % figure api.
 

@@ -1,7 +1,10 @@
-classdef World < handle
+classdef World < Module
     % World primitive is responsible for managing the hierarchical
     % relationships of transforms within the simulated world.
 
+    properties (Constant)
+        Name = "World Object";
+    end
     properties (SetAccess = private)
         Root = Entity.empty;
         WorldSize = 10;
@@ -28,7 +31,7 @@ classdef World < handle
         end
     end
 
-    % Interactions
+    %% Interactions
     methods 
         function [this] = AddTransform(this,transform)
             % Add a transform to the world structure. 
@@ -48,9 +51,6 @@ classdef World < handle
             assert(isa(transform,"Transform"),"Expecting a valid Transform reference.");
             transform.RemoveParent();
         end
-    end
-
-    methods
         function [this] = UpdateTransforms(this)
             % This function moves through the world hierarchy to compute
             % the transformations of all entities in the scene/world.
@@ -62,6 +62,8 @@ classdef World < handle
 
         end
     end
+
+    %% Internals
     methods (Static, Access = private)
         function RecursiveNullifyChanges(current)
             % Moves through the transform set and resets the change 
@@ -103,16 +105,15 @@ classdef World < handle
                 World.RecursiveTransformUpdate(child);
             end
         end
-
         function [transform] = UpdateTargetTransform(transform)
             % This function updates the target transform to align its
             % inertial and local properties depending on what properties
             % have been changed during the frame.
 
-            if transform.Local.HasChanged && transform.inertial.HasChanged
+            if transform.Local.HasChanged && transform.Inertial.HasChanged
                 warning("Local and Inertia properties of Transform '%s' " + ...
                     "assigned in the same frame, unclear to do.", ...
-                    current.Entity.Name)
+                    transform.Entity.Name)
             end
 
             if transform.Local.HasChanged 
