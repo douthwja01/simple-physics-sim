@@ -1,12 +1,11 @@
-classdef CollisionWorld < handle
+classdef CollisionWorld < World
     % Collision world primitive responsible for managing the collision
     % properties of the simulation.
 
     properties
-        BroadPhaseSolver = SweepAndPrune();
+        BroadPhaseDetector = SweepAndPruneBPCD();
     end
     properties (SetAccess = private)
-        World = World.empty;
         % Collidables
         Colliders;
         Resolvers = CollisionResolver.empty(0,1);
@@ -23,25 +22,29 @@ classdef CollisionWorld < handle
         TriggerFeedback;
     end
 
-    % Main
+    %% Main
     methods
         % Constructor
-        function [this] = CollisionWorld(world)
+        function [this] = CollisionWorld(worldSize)
             % COLLISIONWORLD - Construct an instance of the collision world
             % object.
 
-            assert(isa(world,"World"),"Collision world requires a world reference.");
-            % Assign the world reference
-            this.World = world;
+            % Input check
+            if nargin < 1
+                worldSize = 10;
+            end
+            % Instantiate the world
+            [this] = this@World(worldSize);
         end
         % Get/sets
-        function set.BroadPhaseSolver(this,solver)
+        function set.BroadPhaseDetector(this,detector)
             % Add a given solver to the array of collision solvers.
-            assert(isa(solver,"BroadPhaseSolver"),"Expecting a valid broad-phase collision solver.");
-            this.BroadPhaseSolver = solver;
+            assert(isa(detector,"BroadPhaseCollisionDetection"),"Expecting a valid broad-phase collision solver.");
+            this.BroadPhaseDetector = detector;
         end
     end
-    % Utilities
+
+    %% Utilities
     methods
         % Resolve world Collisions
         function [this] = FindResolveCollisions(this,dt)
@@ -57,7 +60,7 @@ classdef CollisionWorld < handle
 
             % --- BROAD PHASE ---
             % This routine completes a broad-phase collision check
-            [manifolds] = this.BroadPhaseSolver.ResolveManifolds(this.Colliders);
+            [manifolds] = this.BroadPhaseDetector.ResolveManifolds(this.Colliders);
 
             % --- NARROW PHASE ---
             % This routine solves the inter-particle collisions (brute force)
@@ -87,7 +90,11 @@ classdef CollisionWorld < handle
             % Add a given collider to the collison world.
 
             % Sanity check
+            if isempty(collider)
+                return
+            end
             assert(isa(collider,"Collider"),"Expecting a valid 'Collider' element.");
+            
             % Add to set
             this.Colliders = vertcat(this.Colliders,collider);
         end
@@ -95,7 +102,11 @@ classdef CollisionWorld < handle
             % Remove a collider from the collision world.
 
             % Sanity check
+            if isempty(collider)
+                return
+            end
             assert(isa(collider,"Collider"),"Expecting a valid 'Collider' element.");
+            
             % Remove a given solver from the array of collisions solvers.
             this.Colliders = this.Colliders(this.Colliders ~= collider);
         end
@@ -134,7 +145,7 @@ classdef CollisionWorld < handle
         end
     end
 
-    % Internals
+    %% Internals
     methods (Access = private)
         function [this] = ResolveCollisions(this,dt)
             % This function solves the set of identified collisions by

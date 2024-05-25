@@ -12,14 +12,20 @@ classdef DynamicsWorld < CollisionWorld
         Gravity = [0;0;-9.81];
         Bodies = RigidBody.empty;
     end
-    % Main
+    
+    %% Main
     methods
-        function [this] = DynamicsWorld(world)
+        function [this] = DynamicsWorld(worldSize)
             % DYNAMICSWORLD - Construct an instance of the dynamics world
             % object.
             
+            % Input check
+            if nargin < 1
+                worldSize = 10;
+            end
+
             % Call the parent
-            [this] = this@CollisionWorld(world);
+            [this] = this@CollisionWorld(worldSize);
         end
         % Get/sets
         function set.Integrator(this,int)
@@ -32,7 +38,7 @@ classdef DynamicsWorld < CollisionWorld
         end
     end
 
-    % Interactions
+    %% Interactions
     methods        
         % High-level
         function [this] = Initialise(this)
@@ -45,7 +51,6 @@ classdef DynamicsWorld < CollisionWorld
                 this.EnableSubStepping = false;
             end
             assert(~isempty(this.Integrator),"Require a valid numerical integration method.");
-
         end
         function [this] = Step(this,dt)
             % This function steps the physics simulation.
@@ -60,18 +65,27 @@ classdef DynamicsWorld < CollisionWorld
                     this.SubStep(subTimeDelta);
                 end
             else
-                this.SubStep(this.TimeDelta);
+                this.SubStep(dt);
             end
         end
         % Add/remove rigidbodies
         function [this] = AddRigidBody(this,body)
             % Sanity check
+            if isempty(body)
+                return
+            end
             assert(isa(body,"RigidBody"),"Expecting a valid RigidBody object.");
             % Add a given body to the list of objects.
             this.Bodies = vertcat(this.Bodies,body);
         end
         function [this] = RemoveRigidBody(this,body)
-            % Delete a given body from the physics world.
+            % Delete a given body from the physics world (by id or body).
+
+            % Sanity check
+            if isempty(body)
+                return
+            end
+            % Delete mode
             if isnumeric(body)
                 % Temporary index
                 vec = 1:1:numel(this.Bodies);     
@@ -91,17 +105,27 @@ classdef DynamicsWorld < CollisionWorld
             this.Gravity = g;
         end
     end
-    % Utilities
+
+    %% Internals
     methods(Access = private)
         function [this] = SubStep(this,dt)
             % This function computes each physics substep.
-
+            
             % The step procedure
             this.ApplyGravity();
             % Solve the collisions
             this.FindResolveCollisions(dt);
-            % Update the changes of everything
-            this.MoveObjects(dt);
+            % Update rigidbodies (accelerations)
+            for i = 1:numel(this.Bodies)
+                this.Bodies(i).Update();
+            end
+            % Extract only the transform
+            bodyTransforms = [this.Bodies.Transform];
+            % Use the integrator components to integrate
+            this.Integrator.Integrate(bodyTransforms,dt);
+    
+            % Update statics (poses) (will change through integration)
+            this.UpdateTransforms();
         end        
         function [this] = ApplyGravity(this)
             % This function applies gravity to all particles
@@ -115,20 +139,6 @@ classdef DynamicsWorld < CollisionWorld
                 % Apply gravity
                 body_i.Accelerate(this.Gravity);
             end
-        end
-        function [this] = MoveObjects(this,dt)
-            % Update the physics properties of the world and recalculate
-            % the acceleration properties of all objects based on their
-            % instantaneous kinematic configurations.
-            
-            % Update rigidbodies (accelerations)
-            for i = 1:numel(this.Bodies)
-                this.Bodies(i).Update();
-            end
-            % Extract only the transform
-            bodyTransforms = [this.Bodies.Transform];
-            % Use the integrator components to integrate
-            this.Integrator.Integrate(bodyTransforms,dt);
         end
     end
 end

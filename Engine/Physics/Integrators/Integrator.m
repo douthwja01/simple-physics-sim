@@ -1,10 +1,6 @@
-classdef (Abstract) Integrator < handle
+classdef (Abstract) Integrator < Module
     % INTEGRATOR - The base definition for modules integrating the state of
     % the simulator.
-
-    properties (Abstract,Constant)
-        Name;
-    end
     
     methods
         function [this] = Integrate(this,transforms,dt)
