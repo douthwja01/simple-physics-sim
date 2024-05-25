@@ -1,18 +1,22 @@
-classdef SweepAndPrune < BroadPhaseSolver
+classdef SweepAndPruneBPCD < BroadPhaseCollisionDetection
     % The sweep and prune algorithm parses the set of manifolds where
     % collision is possible using a primitive AABB interval check through 
     % successive dimensions.
     
+    properties (Constant)
+        Name = "A sweep-and-prune broad-phase collision detection routine.";
+    end
     properties
         AABBs = AABB.empty;
     end
+
     methods 
-        function [this] = SweepAndPrune()
+        function [this] = SweepAndPruneBPCD()
             % CONSTRUCTOR - Create an instance of the 'Sweep and Prune'
             % broad-phase approach to collision resolution.
 
             % Call the parent
-            [this] = this@BroadPhaseSolver();
+            [this] = this@BroadPhaseCollisionDetection();
         end
         function [manifolds] = ResolveManifolds(this,colliders)
             % This function resolves the set of active intervals/manifold

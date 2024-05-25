@@ -46,11 +46,8 @@ sim.Add(fixed);
 
 % Add the ground plane
 ground = EntityCreator.Plane("Ground",zeros(3,1));
-% Do not move
+ground.Transform.Inertial.Scale = [10;10;1];
 ground.Transform.IsStatic = true;
-ground.Transform.Local.Scale = [15;5;1];
-% Collisions
-
 % Visuals
 ground.Renderer.Colour = "g";
 % Add the ground object
@@ -58,10 +55,12 @@ sim.Add(ground);
 
 %found = sim.Find("Name","Box");
 
-% Configure Simulator 
-sim.WorldSize = 10;
-sim.Physics.SubSteps = 10;
-sim.Physics.Integrator = EulerIntegrator();
+%% Simulator configuration
+sim.WorldSize = 15;
+sim.World.SubSteps = 5;
+% Numeric integrators
+sim.World.Integrator = EulerIntegrator();
+% Collision solvers
 % sim.Physics.BroadPhaseSolver = OctreeSolver();
 % Simulate
 sim.Simulate(inf);
