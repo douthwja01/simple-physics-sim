@@ -109,10 +109,10 @@ classdef World < handle
             % inertial and local properties depending on what properties
             % have been changed during the frame.
 
-            if transform.Local.HasChanged && transform.inertial.HasChanged
+            if transform.Local.HasChanged && transform.Inertial.HasChanged
                 warning("Local and Inertia properties of Transform '%s' " + ...
                     "assigned in the same frame, unclear to do.", ...
-                    current.Entity.Name)
+                    transform.Entity.Name)
             end
 
             if transform.Local.HasChanged 

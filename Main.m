@@ -12,8 +12,6 @@ gridPoints = CreateGrid([0;0;4],numberOfObjects,numberPerColumn,1.5);
 for i = 1:numberOfObjects
     % Place the object
     entity_i = EntityCreator.Box(sprintf("Object %d (Box)",i),gridPoints(:,i),Quaternion.Zero);
-    
-    entity_i.Collider = AABBCollider();
 
     entity_i.Transform.Inertial.Rotation = Quaternion.FromEulers(rand(1),rand(1),rand(1));
     % Add elements
