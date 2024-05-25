@@ -34,14 +34,6 @@ classdef RigidBody < Element
             % Rigidbody object constructor
             [this] = this@Element(entity);
         end
-        
-        function [this] = Update(this)
-            % Update the object using the verlet method.
-
-            % Update the physics
-            this.Entity.Transform.Acceleration = this.acceleration;
-        end
-
         % Get/sets
         function set.IsDynamic(this,isDynamic)
             assert(islogical(isDynamic),"Expecting a boolean is dynamic.");
@@ -69,7 +61,7 @@ classdef RigidBody < Element
         end
         function [this] = Accelerate(this,a)
             % Calcuate the acceleration
-            this.acceleration = a;
+            this.Transform.Acceleration = a;
         end
     end
 end
