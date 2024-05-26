@@ -1,33 +1,37 @@
-classdef PositionCollisionResolver < CollisionResolver
+classdef PositionCR < CollisionResolver
     % This basic collision solver resolves collisions simply by resolving
     % the minimum seperation between the two colliders by directly setting
     % the position of the two objects via their transforms.
     
+    properties (Constant)
+        Name = "A simple position-based collision resolution implementation.";
+    end
+
     methods
-        function [this] = Resolve(this,collisions,dt)
+        function [this] = Resolve(this,manifolds,dt)
             % Sanity check
-            assert(isa(collisions,"Manifold"),"Expecting an array of collisions objects.");
+            assert(isa(manifolds,"Manifold"),"Expecting an array of collisions objects.");
             assert(isnumeric(dt),"Expecting an array of collisions objects.");
 
-            for i = 1:numel(collisions) %Manifold& manifold : manifolds)
+            for i = 1:numel(manifolds)
                 % For each collision
-                collision = collisions(i);
-                manifold = collision.Points;       
+                collision = manifolds(i);
+                points = collision.Points;       
 
                 % Party one
                 entityA = collision.ColliderA.Entity;
-                transformA = entityA.GetElement("Transform");
+                transformA = entityA.Transform;
                 isStaticA = transformA.IsStatic;
 
                 % Party two
                 entityB = collision.ColliderB.Entity;
-                transformB = entityB.GetElement("Transform");
+                transformB = entityB.Transform;
                 isStaticB = transformB.IsStatic;
 
 %                 fprintf("Resolving collision between %s and %s.\n",entityA.Name,entityB.Name);
 
                 % Calculate the resolution
-                resolution = manifold.Normal * manifold.Depth / max(1, isStaticA + isStaticB);
+                resolution = points.Normal * points.Depth / max(1, isStaticA + isStaticB);
                 % Modify the positions
                 delta_a = resolution * (1 - isStaticA);
                 delta_b = resolution * (1 - isStaticB);

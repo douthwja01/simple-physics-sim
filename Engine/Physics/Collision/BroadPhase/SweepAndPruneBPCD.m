@@ -1,4 +1,4 @@
-classdef SweepAndPruneBPCD < BroadPhaseCollisionDetection
+classdef SweepAndPruneBPCD < BroadPhaseCollisionDetector
     % The sweep and prune algorithm parses the set of manifolds where
     % collision is possible using a primitive AABB interval check through 
     % successive dimensions.
@@ -16,7 +16,7 @@ classdef SweepAndPruneBPCD < BroadPhaseCollisionDetection
             % broad-phase approach to collision resolution.
 
             % Call the parent
-            [this] = this@BroadPhaseCollisionDetection();
+            [this] = this@BroadPhaseCollisionDetector();
         end
         function [manifolds] = ResolveManifolds(this,colliders)
             % This function resolves the set of active intervals/manifold
@@ -47,7 +47,7 @@ classdef SweepAndPruneBPCD < BroadPhaseCollisionDetection
             % 3. We want to move through the set of intervals with final
             % dimension, remove those that don't overlap.
 
-            %% 1. Sweep (along the x-axis)
+            % 1. Sweep (along the x-axis)
             pairs = [];%"A",AABB.empty,"B",AABB.empty,"CidA",[],"CidB",[]);           
             for i = 1:numberOfColliders
                 collider_i = colliders(i);
@@ -79,7 +79,7 @@ classdef SweepAndPruneBPCD < BroadPhaseCollisionDetection
                 return;
             end
 
-            %% 2. Parse y-axis
+            % 2. Parse y-axis
             logicalIndices = false(numberOfPairs,1);
             for i = 1:numberOfPairs
                 % Evaluate the intersection, logically select if true.
@@ -96,7 +96,7 @@ classdef SweepAndPruneBPCD < BroadPhaseCollisionDetection
                 return;
             end
 
-            %% 3. Parse z-axis
+            % 3. Parse z-axis
             logicalIndices = false(numberOfPairs,1);
             for i = 1:numberOfPairs
                 % Evaluate the intersection, logically select if true.
@@ -113,7 +113,7 @@ classdef SweepAndPruneBPCD < BroadPhaseCollisionDetection
                 return;
             end
 
-            %% 4. Generate a manifold set to be evaluated
+            % 4. Generate a manifold set to be evaluated
             manifolds = Manifold.empty(0,numberOfPairs);
             for i = 1:numberOfPairs
                 % Select the colliders

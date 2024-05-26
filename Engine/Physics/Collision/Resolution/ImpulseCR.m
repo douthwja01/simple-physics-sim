@@ -1,8 +1,11 @@
-classdef ImpulseCollisionResolver < CollisionResolver
+classdef ImpulseCR < CollisionResolver
     % This basic collision solver resolves collisions between two objects
     % by calculating the impulse required to move the two objects apparent
     % by the next time-step.
 
+    properties (Constant)
+        Name = "A simple impulse-based collision resolution implementation.";
+    end
     methods
         function [this] = Resolve(this,manifolds,dt)
             % Solve the set of collisions using the impulse solver.

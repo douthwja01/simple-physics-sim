@@ -4,6 +4,7 @@ classdef RigidBody < Element
         Mass = 1;
         InverseMass = 1;
         Inertia = eye(3);
+        InverseInertia = eye(3);
         CenterOfMass = [0.5;0;0];   % Location of the mass
         Gravity = -9.81;            % Local value of gravity (viable between instances)
         TakesGravity = true;        % Uses world gravity

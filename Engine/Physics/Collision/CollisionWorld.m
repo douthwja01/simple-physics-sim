@@ -39,7 +39,7 @@ classdef CollisionWorld < World
         % Get/sets
         function set.BroadPhaseDetector(this,detector)
             % Add a given solver to the array of collision solvers.
-            assert(isa(detector,"BroadPhaseCollisionDetection"),"Expecting a valid broad-phase collision solver.");
+            assert(isa(detector,"BroadPhaseCollisionDetector"),"Expecting a valid broad-phase collision solver.");
             this.BroadPhaseDetector = detector;
         end
     end
@@ -66,7 +66,7 @@ classdef CollisionWorld < World
             % This routine solves the inter-particle collisions (brute force)
             for i = 1:numel(manifolds)
                 % Evaluate if there has been a collision for the pair.
-                this.TestCollision(manifolds(i).ColliderA,manifolds(i).ColliderB);
+                this.TestCollision(manifolds(i));
             end
             % --------------------
 
@@ -165,21 +165,25 @@ classdef CollisionWorld < World
                 this.Resolvers(i).Resolve(this.Collisions,dt);
             end
         end
-        function TestCollision(this,collider_i,collider_j)
+        function TestCollision(this,manifold)
             % Evaluate an individual collision instance
 
+            colliderA = manifold.ColliderA;
+            colliderB = manifold.ColliderB;
+
             % Test collisions with their respective colliders
-            [isColliding,points] = collider_i.TestCollision(collider_j);
+            [isColliding,points] = colliderA.TestCollision(colliderB);
 
             % If not colliding, skip
             if ~isColliding
                 return
             end
 
-            % Collision description
-            manifold = Manifold(collider_i,collider_j,points);
+            % Add the points
+            manifold.Points = points;
+
             % If either are triggers
-            if collider_i.IsTrigger || collider_j.IsTrigger
+            if colliderA.IsTrigger || colliderB.IsTrigger
                 this.Triggers = vertcat(this.Triggers,manifold);
             else
                 this.Collisions = vertcat(this.Collisions,manifold);

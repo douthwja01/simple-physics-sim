@@ -1,4 +1,4 @@
-classdef NieveBPCD < BroadPhaseCollisionDetection
+classdef NieveBPCD < BroadPhaseCollisionDetector
     %NIEVE BROAD PHASE SOLVER is class of solver designed to resolve the
     % complete set of collider pairs where collision is possible using a
     % nieve approach. These collision pairs are then passed on to a
@@ -13,7 +13,7 @@ classdef NieveBPCD < BroadPhaseCollisionDetection
             % CONSTRUCTOR - Create an instance of a broad-phase solver.
         
             % Call the parent
-            [this] = this@BroadPhaseCollisionDetection(varargin{:})
+            [this] = this@BroadPhaseCollisionDetector(varargin{:})
         end
     end
 

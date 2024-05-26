@@ -40,7 +40,7 @@ classdef SO3 < handle
         end
         function set.Rotation(this,q)
             assert(isa(q,"Quaternion"),"Expecting a valid Quaternion [4x1].");
-            this.Rotation = q;
+            this.Rotation = q.Normalise();
             this.HasChanged = true;
         end
         function set.Scale(this,s)
@@ -100,7 +100,7 @@ classdef SO3 < handle
         % General
         function [T]    = DirectionOnly(this)
             % Extract only the rotational components
-            T = SO3(zeros(3,1),this.GetRotationMatrix());
+            T = SO3(zeros(3,1),this.GetMatrix());
         end
         function [T]    = TranslationOnly(this)
             % Extract only the translational components

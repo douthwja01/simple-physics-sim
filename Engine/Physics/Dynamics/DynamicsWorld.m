@@ -4,13 +4,14 @@ classdef DynamicsWorld < CollisionWorld
     % properties of the simulation.
 
     properties
+        Gravity = [0;0;-9.81];
         Dynamics = RNEDynamics();           % Dynamics calculation approach
         Integrator = VerletIntegrator();    % Numerical integration approach
         EnableSubStepping = true;
         SubSteps = 5;
     end    
     properties (SetAccess = private)
-        Gravity = [0;0;-9.81];
+        EnableSubStepping = true;
         Bodies = RigidBody.empty;
     end
     
@@ -40,6 +41,10 @@ classdef DynamicsWorld < CollisionWorld
         function set.SubSteps(this,steps)
             assert(mod(steps,1) == 0 && steps > 0,"Expecting an integer number of substeps.")
             this.SubSteps = steps;
+        end
+        function set.Gravity(this,g)
+            assert(IsColumn(g,3),"Expecting a global gravity vector [3x1].");
+            this.Gravity = g;
         end
     end
 
@@ -106,36 +111,29 @@ classdef DynamicsWorld < CollisionWorld
             % Remove the body
             this.Bodies = this.Bodies(selectionLogicals);
         end
-        % World dynamics
-        function [this] = SetGravity(this,g)
-            assert(IsColumn(g,3),"Expecting a global gravity vector [3x1].");
-            this.Gravity = g;
-        end
     end
 
     %% Internals
     methods(Access = private)
         function [this] = SubStep(this,dt)
             % This function computes each physics substep.
-            
-            % == Detect & Solve collisions == 
+
+            % == Recalculate world positions == 
+            this.UpdateTransforms();            
+            % == Find/solve the collisions == 
             this.FindResolveCollisions(dt);
-
-            % == Calculate the resulting motions ==
-            this.CalculateAccelerations();
-
-            % == Integrate ==
-            % Extract only the transform
-            bodyTransforms = [this.Bodies.Transform];
-            % Use the integrator components to integrate
-            this.Integrator.Integrate(bodyTransforms,dt);
-    
-            % == Update Transforms == 
-            % Update statics (poses) (will change through integration)
-            this.UpdateTransforms();
+            % == Calculate the motion differentials == 
+            this.CalculationMotion();
+            % == Integrate the motion properties == 
+            this.Integrator.Integrate([this.Bodies.Transform],dt);
         end        
-        function [this] = CalculateAccelerations(this)
+        function [this] = CalculationMotion(this)
             % This function applies gravity to all particles
+
+            % Update rigidbodies (accelerations)
+            for i = 1:numel(this.Bodies)
+                this.Bodies(i).Update();
+            end
 
             for i = 1:numel(this.Bodies)
                 body_i = this.Bodies(i);
