@@ -1,4 +1,4 @@
-classdef OctreeBPCD < BroadPhaseCollisionDetection
+classdef OctreeBPCD < BroadPhaseCollisionDetector
     % OCTREESOLVER - An Octree algorithm instance, used to resolve the set 
     % of collision instances from an unknown object configuration.
     
@@ -15,7 +15,7 @@ classdef OctreeBPCD < BroadPhaseCollisionDetection
             % solver.
 
             % Call the parent
-            [this] = this@BroadPhaseCollisionDetection();
+            [this] = this@BroadPhaseCollisionDetector();
 
             % Default max-size
             if nargin < 1

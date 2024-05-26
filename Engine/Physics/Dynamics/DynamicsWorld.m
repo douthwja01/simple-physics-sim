@@ -109,15 +109,15 @@ classdef DynamicsWorld < CollisionWorld
     methods(Access = private)
         function [this] = SubStep(this,dt)
             % This function computes each physics substep.
-            
+
+            % == Recalculate world positions == 
+            this.UpdateTransforms();            
             % == Find/solve the collisions == 
             this.FindResolveCollisions(dt);
             % == Calculate the motion differentials == 
             this.CalculationMotion();
             % == Integrate the motion properties == 
             this.Integrator.Integrate([this.Bodies.Transform],dt);
-            % == Recalculate world positions == 
-            this.UpdateTransforms();
         end        
         function [this] = CalculationMotion(this)
             % This function applies gravity to all particles

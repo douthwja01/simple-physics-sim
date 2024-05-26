@@ -4,7 +4,8 @@ classdef RigidBody < Element
         Force = zeros(3,1);
         Mass = 1;
         InverseMass = 1;
-        Inertia = 1;
+        Inertia = eye(3);
+        InverseInertia = eye(3);
         Gravity = -9.81;            % Local value of gravity (viable between instances)
         TakesGravity = true;        % Uses world gravity
         StaticFriction = 0.6;       % Static friction coefficient

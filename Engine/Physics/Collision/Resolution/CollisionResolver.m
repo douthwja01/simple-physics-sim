@@ -1,4 +1,4 @@
-classdef (Abstract) CollisionResolver < matlab.mixin.Heterogeneous & handle
+classdef (Abstract) CollisionResolver < Module
     % NARROWPHASESOLVER is a class to resolve collision occurance with
     % higher accuracy that the broad-phase solvers. The usage of
     % narrow-phase collision solves typically follows a broad-phase solver.
