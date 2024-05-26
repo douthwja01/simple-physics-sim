@@ -50,5 +50,6 @@ sim.WorldSize = 15;
 sim.World.SubSteps = 5;
 % Numeric integrators
 sim.World.Integrator = EulerIntegrator();
+sim.World.AddSolver(RotationalImpulseCR())
 % Simulate
 sim.Simulate(inf);
