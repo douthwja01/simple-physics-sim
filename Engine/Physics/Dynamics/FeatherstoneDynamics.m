@@ -83,40 +83,84 @@ classdef FeatherstoneDynamics < DynamicsSolver
                 tf_i = body_i.Transform;
 %                 fprintf("Calculating velocities for %s.\n",transform_i.Entity.Name);
                 
-                % Handle no joint case (world)
-                if tf_i.Parent.IsStatic
-                    % Assume it is the world
-                    Xup_i = eye(6);
-                    S_i = [];
-                    v_i = zeros(6,1);
+                joint = body_i.Entity.Joints;
+                % The objects with no-joint
+                if isempty(joint)
+                    % Velocity is the floating joint state
+                    Xup_i = FeatherstoneDynamics.FromSO3(tf_i.Local); 
+                    S_i = eye(6);
+                    v_i = [tf_i.AngularVelocity;tf_i.Velocity];
                     c_i = zeros(6,1);
                 else
-                    % Get the joint
-                    joint = tf_i.Entity.Joints;
-                    [XJ,S_i,vJ] = FeatherstoneDynamics.GetJointData(joint);
-                    XTree_i = FeatherstoneDynamics.FromSO3(tf_i.Local);    % Get the local transformation
-                    % Local spacial joint transformation
-                    Xup_i = XJ * XTree_i;
-
-                    % Find parent frame properties
-                    [flag,pid] = this.GetParentIndex(tf_i.Uid); 
-                    if ~flag
-                        error("Something went wrong, no joint parent found.");
-                    end
-
-                    % The parent is the world
-                    if isa(joint,"FloatingJoint")
-                        % Velocity is the floating joint state
-                        v_0 = [tf_i.AngularVelocity;tf_i.Velocity];
+                    % Handle no joint case (world)
+                    if tf_i.Parent.IsRoot
+                        Xup_i = eye(6);
+                        S_i = [];
+                        v_i = zeros(6,1);
+                        c_i = zeros(6,1);
                     else
-                        % The parent any other link
-                        v_0 = this.v{pid};
+                        % Get the joint
+                        joint = tf_i.Entity.Joints;
+                        [XJ,S_i,vJ] = FeatherstoneDynamics.GetJointData(joint);
+                        XTree_i = FeatherstoneDynamics.FromSO3(tf_i.Local);    % Get the local transformation
+                        % Local spacial joint transformation
+                        Xup_i = XJ * XTree_i;
+    
+                        % Find parent frame properties
+                        [flag,pid] = this.GetParentIndex(tf_i.Uid); 
+                        if ~flag
+                            error("Something went wrong, no joint parent found.");
+                        end
+    
+                        % The parent is the world
+                        if isa(joint,"FloatingJoint")
+                            % Velocity is the floating joint state
+                            v_0 = [tf_i.AngularVelocity;tf_i.Velocity];
+                        else
+                            % The parent any other link
+                            v_0 = this.v{pid};
+                        end
+    
+                        % Calculate the velocity terms
+                        v_i = Xup_i*v_0 + vJ;
+                        c_i = FeatherstoneDynamics.MotionCross(v_i) * vJ;
                     end
-
-                    % Calculate the velocity terms
-                    v_i = Xup_i*v_0 + vJ;
-                    c_i = FeatherstoneDynamics.MotionCross(v_i) * vJ;
                 end
+
+%                 % Handle no joint case (world)
+%                 if tf_i.Parent.IsRoot
+%                     % Assume it is the world
+%                     Xup_i = eye(6);
+%                     S_i = [];
+%                     v_i = zeros(6,1);
+%                     c_i = zeros(6,1);
+%                 else
+%                     % Get the joint
+%                     joint = tf_i.Entity.Joints;
+%                     [XJ,S_i,vJ] = FeatherstoneDynamics.GetJointData(joint);
+%                     XTree_i = FeatherstoneDynamics.FromSO3(tf_i.Local);    % Get the local transformation
+%                     % Local spacial joint transformation
+%                     Xup_i = XJ * XTree_i;
+% 
+%                     % Find parent frame properties
+%                     [flag,pid] = this.GetParentIndex(tf_i.Uid); 
+%                     if ~flag
+%                         error("Something went wrong, no joint parent found.");
+%                     end
+% 
+%                     % The parent is the world
+%                     if isa(joint,"FloatingJoint")
+%                         % Velocity is the floating joint state
+%                         v_0 = [tf_i.AngularVelocity;tf_i.Velocity];
+%                     else
+%                         % The parent any other link
+%                         v_0 = this.v{pid};
+%                     end
+% 
+%                     % Calculate the velocity terms
+%                     v_i = Xup_i*v_0 + vJ;
+%                     c_i = FeatherstoneDynamics.MotionCross(v_i) * vJ;
+%                 end
 
                 % Assign to containers
                 this.Xup{i} = Xup_i;
