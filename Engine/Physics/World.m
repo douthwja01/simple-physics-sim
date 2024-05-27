@@ -59,7 +59,6 @@ classdef World < Module
             this.RecursiveTransformUpdate(this.Root.Transform);
             % Reset transform change status for next frame
             this.RecursiveNullifyChanges(this.Root.Transform);
-
         end
     end
 
@@ -132,6 +131,7 @@ classdef World < Module
             if transform.Inertial.HasChanged 
                 % The change is a global one, recalculate local
                 T = transform.Inertial.GetMatrix();
+
                 if transform.NumberOfParents ~= 0
                     % Get the parent inertial transfrom
                     Tp = transform.Parent.Inertial.GetMatrix();

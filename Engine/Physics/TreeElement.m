@@ -9,6 +9,7 @@ classdef (Abstract) TreeElement < Element
     properties (Hidden)
         NumberOfParents;
         NumberOfChildren;
+        IsRoot;
     end
     properties (Constant,Access = private)
         OriginVertexName = "Origin Line";
@@ -76,6 +77,9 @@ classdef (Abstract) TreeElement < Element
         end
         function [n] = get.NumberOfChildren(this)
             n = numel(this.Children);
+        end
+        function [flag] = get.IsRoot(this)
+            flag = this.NumberOfParents == 0;
         end
     end
 

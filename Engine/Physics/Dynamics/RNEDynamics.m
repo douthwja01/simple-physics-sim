@@ -6,23 +6,21 @@ classdef RNEDynamics < DynamicsSolver
         Name = "Recursive-Newton Euler (RNE) Dynamic solver.";
     end
 
-    % Interface
-    methods
-        function [this] = Compute(this,bodies)
+    %% Internal
+    methods (Access = protected)
+        function [this] = TopLevelRoutine(this,bodies)
             % Compute the motion of the provided bodies utilitising the
             % given approach.
 
             % Resolve velocities
-            this.ResolveVelocities(bodies);
+            this.ComputeVelocities(bodies);
             % Resolve velocities
-            this.ResolveAccelerations(bodies);
+            this.ComputeAccelerations(bodies);
             % Resolve velocities
-            this.ResolveForces(bodies);
+            this.ComputeForces(bodies);
         end
-    end
-    % Internal
-    methods (Access = protected)
-        function [this] = ResolveVelocities(this,transforms)
+        
+        function [this] = ComputeVelocities(this,transforms)
             % This function computes the velocities of all the provided
             % transforms.
 
@@ -39,7 +37,7 @@ classdef RNEDynamics < DynamicsSolver
                 
             end
         end
-        function[this] = ResolveAccelerations(this,transforms)
+        function [this] = ComputeAccelerations(this,transforms)
             % This function computes the accelerations of all the provided
             % transforms.
 
@@ -48,7 +46,7 @@ classdef RNEDynamics < DynamicsSolver
 
             end
         end
-        function [this] = ResolveForces(this,transforms)
+        function [this] = ComputeForces(this,transforms)
             % This function computes the forces of all the provided
             % transforms.
 

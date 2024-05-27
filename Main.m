@@ -48,10 +48,10 @@ sim.Add(ground);
 %% Simulator configuration
 sim.WorldSize = 15;
 sim.World.SubSteps = 5;
+sim.World.EnableSubStepping = true;
 % Numeric integrators
 sim.World.Integrator = EulerIntegrator();
 % Collision solvers
-% sim.Physics.BroadPhaseSolver = OctreeSolver();
 sim.World.BroadPhaseDetector = SweepAndPruneBPCD();
 sim.World.Dynamics = FeatherstoneDynamics();
 % Simulate

@@ -9,15 +9,10 @@ classdef EulerIntegrator < Integrator
             % This function computes the euler step for a set of provided
             % bodies/transforms.
             
-%             p0 = pose.GetWorldPosition();
-%             q0 = pose.GetWorldRotation();
+            so3Inertial = transform.Inertial;
 
-            p0 = transform.Inertial.Position;
-            q0 = transform.Inertial.Rotation;
-
-%             if transform.Entity.Name == "Box 2"
-%                 
-%             end
+            p0 = so3Inertial.Position;
+            q0 = so3Inertial.Rotation;
 
             v0 = transform.Velocity;
             w0 = transform.AngularVelocity;
@@ -37,8 +32,8 @@ classdef EulerIntegrator < Integrator
             transform.Velocity = v;
             transform.AngularVelocity = w;
             % Set the new pose
-            transform.Inertial.Position = position;
-            transform.Inertial.Rotation = rotation;
+            so3Inertial.Position = position;
+            so3Inertial.Rotation = rotation;
         end
     end
 end

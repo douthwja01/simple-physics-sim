@@ -3,12 +3,13 @@ classdef (Abstract) Integrator < Module
     % the simulator.
     
     methods
-        function [this] = Integrate(this,transforms,dt)
+        function [this] = Integrate(this,bodies,dt)
             % This function computes the euler step for a set of provided
             % bodies/transforms.
             
-            for i = 1:numel(transforms)
-                tf_i = transforms(i);
+            for i = 1:numel(bodies)
+                body_i = bodies(i);
+                tf_i = body_i.Transform;
                 % If the object is static, abort
                 if tf_i.IsStatic
                     tf_i.Velocity = zeros(3,1);

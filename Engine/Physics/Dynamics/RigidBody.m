@@ -19,8 +19,8 @@ classdef RigidBody < Element
     end
 
     properties (SetAccess = private)
-        NetForce = zeros(3,1);
-        NetTorque = zeros(3,1);
+        forceAccumulator = zeros(3,1);
+        torqueAccumulator = zeros(3,1);
     end
 
     methods
@@ -47,7 +47,7 @@ classdef RigidBody < Element
             % Sanity check one
             assert(IsColumn(f,3),"Expecting a valid 3D force vector.");
             % Update the orce accumulator
-            this.NetForce = this.NetForce + f;
+            this.forceAccumulator = this.forceAccumulator + f;
             if nargin < 3
                 return;
             end
@@ -58,11 +58,14 @@ classdef RigidBody < Element
         end
         function [this] = ApplyTorque(this,tau)
             assert(IsColumn(tau,3),"Expecting a valid 3D torque vector.");
-            this.NetTorque = this.NetTorque + tau;
+            this.torqueAccumulator = this.torqueAccumulator + tau;
         end
-        function [this] = Accelerate(this,a)
-            % Calcuate the acceleration
-            this.Transform.Acceleration = a;
+        function [this] = ClearAccumulators(this)
+            % This function clears the accumulators defining the forces and
+            % torques acting on the body are defined.
+
+            this.forceAccumulator = zeros(3,1);
+            this.torqueAccumulator = zeros(3,1);
         end
     end
 end

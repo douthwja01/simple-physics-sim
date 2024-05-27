@@ -11,7 +11,6 @@ classdef DynamicsWorld < CollisionWorld
         SubSteps = 5;
     end    
     properties (SetAccess = private)
-        EnableSubStepping = true;
         Bodies = RigidBody.empty;
     end
     
@@ -118,57 +117,14 @@ classdef DynamicsWorld < CollisionWorld
         function [this] = SubStep(this,dt)
             % This function computes each physics substep.
 
-            % == Recalculate world positions == 
-            this.UpdateTransforms();            
             % == Find/solve the collisions == 
             this.FindResolveCollisions(dt);
-            % == Calculate the motion differentials == 
-            this.CalculationMotion();
-            % == Integrate the motion properties == 
-            this.Integrator.Integrate([this.Bodies.Transform],dt);
+            % == Compute forces and torques ==
+            this.Dynamics.ComputeDynamics([this.Bodies]);
+            % == Integrate the new motion properties == 
+            this.Integrator.Integrate([this.Bodies],dt);
+            % == Recalculate world positions == 
+            this.UpdateTransforms();            
         end        
-        function [this] = CalculationMotion(this)
-            % This function applies gravity to all particles
-
-            % Update rigidbodies (accelerations)
-            for i = 1:numel(this.Bodies)
-                this.Bodies(i).Update();
-            end
-
-            for i = 1:numel(this.Bodies)
-                body_i = this.Bodies(i);
-                % If this body is not effected by gravity
-                if ~body_i.IsDynamic
-                    continue;
-                end
-                % Apply gravity
-                body_i.Accelerate(this.Gravity);
-            end
-        end
-    % Internals
-%     methods(Access = private)
-%         function [this] = SubStep(this,dt)
-%             % This function computes each physics substep.
-% 
-%             % Update statics (poses) (will change through integration)
-%             this.World.UpdateTransforms();
-%             
-%             % === Find/Solve the collisions
-%             this.FindResolveCollisions(dt);
-% 
-%             % Isolate non-statics
-%             allTransforms = this.World.Root.Transform.ListChildrenOfType("Transform");
-% %             bodyTransforms = [this.Bodies.Transform];
-% %             kinematicLogicals = ~[bodyTransforms.IsStatic];
-% %             kinematicBodies = bodyTransforms(kinematicLogicals);
-% %             % Extract the kinematics
-% %             kinematicBodies = bodyTransforms(kinematicLogicals);
-%             
-%             % === Update the changes of everything ===
-%             this.Dynamics.Compute(allTransforms);
-%             % === Integrate the state change ===
-%             this.Integrator.Integrate(allTransforms,dt);
-%             %             this.Integrator.Integrate(kinematicBodies,dt);
-%         end    
     end
 end
