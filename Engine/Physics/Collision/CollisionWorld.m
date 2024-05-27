@@ -63,10 +63,28 @@ classdef CollisionWorld < World
             [manifolds] = this.BroadPhaseDetector.ResolveManifolds(this.Colliders);
 
             % --- NARROW PHASE ---
-            % This routine solves the inter-particle collisions (brute force)
             for i = 1:numel(manifolds)
-                % Evaluate if there has been a collision for the pair.
-                this.TestCollision(manifolds(i));
+                % Manifold data
+                manifold  = manifolds(i);
+                colliderA = manifold.ColliderA;
+                colliderB = manifold.ColliderB;
+
+                % Test collisions with their respective colliders
+                [isColliding,points] = colliderA.TestCollision(colliderB);
+                % If not colliding, skip
+                if ~isColliding
+                    continue
+                end
+    
+                % Add the points
+                manifold.Points = points;
+    
+                % If either are triggers
+                if colliderA.IsTrigger || colliderB.IsTrigger
+                    this.Triggers = vertcat(this.Triggers,manifold);
+                else
+                    this.Collisions = vertcat(this.Collisions,manifold);
+                end
             end
             % --------------------
 
@@ -77,7 +95,7 @@ classdef CollisionWorld < World
 
             % -- RESOLUTION PHASE ---
             % This routine computes the collision resolution
-            this.ResolveCollisions(dt);
+            this.CalculateCollisionResponses(dt);
 
             % --- EVENT GENERATION PHASE ---
             % Notify colliders events
@@ -147,7 +165,7 @@ classdef CollisionWorld < World
 
     %% Internals
     methods (Access = private)
-        function [this] = ResolveCollisions(this,dt)
+        function [this] = CalculateCollisionResponses(this,dt)
             % This function solves the set of identified collisions by
             % invoking the collision solvers.
 
@@ -161,30 +179,6 @@ classdef CollisionWorld < World
             for i = 1:numel(this.Resolvers)
                 % Solve the collisions
                 this.Resolvers(i).Resolve(this.Collisions,dt);
-            end
-        end
-        function TestCollision(this,manifold)
-            % Evaluate an individual collision instance
-
-            colliderA = manifold.ColliderA;
-            colliderB = manifold.ColliderB;
-
-            % Test collisions with their respective colliders
-            [isColliding,points] = colliderA.TestCollision(colliderB);
-
-            % If not colliding, skip
-            if ~isColliding
-                return
-            end
-
-            % Add the points
-            manifold.Points = points;
-
-            % If either are triggers
-            if colliderA.IsTrigger || colliderB.IsTrigger
-                this.Triggers = vertcat(this.Triggers,manifold);
-            else
-                this.Collisions = vertcat(this.Collisions,manifold);
             end
         end
         % Send the callbacks for all collisions & triggers

@@ -59,7 +59,6 @@ classdef World < Module
             this.RecursiveTransformUpdate(this.Root.Transform);
             % Reset transform change status for next frame
             this.RecursiveNullifyChanges(this.Root.Transform);
-
         end
     end
 

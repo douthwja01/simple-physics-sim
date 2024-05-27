@@ -17,7 +17,6 @@ classdef Simulator < handle
     properties (Access = private)
         IsStopped = false;
     end
-
     % Main
     methods
         function [this] = Simulator()
@@ -77,7 +76,6 @@ classdef Simulator < handle
                 t_elapsed = t_elapsed + t_delta;
             end
         end
-        % Add/remove the objects
         function [entities] = Find(this,property,value)
             % Find an entity in the simulator by a given property.
 
@@ -100,9 +98,6 @@ classdef Simulator < handle
 
             % Add the entity by its transform
             this.World.AddTransform(entity.Transform);
-
-            % Add the entity by its transform
-            this.World.AddTransform(entity.Transform);
             % Add collider
             this.World.AddCollider(entity.Collider);
             % Add Rigid-body
@@ -117,6 +112,7 @@ classdef Simulator < handle
 
             % Sanity check
             assert(isa(entity,"Entity"),"Expecting a valid 'Entity' object.");
+            
             % Remove renderer
             this.Graphics.RemoveRenderer(entity.Renderer);
             % Remove collider
