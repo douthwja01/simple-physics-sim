@@ -5,11 +5,11 @@ classdef DynamicsWorld < CollisionWorld
 
     properties
         Gravity = [0;0;-9.81];
+        EnableSubStepping = true;
         SubSteps = 5;
         Integrator = VerletIntegrator();    % Numerical integrators
     end    
     properties (SetAccess = private)
-        EnableSubStepping = true;
         Bodies = RigidBody.empty;
         State = WorldState.empty;
     end
@@ -81,8 +81,11 @@ classdef DynamicsWorld < CollisionWorld
                 return
             end
             assert(isa(body,"RigidBody"),"Expecting a valid RigidBody object.");
+            
             % Add a given body to the list of objects.
             this.Bodies = vertcat(this.Bodies,body);
+
+            this.State.Resize(numel(this.Bodies));
         end
         function [this] = RemoveRigidBody(this,body)
             % Delete a given body from the physics world (by id or body).
@@ -104,6 +107,8 @@ classdef DynamicsWorld < CollisionWorld
             end
             % Remove the body
             this.Bodies = this.Bodies(selectionLogicals);
+
+            this.State.Resize(numel(this.Bodies));
         end
     end
 
@@ -118,17 +123,19 @@ classdef DynamicsWorld < CollisionWorld
             this.FindResolveCollisions(dt);
             % == Calculate the motion differentials == 
             this.CalculationMotion();
+            
             % == Integrate the motion properties == 
-            this.Integrator.Integrate([this.Bodies.Transform],dt);
+            % 
+            this.UpdateStateFromBodies(this.State,this.Bodies);
+            % Integrate state
+            this.Integrator.Integrate(this.State,dt);
+            % 
+            this.UpdateBodiesFromState(this.State,this.Bodies);
         end        
         function [this] = CalculationMotion(this)
             % This function applies gravity to all particles
 
             % Update rigidbodies (accelerations)
-            for i = 1:numel(this.Bodies)
-                this.Bodies(i).Update();
-            end
-
             for i = 1:numel(this.Bodies)
                 body_i = this.Bodies(i);
                 % If this body is not effected by gravity
@@ -137,6 +144,59 @@ classdef DynamicsWorld < CollisionWorld
                 end
                 % Apply gravity
                 body_i.Accelerate(this.Gravity);
+            end
+        end
+    end
+    methods (Static)
+        function [state]  = UpdateStateFromBodies(state,bodies)
+            % This function updates the state vector from the bodies and
+            % transforms.
+
+            % Sanity check
+            assert(state.NumberOfObjects == numel(bodies),"Number of bodies misaligned.");
+        
+            for i = 1:state.NumberOfObjects
+                % Data
+                data_i = state.Objects(i);
+                body_i = bodies(i);
+
+                data_i.IsStatic = body_i.IsStatic;
+                % Pose
+                data_i.SO3 = body_i.Transform.Inertial;
+                % Velocities
+                data_i.LinearVelocity = body_i.LinearVelocity;
+                data_i.AngularVelocity = body_i.AngularVelocity;
+                % Accelerations
+                data_i.LinearAcceleration = body_i.LinearAcceleration;
+                data_i.AngularAcceleration = body_i.AngularAcceleration;
+                % Momentum
+                data_i.LinearMomentum = body_i.LinearMomentum;
+                data_i.AngularMomentum = body_i.AngularMomentum;
+
+                state.Objects(i) = data_i;
+            end
+        end
+        function [bodies] = UpdateBodiesFromState(state,bodies)
+            % This function updates bodies from the state structure.
+            
+            % Sanity check
+            assert(state.NumberOfObjects == numel(bodies),"Number of bodies misaligned.");
+        
+            for i = 1:state.NumberOfObjects
+                % Data
+                data_i = state.Objects(i);
+                body_i = bodies(i);
+                % Pose
+                body_i.Transform.Inertial = data_i.SO3;
+                % Velocities
+                body_i.LinearVelocity = data_i.LinearVelocity;
+                body_i.AngularVelocity = data_i.AngularVelocity;
+                % Accelerations
+                body_i.LinearAcceleration = data_i.LinearAcceleration;
+                body_i.AngularAcceleration = data_i.AngularAcceleration;
+                % Momentum
+                body_i.LinearMomentum = data_i.LinearMomentum;
+                body_i.AngularMomentum = data_i.AngularMomentum;
             end
         end
     end

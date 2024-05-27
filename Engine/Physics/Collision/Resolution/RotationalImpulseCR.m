@@ -42,11 +42,13 @@ classdef RotationalImpulseCR < CollisionResolver
 
             centroidTfA = bodyA.Transform;
             centroidTfB = bodyB.Transform;
+            
             centroidPositionA = centroidTfA.Inertial.Position;
-            centroidVelocityA = centroidTfA.Velocity;
+            centroidLinearVelocityA = centroidTfA.LinearVelocity;
             centroidAngularVelocityA = centroidTfA.AngularVelocity;
+
             centroidPositionB = centroidTfA.Inertial.Position;
-            centroidVelocityB = centroidTfB.Velocity;
+            centroidLinearVelocityB = centroidTfB.LinearVelocity;
             centroidAngularVelocityB = centroidTfB.AngularVelocity;
 
             impulseData = [];
@@ -90,8 +92,8 @@ classdef RotationalImpulseCR < CollisionResolver
 %                 raPerp = tangent
 
                 % The point velocity at contact
-                v_ab = (centroidVelocityB + cross(rbp,centroidAngularVelocityB)) - ...
-                    (centroidVelocityA + cross(rap,centroidAngularVelocityA));
+                v_ab = (centroidLinearVelocityB + cross(rbp,centroidAngularVelocityB)) - ...
+                    (centroidLinearVelocityA + cross(rap,centroidAngularVelocityA));
                 
                 
                 % Calculate the contact speed

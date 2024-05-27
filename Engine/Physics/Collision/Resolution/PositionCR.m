@@ -36,8 +36,8 @@ classdef PositionCR < CollisionResolver
                 delta_a = resolution * (1 - isStaticA);
                 delta_b = resolution * (1 - isStaticB);
                 % Modify the positions
-                transformA.position =  transformA.position + delta_a;
-                transformB.position =  transformB.position - delta_b;
+                transformA.Inertial.Position =  transformA.Inertial.Position + delta_a;
+                transformB.Inertial.Position =  transformB.Inertial.Position - delta_b;
             end
         end
     end

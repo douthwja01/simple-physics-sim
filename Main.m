@@ -29,9 +29,9 @@ end
 % Add an obstacle
 fixed = EntityCreator.Sphere("Obstacle");
 fixed.Transform.Inertial.Position = [0;0;2]; %SetWorldPosition([0;0;2]);
-fixed.Transform.IsStatic = true;
 % Add elements
 fixed.RigidBody = RigidBody();
+fixed.RigidBody.IsStatic = true;
 fixed.Renderer.Colour = "r";
 fixed.Renderer.Alpha = 0.2;
 % Add the fix object
@@ -40,7 +40,7 @@ sim.Add(fixed);
 % Add the ground plane
 ground = EntityCreator.Plane("Ground");
 ground.Transform.Inertial.Scale = [10;10;1];
-ground.Transform.IsStatic = true;
+% ground.Transform.IsStatic = true;
 % Collisions
 ground.Renderer.Colour = "g";
 sim.Add(ground);

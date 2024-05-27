@@ -3,26 +3,36 @@ classdef (Abstract) Integrator < Module
     % the simulator.
     
     methods
-        function [this] = Integrate(this,transforms,dt)
+        function [this] = Integrate(this,state,dt)
             % This function computes the euler step for a set of provided
             % bodies/transforms.
             
-            for i = 1:numel(transforms)
-                tf_i = transforms(i);
-                % If the object is static, abort
-                if tf_i.IsStatic
-                    tf_i.Velocity = zeros(3,1);
-                    tf_i.Acceleration = zeros(3,1);
+            % Sanity check
+            assert(isa(state,"WorldState"),"Expecting a valid world-state.");
+
+            for i = 1:state.NumberOfObjects
+                objectData = state.Objects(i);
+
+                % Record the last pose
+                objectData.PreviousSO3 = objectData.SO3;
+
+                % Is static, do not integrate
+                if objectData.IsStatic
+                    objectData.LinearVelocity = zeros(3,1);
+                    objectData.AngularVelocity = zeros(3,1);
+                    objectData.LinearAcceleration = zeros(3,1);
+                    objectData.AngularAcceleration = zeros(3,1);
                 else
-                    % Integrate the transform states
-                    this.IntegrateTransform(tf_i,dt);
+                    objectData = this.IntegrateBody(objectData,dt);
                 end
+                % Update the structure
+                state.Objects(i) = objectData;
             end
         end
     end
-    
-    % Private methods 
-    methods (Abstract, Access = protected)
-        [this] = IntegrateTransform(this,transform,dt);
+   
+    %% Internals
+    methods (Abstract, Static, Access = protected)
+        [objectData] = IntegrateBody(objectData,dt);
     end
 end

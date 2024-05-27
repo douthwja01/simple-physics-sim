@@ -21,7 +21,6 @@ classdef World < Module
 
             % Parameterize
             this.Root = Entity("Root");
-            this.Root.Transform.IsStatic = true;
             this.WorldSize = worldSize;
         end
         % Get/Sets

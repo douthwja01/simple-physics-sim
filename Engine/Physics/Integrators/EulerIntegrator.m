@@ -4,39 +4,33 @@ classdef EulerIntegrator < Integrator
     properties (Constant)
         Name = "Forward Euler-method";
     end
-    methods (Access = protected)
-        function [this] = IntegrateTransform(this,transform,dt)
+    methods (Static, Access = protected)
+        function [objectData] = IntegrateBody(objectData,dt)
             % This function computes the euler step for a set of provided
             % bodies/transforms.
             
-%             p0 = pose.GetWorldPosition();
-%             q0 = pose.GetWorldRotation();
+            p0 = objectData.SO3.Position;
+            q0 = objectData.SO3.Rotation;
 
-            p0 = transform.Inertial.Position;
-            q0 = transform.Inertial.Rotation;
-
-            v0 = transform.Velocity;
-            w0 = transform.AngularVelocity;
+            v0 = objectData.LinearVelocity;
+            w0 = objectData.AngularVelocity;
 
             % Compute the simple Forward-Euler step
-            v = v0 + transform.Acceleration*dt;
-            w = w0 + transform.AngularAcceleration*dt;
+            v = v0 + objectData.LinearAcceleration*dt;
+            w = w0 + objectData.AngularAcceleration*dt;
             
-            % Computer 
+            % Compute
             dq = Quaternion.Rate(q0,w);
 
             % Euler step
             rotation = q0 + dq*dt;
             position = p0 + v*dt;
 
-            transform.Velocity = v;
-            transform.AngularVelocity = w;
-            % Set the world properties
-%             transform.SetWorldPosition(position);
-%             transform.SetWorldRotation(rotation);
-
-            transform.Inertial.Position = position;
-            transform.Inertial.Rotation = rotation;
+            % Update the pose
+            objectData.SO3 = SO3(position,rotation);
+            % Update the velocities
+            objectData.LinearVelocity = v;
+            objectData.AngularVelocity = w;
         end
     end
 end
