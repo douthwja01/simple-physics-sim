@@ -6,16 +6,17 @@ classdef RigidBody < Element
         Inertia = eye(3);
         InverseInertia = eye(3);
         CenterOfMass = [0.5;0;0];   % Location of the mass
-        Gravity = -9.81;            % Local value of gravity (viable between instances)
-        TakesGravity = true;        % Uses world gravity
         StaticFriction = 0.6;       % Static friction coefficient
         DynamicFriction = 0.8;      % Dynamic friction coefficient
         Restitution = 0.5;          % Elasticity of collisions 
+        IsDynamic = true;           % Has dynamic reactions
+		IsSimulated = true;         % Is capable of movement
+        % Legacy?
+        Gravity = -9.81;            % Local value of gravity (viable between instances)
+        TakesGravity = true;        % Uses world gravity
 % 		, AxisLock(0.f)
 % 		, IsAxisLocked(0.f)
 % 		SimGravity(true)
-        IsDynamic = true;           % Has dynamic reactions
-		IsSimulated = true;         % Is capable of movement
     end
 
     properties (SetAccess = private)
@@ -40,8 +41,24 @@ classdef RigidBody < Element
             assert(islogical(isDynamic),"Expecting a boolean is dynamic.");
             this.IsDynamic = isDynamic;
         end
+        function set.IsSimulated(this,isSimulated)
+            assert(islogical(isSimulated),"Expecting a boolean is simulated.");
+            this.IsSimulated = isSimulated;
+        end
+        function set.StaticFriction(this,Csf)
+            assert(isscalar(Csf),"Expecting a scalar static friction coefficient.");
+            this.StaticFriction = Csf;
+        end
+        function set.DynamicFriction(this,Cdf)
+            assert(isscalar(Cdf),"Expecting a scalar dynamic friction coefficient.");
+            this.DynamicFriction = Cdf;
+        end
+        function set.Restitution(this,Cr)
+            assert(isscalar(Cr),"Expecting a scalar restitution coefficient.");
+            this.Restitution = Cr;
+        end
     end
-
+    % Rigidbody interfaces
     methods
         function [this] = ApplyForce(this,f,p)
             % Sanity check one
