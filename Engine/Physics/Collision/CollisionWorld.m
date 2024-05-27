@@ -50,17 +50,17 @@ classdef CollisionWorld < World
             % triggers.
 
             % Sanity check
-            assert(isnumeric(dt),"Expecting a valid numeric time-step.");
+            assert(isscalar(dt),"Expecting a valid numeric time-step.");
 
             % Reset containers
             triggers = Manifold.empty;
             collisions = Manifold.empty;
 
-            % --- BROAD PHASE ---
+            % 1. --- BROAD PHASE ---
             % This routine completes a broad-phase collision check
             [manifolds] = this.BroadPhaseDetector.ResolveManifolds(this.Colliders);
 
-            % --- NARROW PHASE ---
+            % 2. --- NARROW PHASE ---
             for i = 1:numel(manifolds)
                 % Manifold data
                 manifold  = manifolds(i);
@@ -91,7 +91,7 @@ classdef CollisionWorld < World
                 return;
             end
 
-            % -- RESOLUTION PHASE ---
+            % 3. --- RESOLUTION PHASE ---
             % This routine computes the collision resolution
             this.CalculateCollisionResponses(collisions,dt);
 

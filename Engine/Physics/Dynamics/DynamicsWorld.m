@@ -11,6 +11,7 @@ classdef DynamicsWorld < CollisionWorld
     properties (SetAccess = private)
         EnableSubStepping = true;
         Bodies = RigidBody.empty;
+        State = WorldState.empty;
     end
     
     %% Main
@@ -26,6 +27,9 @@ classdef DynamicsWorld < CollisionWorld
 
             % Call the parent
             [this] = this@CollisionWorld(worldSize);
+
+            % Create the world-state object
+            this.State = WorldState(numel(this.Bodies));
         end
         % Get/sets
         function set.Integrator(this,int)
@@ -49,10 +53,8 @@ classdef DynamicsWorld < CollisionWorld
             % Initialise the dynamic world.
 
             % Validate substepping
-            if this.SubSteps > 1
-                this.EnableSubStepping = true;
-            else
-                this.EnableSubStepping = false;
+            if this.EnableSubStepping
+                assert(this.SubSteps > 1,"Substeps must be greater than one to enable substepping.");
             end
             assert(~isempty(this.Integrator),"Require a valid numerical integration method.");
         end
