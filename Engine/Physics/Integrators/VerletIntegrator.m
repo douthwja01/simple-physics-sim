@@ -8,6 +8,14 @@ classdef VerletIntegrator < Integrator
     properties (Constant)
         Name = "Verlet method";
     end
+    methods
+        function [state] = Solve(this)
+            % This function calculates the integral step using the verlet
+            % approach.
+
+            error("Not implemented.");
+        end
+    end
 
     methods (Static, Access = protected)
         function [objectData] = IntegrateBody(objectData,dt)
