@@ -125,11 +125,11 @@ classdef DynamicsWorld < CollisionWorld
             this.CalculationMotion();
             
             % == Integrate the motion properties == 
-            % 
+            % Bodies -> state
             this.UpdateStateFromBodies(this.State,this.Bodies);
             % Integrate state
             this.Integrator.Integrate(this.State,dt);
-            % 
+            % State -> bodies
             this.UpdateBodiesFromState(this.State,this.Bodies);
         end        
         function [this] = CalculationMotion(this)
