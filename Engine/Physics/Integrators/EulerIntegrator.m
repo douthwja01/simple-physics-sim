@@ -5,7 +5,7 @@ classdef EulerIntegrator < Integrator
         Name = "Forward Euler-method";
     end
     methods (Static, Access = protected)
-        function [objectData] = IntegrateBody(objectData,dt)
+        function [objectData] = IntegrateObject(objectData,dt)
             % This function computes the euler step for a set of provided
             % bodies/transforms.
             

@@ -23,7 +23,7 @@ classdef (Abstract) Integrator < Module
                     objectData.LinearAcceleration = zeros(3,1);
                     objectData.AngularAcceleration = zeros(3,1);
                 else
-                    objectData = this.IntegrateBody(objectData,dt);
+                    objectData = this.IntegrateObject(objectData,dt);
                 end
                 % Update the structure
                 state.Objects(i) = objectData;
@@ -33,6 +33,6 @@ classdef (Abstract) Integrator < Module
    
     %% Internals
     methods (Abstract, Static, Access = protected)
-        [objectData] = IntegrateBody(objectData,dt);
+        [objectData] = IntegrateObject(objectData,dt);
     end
 end
