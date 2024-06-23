@@ -1,16 +1,6 @@
 classdef Transform < TreeElement
     %TRANSFORM The geometric representation of the entity in 3D space.
     
-    % Kinematic properties (simple containers)    
-    properties
-        % Kinematics
-        Velocity = zeros(3,1);
-        AngularVelocity = zeros(3,1);
-        Acceleration = zeros(3,1);
-        AngularAcceleration = zeros(3,1);
-        IsStatic = false;
-    end
-
     properties (Hidden)
 %         PriorPosition = [];
         Local = SO3.empty;
@@ -19,7 +9,7 @@ classdef Transform < TreeElement
 
     methods
         function [this] = Transform(entity)
-            %POSE Construct an instance of the pose-element
+            %TRANSFORM Construct an instance of the pose-element
             %   Detailed explanation goes here
 
             if nargin < 1
@@ -32,27 +22,6 @@ classdef Transform < TreeElement
             % Create a new transform object
             this.Local = SO3.Zero;
             this.Inertial = SO3.Zero;
-        end
-        % Kinematics (should be somewhere else?)
-        function set.Velocity(this,v)
-            assert(IsColumn(v,3),"Expecting a valid Cartesian linear velocity [3x1].");
-            this.Velocity = v;
-        end
-        function set.AngularVelocity(this,w)
-            assert(IsColumn(w,3),"Expecting a valid Cartesian angular velocity [3x1].");
-            this.AngularVelocity = w;
-        end 
-        function set.Acceleration(this,dv)
-            assert(IsColumn(dv,3),"Expecting a valid Cartesian linear acceleration [3x1].");
-            this.Acceleration = dv;
-        end  
-        function set.AngularAcceleration(this,dw)
-            assert(IsColumn(dw,3),"Expecting a valid Cartesian angular acceleration [3x1].");
-            this.AngularAcceleration = dw;
-        end 
-        function set.IsStatic(this,s)
-            assert(islogical(s),"Expecting a valid logical IsStatic flag.");
-            this.IsStatic = s;
         end
     end
 
@@ -100,7 +69,7 @@ classdef Transform < TreeElement
     end
 
     % (World) representation
-    methods
+%     methods
         % Gets
 %         function [T]    = GetWorldMatrix(this)
 %             % Get the world transformation matrix.
@@ -222,7 +191,7 @@ classdef Transform < TreeElement
 %             % Assign the local scale
 %             this.SetLocalScale(sl);
 %         end
-    end
+%     end
     % (Local) Representation
     methods
         % Gets

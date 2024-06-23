@@ -3,7 +3,7 @@
 % This class is only responsible for the description of an objects
 % static position and orientation. 
 
-classdef SO3 < handle
+classdef SO3 %< handle
     properties
         Position = zeros(3,1);
         Rotation = Quaternion();
@@ -33,17 +33,17 @@ classdef SO3 < handle
             this.HasChanged = false; % Ignore initial assignments
         end
         % Get/sets
-        function set.Position(this,p)
+        function [this] = set.Position(this,p)
             assert(IsColumn(p,3),"Expecting a valid Cartisian position [3x1].");
             this.Position = p;
             this.HasChanged = true;
         end
-        function set.Rotation(this,q)
+        function [this] = set.Rotation(this,q)
             assert(isa(q,"Quaternion"),"Expecting a valid Quaternion [4x1].");
             this.Rotation = q.Normalise();
             this.HasChanged = true;
         end
-        function set.Scale(this,s)
+        function [this] = set.Scale(this,s)
             assert(IsColumn(s,3),"Expecting a valid 3D scale vector [3x1].");
             this.Scale = s;
             this.HasChanged = true;

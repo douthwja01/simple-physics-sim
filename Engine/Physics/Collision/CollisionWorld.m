@@ -9,13 +9,11 @@ classdef CollisionWorld < World
         % Collidables
         Colliders;
         Resolvers = CollisionResolver.empty(0,1);
-        % Variables
-        Collisions = Manifold.empty;
-        Triggers = Manifold.empty;
         % Simulation callbacks
         CollisionCallback = function_handle.empty;
         TriggerCallback = function_handle.empty;
     end
+
     % Simulation hooks (for subscribing programs)
     events (NotifyAccess = private)
         CollisionFeedback;
@@ -52,38 +50,56 @@ classdef CollisionWorld < World
             % triggers.
 
             % Sanity check
-            assert(isnumeric(dt),"Expecting a valid numeric time-step.");
+            assert(isscalar(dt),"Expecting a valid numeric time-step.");
 
             % Reset containers
-            this.Triggers = Manifold.empty;
-            this.Collisions = Manifold.empty;
+            triggers = Manifold.empty;
+            collisions = Manifold.empty;
 
-            % --- BROAD PHASE ---
+            % 1. --- BROAD PHASE ---
             % This routine completes a broad-phase collision check
             [manifolds] = this.BroadPhaseDetector.ResolveManifolds(this.Colliders);
 
-            % --- NARROW PHASE ---
-            % This routine solves the inter-particle collisions (brute force)
+            % 2. --- NARROW PHASE ---
             for i = 1:numel(manifolds)
-                % Evaluate if there has been a collision for the pair.
-                this.TestCollision(manifolds(i));
+                % Manifold data
+                manifold  = manifolds(i);
+                colliderA = manifold.ColliderA;
+                colliderB = manifold.ColliderB;
+
+                % Test collisions with their respective colliders
+                [isColliding,points] = colliderA.TestCollision(colliderB);
+                % If not colliding, skip
+                if ~isColliding
+                    continue
+                end
+    
+                % Add the points
+                manifold.Points = points;
+    
+                % If either are triggers
+                if colliderA.IsTrigger || colliderB.IsTrigger
+                    triggers = vertcat(triggers,manifold);
+                else
+                    collisions = vertcat(collisions,manifold);
+                end
             end
             % --------------------
 
             % No collisions occurred
-            if isempty(this.Collisions)
+            if isempty(collisions)
                 return;
             end
 
-            % -- RESOLUTION PHASE ---
+            % 3. --- RESOLUTION PHASE ---
             % This routine computes the collision resolution
-            this.ResolveCollisions(dt);
+            this.CalculateCollisionResponses(collisions,dt);
 
             % --- EVENT GENERATION PHASE ---
             % Notify colliders events
-            this.SendColliderEvents();
+            CollisionWorld.SendColliderEvents(triggers,collisions);
             % Notify world/engine events
-            this.SendWorldEvents();
+            this.SendWorldEvents(triggers,collisions);
         end
         % Managing collision objects
         function [this] = AddCollider(this,collider)
@@ -149,103 +165,73 @@ classdef CollisionWorld < World
 
     %% Internals
     methods (Access = private)
-        function [this] = ResolveCollisions(this,dt)
+        function [this] = CalculateCollisionResponses(this,collisions,dt)
             % This function solves the set of identified collisions by
             % invoking the collision solvers.
 
             % Sanity check
             assert(isnumeric(dt),"Expecting a valid time step.");
 
-            if isempty(this.Collisions) || numel(this.Collisions) < 1
+            if isempty(collisions) || numel(collisions) < 1
                 return;
             end
 
             for i = 1:numel(this.Resolvers)
                 % Solve the collisions
-                this.Resolvers(i).Resolve(this.Collisions,dt);
-            end
-        end
-        function TestCollision(this,manifold)
-            % Evaluate an individual collision instance
-
-            colliderA = manifold.ColliderA;
-            colliderB = manifold.ColliderB;
-
-            % Test collisions with their respective colliders
-            [isColliding,points] = colliderA.TestCollision(colliderB);
-
-            % If not colliding, skip
-            if ~isColliding
-                return
-            end
-
-            % Add the points
-            manifold.Points = points;
-
-            % If either are triggers
-            if colliderA.IsTrigger || colliderB.IsTrigger
-                this.Triggers = vertcat(this.Triggers,manifold);
-            else
-                this.Collisions = vertcat(this.Collisions,manifold);
+                this.Resolvers(i).Resolve(collisions,dt);
             end
         end
         % Send the callbacks for all collisions & triggers
-        function SendWorldEvents(this)
+        function SendWorldEvents(this,triggers,collisions)
             % Send the trigger callbacks to listeners of the
             % "TriggerFeedback" world-events.
 
             % Notify the triggers world events.
-            for i = 1:numel(this.Triggers)
+            for i = 1:numel(triggers)
                 % Send to subscribers of the engine
-                notify(this,"TriggerFeedback",manifolthis.Triggers(i));
+                notify(this,"TriggerFeedback",triggers(i));
             end
 
             % Notify the collision world events.
-            for i = 1:numel(this.Collisions)
+            for i = 1:numel(collisions)
                 % Send to subscribers of the engine.
-                notify(this,"CollisionFeedback",this.Collisions(i));
+                notify(this,"CollisionFeedback",collisions(i));
             end
         end
-        function SendColliderEvents(this)
+    end
+    methods (Static, Access = private)
+        function SendColliderEvents(triggers,collisions)
             % Notify the colliders of the events they are participating in.
 
             % Notify the triggers world events.
-            for i = 1:numel(this.Triggers)
+
+            for i = 1:numel(triggers)
                 % Trigger instance
-                manifold_i = this.Triggers(i);
+                manifold_i = triggers(i);
+
                 % Send to the collider instance(s)
                 if manifold_i.ColliderA.IsTrigger
-                    data = ColliderData(manifold_i.ColliderB);
                     % Notify
-                    notify( ...
-                        this.Triggers(i).ColliderA, ...
-                        "Collided", ...
-                        data);
+                    notify(manifold_i.ColliderA,"Collided",ColliderData(manifold_i.ColliderB));
                 end
                 if manifold_i.ColliderB.IsTrigger
-                    data = ColliderData(manifold_i.ColliderA);
                     % Notify
-                    notify(this.Triggers(i).ColliderB,"Collided",data);
+                    notify(manifold_i.ColliderB,"Collided",ColliderData(manifold_i.ColliderA));
                 end
             end
 
             % Notify the collision world events.
-            for i = 1:numel(this.Collisions)
+            for i = 1:numel(collisions)
                 % Collision instance
-                manifold_i = this.Collisions(i);
-
+                manifold_i = collisions(i);
                 % Send to the collider instance(s)
                 if ~manifold_i.ColliderA.IsTrigger
-                    % Extract data
-                    data = ColliderData(manifold_i.ColliderB);
                     % Notify
-                    notify(manifold_i.ColliderA,"Collided",data);
+                    notify(manifold_i.ColliderA,"Collided",ColliderData(manifold_i.ColliderB));
                 end
                 if ~manifold_i.ColliderB.IsTrigger
-                    % Extract data
-                    data = ColliderData(manifold_i.ColliderA);
                     % Notify
-                    notify(manifold_i.ColliderB,"Collided",data);
+                    notify(manifold_i.ColliderB,"Collided",ColliderData(manifold_i.ColliderA));
                 end
             end
         end

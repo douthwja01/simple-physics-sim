@@ -12,6 +12,7 @@ classdef DynamicsWorld < CollisionWorld
     end    
     properties (SetAccess = private)
         Bodies = RigidBody.empty;
+        State = WorldState.empty;
     end
     
     %% Main
@@ -27,6 +28,9 @@ classdef DynamicsWorld < CollisionWorld
 
             % Call the parent
             [this] = this@CollisionWorld(worldSize);
+
+            % Create the world-state object
+            this.State = WorldState(numel(this.Bodies));
         end
         % Get/sets
         function set.Dynamics(this,dyn)
@@ -54,8 +58,8 @@ classdef DynamicsWorld < CollisionWorld
             % Initialise the dynamic world.
 
             % Validate substepping
-            if this.EnableSubStepping && this.SubSteps == 1
-                error("Cannot enable substepping, substeps must be greater than one.");
+            if this.EnableSubStepping
+                assert(this.SubSteps > 1,"Substeps must be greater than one to enable substepping.");
             end
 
             % Configuration sanity check
@@ -85,8 +89,11 @@ classdef DynamicsWorld < CollisionWorld
                 return
             end
             assert(isa(body,"RigidBody"),"Expecting a valid RigidBody object.");
+            
             % Add a given body to the list of objects.
             this.Bodies = vertcat(this.Bodies,body);
+
+            this.State.Resize(numel(this.Bodies));
         end
         function [this] = RemoveRigidBody(this,body)
             % Delete a given body from the physics world (by id or body).
@@ -109,6 +116,8 @@ classdef DynamicsWorld < CollisionWorld
             end
             % Remove the body
             this.Bodies = this.Bodies(selectionLogicals);
+
+            this.State.Resize(numel(this.Bodies));
         end
     end
 
@@ -126,5 +135,83 @@ classdef DynamicsWorld < CollisionWorld
             % == Recalculate world positions == 
             this.UpdateTransforms();            
         end        
+            % == Calculate the motion differentials == 
+            this.CalculationMotion();
+            
+            % == Integrate the motion properties == 
+            % Bodies -> state
+            this.UpdateStateFromBodies(this.State,this.Bodies);
+            % Integrate state
+            this.Integrator.Integrate(this.State,dt);
+            % State -> bodies
+            this.UpdateBodiesFromState(this.State,this.Bodies);
+        end        
+        function [this] = CalculationMotion(this)
+            % This function applies gravity to all particles
+
+            % Update rigidbodies (accelerations)
+            for i = 1:numel(this.Bodies)
+                body_i = this.Bodies(i);
+                % If this body is not effected by gravity
+                if ~body_i.IsDynamic
+                    continue;
+                end
+                % Apply gravity
+                body_i.Accelerate(this.Gravity);
+            end
+        end
+    end
+    methods (Static)
+        function [state]  = UpdateStateFromBodies(state,bodies)
+            % This function updates the state vector from the bodies and
+            % transforms.
+
+            % Sanity check
+            assert(state.NumberOfObjects == numel(bodies),"Number of bodies misaligned.");
+        
+            for i = 1:state.NumberOfObjects
+                % Data
+                data_i = state.Objects(i);
+                body_i = bodies(i);
+
+                data_i.IsStatic = body_i.IsStatic;
+                % Pose
+                data_i.SO3 = body_i.Transform.Inertial;
+                % Velocities
+                data_i.LinearVelocity = body_i.LinearVelocity;
+                data_i.AngularVelocity = body_i.AngularVelocity;
+                % Accelerations
+                data_i.LinearAcceleration = body_i.LinearAcceleration;
+                data_i.AngularAcceleration = body_i.AngularAcceleration;
+                % Momentum
+                data_i.LinearMomentum = body_i.LinearMomentum;
+                data_i.AngularMomentum = body_i.AngularMomentum;
+
+                state.Objects(i) = data_i;
+            end
+        end
+        function [bodies] = UpdateBodiesFromState(state,bodies)
+            % This function updates bodies from the state structure.
+            
+            % Sanity check
+            assert(state.NumberOfObjects == numel(bodies),"Number of bodies misaligned.");
+        
+            for i = 1:state.NumberOfObjects
+                % Data
+                data_i = state.Objects(i);
+                body_i = bodies(i);
+                % Pose
+                body_i.Transform.Inertial = data_i.SO3;
+                % Velocities
+                body_i.LinearVelocity = data_i.LinearVelocity;
+                body_i.AngularVelocity = data_i.AngularVelocity;
+                % Accelerations
+                body_i.LinearAcceleration = data_i.LinearAcceleration;
+                body_i.AngularAcceleration = data_i.AngularAcceleration;
+                % Momentum
+                body_i.LinearMomentum = data_i.LinearMomentum;
+                body_i.AngularMomentum = data_i.AngularMomentum;
+            end
+        end
     end
 end

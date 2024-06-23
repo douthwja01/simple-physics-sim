@@ -26,8 +26,8 @@ classdef ImpulseCR < CollisionResolver
                 collisionNormal = -manifold.Points.Normal;
 
                 % Object velocities
-                velocityA = tfA.Velocity;
-                velocityB = tfB.Velocity;
+                velocityA = bodyA.LinearVelocity;
+                velocityB = bodyB.LinearVelocity;
                 relativeVelocity = velocityB - velocityA;
                 
                 % Scalar speed 
@@ -107,12 +107,12 @@ classdef ImpulseCR < CollisionResolver
 
                 % If the first body can have friction applied and is simulated.
                 if hasRigidBodyA && bodyA.IsSimulated
-                    tfA.Velocity = velocityA - frictionVector * inverseMassA;
+                    bodyA.LinearVelocity = velocityA - frictionVector * inverseMassA;
                 end
 
                 % If the second body can have friction applied and is simulated.
                 if hasRigidBodyB && bodyB.IsSimulated
-                    tfB.Velocity = velocityB + frictionVector * inverseMassB;
+                    bodyB.LinearVelocity = velocityB + frictionVector * inverseMassB;
                 end
 
                 % Should be adding an impulse directly to the object to

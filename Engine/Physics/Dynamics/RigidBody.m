@@ -1,6 +1,8 @@
 
 classdef RigidBody < Element
-    properties (SetAccess = private)
+
+
+    properties %(SetAccess = private)
         Mass = 1;
         InverseMass = 1;
         Inertia = eye(3);
@@ -22,6 +24,21 @@ classdef RigidBody < Element
     properties (SetAccess = private)
         forceAccumulator = zeros(3,1);
         torqueAccumulator = zeros(3,1);
+        IsSimulated = true;         % Is capable of movement
+        IsDynamic = true;           % Has dynamic reactions
+        IsStatic = false;
+        % Dynamic properties
+        LinearVelocity = zeros(3,1);
+        AngularVelocity = zeros(3,1);
+        LinearAcceleration = zeros(3,1);
+        AngularAcceleration = zeros(3,1);
+        LinearMomentum = zeros(3,1);
+        AngularMomentum = zeros(3,1);
+    end
+
+    properties (Access = private)
+        NetForce = zeros(3,1);
+        NetTorque = zeros(3,1);
     end
 
     methods
@@ -56,6 +73,33 @@ classdef RigidBody < Element
         function set.Restitution(this,Cr)
             assert(isscalar(Cr),"Expecting a scalar restitution coefficient.");
             this.Restitution = Cr;
+        function set.IsStatic(this,s)
+            assert(islogical(s),"Expecting a valid logical IsStatic flag.");
+            this.IsStatic = s;
+        end        
+        function set.LinearVelocity(this,v)
+            assert(IsColumn(v,3),"Expecting a valid Cartesian linear velocity [3x1].");
+            this.LinearVelocity = v;
+        end
+        function set.AngularVelocity(this,w)
+            assert(IsColumn(w,3),"Expecting a valid Cartesian angular velocity [3x1].");
+            this.AngularVelocity = w;
+        end 
+        function set.LinearAcceleration(this,dv)
+            assert(IsColumn(dv,3),"Expecting a valid Cartesian linear acceleration [3x1].");
+            this.LinearAcceleration = dv;
+        end  
+        function set.AngularAcceleration(this,dw)
+            assert(IsColumn(dw,3),"Expecting a valid Cartesian angular acceleration [3x1].");
+            this.AngularAcceleration = dw;
+        end 
+        function set.LinearMomentum(this,m)
+            assert(IsColumn(m,3),"Expecting a valid Cartesian linear momentum [3x1].");
+            this.LinearMomentum = m;
+        end
+        function set.AngularMomentum(this,m)
+            assert(IsColumn(m,3),"Expecting a valid Cartesian angular momentum [3x1].");
+            this.AngularMomentum = m;
         end
     end
     % Rigidbody interfaces
@@ -83,6 +127,9 @@ classdef RigidBody < Element
 
             this.forceAccumulator = zeros(3,1);
             this.torqueAccumulator = zeros(3,1);
+        function [this] = Accelerate(this,a)
+            % Calcuate the acceleration
+            this.LinearAcceleration = a;
         end
     end
 end

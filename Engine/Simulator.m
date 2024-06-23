@@ -98,9 +98,6 @@ classdef Simulator < handle
 
             % Add the entity by its transform
             this.World.AddTransform(entity.Transform);
-
-            % Add the entity by its transform
-            this.World.AddTransform(entity.Transform);
             % Add collider
             this.World.AddCollider(entity.Collider);
             % Add Rigid-body
@@ -115,6 +112,7 @@ classdef Simulator < handle
 
             % Sanity check
             assert(isa(entity,"Entity"),"Expecting a valid 'Entity' object.");
+            
             % Remove renderer
             this.Graphics.RemoveRenderer(entity.Renderer);
             % Remove collider
