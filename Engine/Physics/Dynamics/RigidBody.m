@@ -1,26 +1,19 @@
 
-classdef RigidBody < Element
-
+classdef RigidBody < Particle
+    % RIGIDBODY - A more complex dynamic representation of a particle with
+    % non-point mass distribution.
 
     properties %(SetAccess = private)
         Mass = 1;
         InverseMass = 1;
-        Inertia = eye(3);
-        InverseInertia = eye(3);
+        Inertia = eye(3);        InverseInertia = eye(3);
         Gravity = -9.81;            % Local value of gravity (viable between instances)
         TakesGravity = true;        % Uses world gravity
-        StaticFriction = 0.6;       % Static friction coefficient
-        DynamicFriction = 0.8;      % Dynamic friction coefficient
-        Restitution = 0.5;          % Elasticity of collisions 
 % 		, AxisLock(0.f)
 % 		, IsAxisLocked(0.f)
-% 		SimGravity(true)
-        IsSimulated = true;         % Is capable of movement
+        IsSimulated = true;         
         IsDynamic = true;           % Has dynamic reactions
-        IsStatic = false;
         % Dynamic properties
-        LinearVelocity = zeros(3,1);
-        AngularVelocity = zeros(3,1);
         LinearAcceleration = zeros(3,1);
         AngularAcceleration = zeros(3,1);
         LinearMomentum = zeros(3,1);
@@ -42,25 +35,13 @@ classdef RigidBody < Element
             end
 
             % Rigidbody object constructor
-            [this] = this@Element(entity);
+            [this] = this@Particle(entity);
         end
         % Get/sets
         function set.IsDynamic(this,isDynamic)
             assert(islogical(isDynamic),"Expecting a boolean is dynamic.");
             this.IsDynamic = isDynamic;
-        end
-        function set.IsStatic(this,s)
-            assert(islogical(s),"Expecting a valid logical IsStatic flag.");
-            this.IsStatic = s;
-        end        
-        function set.LinearVelocity(this,v)
-            assert(IsColumn(v,3),"Expecting a valid Cartesian linear velocity [3x1].");
-            this.LinearVelocity = v;
-        end
-        function set.AngularVelocity(this,w)
-            assert(IsColumn(w,3),"Expecting a valid Cartesian angular velocity [3x1].");
-            this.AngularVelocity = w;
-        end 
+        end     
         function set.LinearAcceleration(this,dv)
             assert(IsColumn(dv,3),"Expecting a valid Cartesian linear acceleration [3x1].");
             this.LinearAcceleration = dv;
