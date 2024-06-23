@@ -10,7 +10,7 @@ classdef VerletIntegrator < Integrator
     end
 
     methods (Static, Access = protected)
-        function [objectData] = IntegrateBody(objectData,dt)
+        function [objectData] = IntegrateObject(objectData,dt)
             % Update the object using the verlet method.
 
             p0 = objectData.PreviousSO3.Position;
