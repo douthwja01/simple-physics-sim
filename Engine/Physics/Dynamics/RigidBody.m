@@ -12,7 +12,8 @@ classdef RigidBody < Element
         DynamicFriction = 0.8;      % Dynamic friction coefficient
         Restitution = 0.5;          % Elasticity of collisions 
         IsDynamic = true;           % Has dynamic reactions
-		IsSimulated = true;         % Is capable of movement
+		IsSimulated = true;         
+        IsStatic = false;           % Is capable of movement
         % Legacy?
         Gravity = -9.81;            % Local value of gravity (viable between instances)
         TakesGravity = true;        % Uses world gravity
@@ -24,9 +25,6 @@ classdef RigidBody < Element
     properties (SetAccess = private)
         forceAccumulator = zeros(3,1);
         torqueAccumulator = zeros(3,1);
-        IsSimulated = true;         % Is capable of movement
-        IsDynamic = true;           % Has dynamic reactions
-        IsStatic = false;
         % Dynamic properties
         LinearVelocity = zeros(3,1);
         AngularVelocity = zeros(3,1);
@@ -34,11 +32,6 @@ classdef RigidBody < Element
         AngularAcceleration = zeros(3,1);
         LinearMomentum = zeros(3,1);
         AngularMomentum = zeros(3,1);
-    end
-
-    properties (Access = private)
-        NetForce = zeros(3,1);
-        NetTorque = zeros(3,1);
     end
 
     methods
@@ -73,6 +66,7 @@ classdef RigidBody < Element
         function set.Restitution(this,Cr)
             assert(isscalar(Cr),"Expecting a scalar restitution coefficient.");
             this.Restitution = Cr;
+        end
         function set.IsStatic(this,s)
             assert(islogical(s),"Expecting a valid logical IsStatic flag.");
             this.IsStatic = s;
@@ -127,9 +121,10 @@ classdef RigidBody < Element
 
             this.forceAccumulator = zeros(3,1);
             this.torqueAccumulator = zeros(3,1);
-        function [this] = Accelerate(this,a)
-            % Calcuate the acceleration
-            this.LinearAcceleration = a;
         end
+%         function [this] = Accelerate(this,a)
+%             % Calcuate the acceleration
+%             this.LinearAcceleration = a;
+%         end
     end
 end
