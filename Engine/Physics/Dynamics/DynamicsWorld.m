@@ -34,7 +34,7 @@ classdef DynamicsWorld < CollisionWorld
         end
         % Get/sets
         function set.Dynamics(this,dyn)
-            assert(isa(dyn,"DynamicsSolver"),"Expecting a valid dynamics-solver.");
+            assert(isa(dyn,"DynamicsModule"),"Expecting a valid dynamics-solver.");
             this.Dynamics = dyn;
         end
         function set.Integrator(this,int)
@@ -129,8 +129,8 @@ classdef DynamicsWorld < CollisionWorld
             % == Find/solve the collisions == 
             this.FindResolveCollisions(dt);
             % == Compute motion updates ==
-%             this.Dynamics.ComputeDynamics([this.Bodies]);
-            this.CalculationMotion();
+            this.Dynamics.ComputeDynamics([this.Bodies]);
+%             this.CalculationMotion();
             
             % == Integrate the new motion properties == 
             % Update .State

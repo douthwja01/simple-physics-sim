@@ -1,4 +1,4 @@
-classdef (Abstract) DynamicsSolver < Module
+classdef (Abstract) DynamicsModule < Module
     % The base class for all 'dynamics' solution finders and tools.
 
     % Typically

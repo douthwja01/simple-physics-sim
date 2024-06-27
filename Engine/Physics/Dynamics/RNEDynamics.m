@@ -1,4 +1,4 @@
-classdef RNEDynamics < DynamicsSolver
+classdef RNEDynamics < DynamicsModule
     % This class implements the recursive Newton-Euler method for resolving
     % the dynamic properties of a physics simulation.
 

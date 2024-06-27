@@ -1,4 +1,4 @@
-classdef FeatherstoneDynamics < DynamicsSolver
+classdef FeatherstoneDynamics < DynamicsModule
     % This class implements the Featherstone method for resolving
     % the dynamic properties of a physics simulation.
 
@@ -50,9 +50,8 @@ classdef FeatherstoneDynamics < DynamicsSolver
             % Apply properties to transforms/joints
             for i = 1:n
                 body_i = bodies(i);
-                transform_i = body_i.Transform;
 
-                joint = transform_i.Entity.Joints;
+                joint = body_i.Entity.Joints;
 
                 if isa(joint,"MovableJoint")
                     joint.JointAcceleration = this.qdd{i};
@@ -61,10 +60,10 @@ classdef FeatherstoneDynamics < DynamicsSolver
                 v_i = this.v{i};
                 a_i = this.a{i};
                 % == Pass velocity data to the transform ==
-                transform_i.AngularVelocity = v_i(1:3,1);
-                transform_i.Velocity = v_i(4:6,1);
-                transform_i.AngularAcceleration = a_i(1:3,1);
-                transform_i.Acceleration = a_i(4:6,1);
+                body_i.AngularVelocity = v_i(1:3,1);
+                body_i.Velocity = v_i(4:6,1);
+                body_i.AngularAcceleration = a_i(1:3,1);
+                body_i.Acceleration = a_i(4:6,1);
             end
         end
         function [this] = ComputeVelocities(this,bodies)
@@ -89,7 +88,7 @@ classdef FeatherstoneDynamics < DynamicsSolver
                     % Velocity is the floating joint state
                     Xup_i = FeatherstoneDynamics.FromSO3(tf_i.Local); 
                     S_i = eye(6);
-                    v_i = [tf_i.AngularVelocity;tf_i.Velocity];
+                    v_i = [body_i.AngularVelocity;body_i.LinearVelocity];
                     c_i = zeros(6,1);
                 else
                     % Handle no joint case (world)
@@ -115,7 +114,7 @@ classdef FeatherstoneDynamics < DynamicsSolver
                         % The parent is the world
                         if isa(joint,"FloatingJoint")
                             % Velocity is the floating joint state
-                            v_0 = [tf_i.AngularVelocity;tf_i.Velocity];
+                            v_0 = [body_i.AngularVelocity;body_i.Velocity];
                         else
                             % The parent any other link
                             v_0 = this.v{pid};

@@ -14,7 +14,12 @@ classdef Particle < Element
         LinearVelocity = zeros(3,1);
         AngularVelocity = zeros(3,1);
     end
-    
+
+    properties (Access = protected)
+        forceAccumulators = zeros(3,1);
+        torqueAccumulators = zeros(3,1);
+    end
+
     methods
         function [this] = Particle(entity)
             %PARTICLE - Construct an instance of the particle class
@@ -40,6 +45,17 @@ classdef Particle < Element
             assert(IsColumn(w,3),"Expecting a valid Cartesian angular velocity [3x1].");
             this.AngularVelocity = w;
         end 
+    end
+    methods
+        function [this] = ClearAccumulators(this)
+            % This function clears all the dynamic properties of the
+            % particle for the current frame to allow them to by
+            % dynamically rederrived in the next frame.
+        
+            % Clear the dynamic containers
+            this.forceAccumulators = zeros(3,1);
+            this.torqueAccumulators = zeros(3,1);
+        end
     end
 end
 
