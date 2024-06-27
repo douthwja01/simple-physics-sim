@@ -1,22 +1,17 @@
-% This c
+% This class represents the rigidbody model for entities within the
+% simulation framework.
+
 classdef RigidBody < Particle
-
-
     properties %(SetAccess = private)
-        Mass = 1;
-        InverseMass = 1;
+        CenterOfMass = [1;0;0];
         Inertia = eye(3);
         InverseInertia = eye(3);
         Gravity = -9.81;            % Local value of gravity (viable between instances)
         TakesGravity = true;        % Uses world gravity
-%         StaticFriction = 0.6;       % Static friction coefficient
-%         DynamicFriction = 0.8;      % Dynamic friction coefficient
-%         Restitution = 0.5;          % Elasticity of collisions 
 % 		, AxisLock(0.f)
 % 		, IsAxisLocked(0.f)
 % 		SimGravity(true)
         IsDynamic = true;           % Has dynamic reactions
-%         IsStatic = false;
         % Dynamic properties
         LinearAcceleration = zeros(3,1);
         AngularAcceleration = zeros(3,1);
@@ -60,6 +55,8 @@ classdef RigidBody < Particle
     end
 
     methods
+
+            
         function [this] = ApplyForce(this,f,p)
             % Sanity check one
             assert(IsColumn(f,3),"Expecting a valid 3D force vector.");
@@ -76,17 +73,6 @@ classdef RigidBody < Particle
         function [this] = ApplyTorque(this,tau)
             assert(IsColumn(tau,3),"Expecting a valid 3D torque vector.");
             this.torqueAccumulators = this.torqueAccumulators + tau;
-        end
-        function [this] = Accelerate(this,a)
-            % Calcuate the acceleration
-            this.LinearAcceleration = a;
-        end
-        function [this] = ClearAccumulators(this)
-            % This function clears all the dynamic properties of the
-            % particle for the current frame to allow them to by
-            % dynamically rederrived in the next frame.
-
-            
         end
     end
 end

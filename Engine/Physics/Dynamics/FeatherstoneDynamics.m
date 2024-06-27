@@ -61,9 +61,9 @@ classdef FeatherstoneDynamics < DynamicsModule
                 a_i = this.a{i};
                 % == Pass velocity data to the transform ==
                 body_i.AngularVelocity = v_i(1:3,1);
-                body_i.Velocity = v_i(4:6,1);
+                body_i.LinearVelocity = v_i(4:6,1);
                 body_i.AngularAcceleration = a_i(1:3,1);
-                body_i.Acceleration = a_i(4:6,1);
+                body_i.LinearAcceleration = a_i(4:6,1);
             end
         end
         function [this] = ComputeVelocities(this,bodies)
