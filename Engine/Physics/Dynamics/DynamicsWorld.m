@@ -5,9 +5,10 @@ classdef DynamicsWorld < CollisionWorld
 
     properties
         Gravity = [0;0;-9.81];
+%         Dynamics = RNEDynamics();           % Dynamics calculation approach
+        Integrator = VerletIntegrator();    % Numerical integration approach
         EnableSubStepping = true;
         SubSteps = 5;
-        Integrator = VerletIntegrator();    % Numerical integrators
     end    
     properties (SetAccess = private)
         Bodies = RigidBody.empty;
@@ -32,6 +33,10 @@ classdef DynamicsWorld < CollisionWorld
             this.State = WorldState(numel(this.Bodies));
         end
         % Get/sets
+%         function set.Dynamics(this,dyn)
+%             assert(isa(dyn,"DynamicsSolver"),"Expecting a valid dynamics-solver.");
+%             this.Dynamics = dyn;
+%         end
         function set.Integrator(this,int)
             assert(isa(int,"Integrator"),"Expecting a valid integrator.");
             this.Integrator = int;
@@ -56,7 +61,10 @@ classdef DynamicsWorld < CollisionWorld
             if this.EnableSubStepping
                 assert(this.SubSteps > 1,"Substeps must be greater than one to enable substepping.");
             end
-            assert(~isempty(this.Integrator),"Require a valid numerical integration method.");
+
+            % Configuration sanity check
+%             assert(~isempty(this.Dynamics),"Cannot initialise, no dynamics element assigned.");
+            assert(~isempty(this.Integrator),"Cannot initialise, no valid numerical integration method assigned.");
         end
         function [this] = Step(this,dt)
             % This function steps the physics simulation.
@@ -94,6 +102,7 @@ classdef DynamicsWorld < CollisionWorld
             if isempty(body)
                 return
             end
+            % Delete a given body from the physics world.
             % Delete mode
             if isnumeric(body)
                 % Temporary index
@@ -117,21 +126,25 @@ classdef DynamicsWorld < CollisionWorld
         function [this] = SubStep(this,dt)
             % This function computes each physics substep.
 
-            % == Recalculate world positions == 
-            this.UpdateTransforms();            
             % == Find/solve the collisions == 
             this.FindResolveCollisions(dt);
-            % == Calculate the motion differentials == 
+            % == Compute motion updates ==
+%             this.Dynamics.ComputeDynamics([this.Bodies]);
             this.CalculationMotion();
             
-            % == Integrate the motion properties == 
-            % Bodies -> state
+            % == Integrate the new motion properties == 
+            % Update .State
             this.UpdateStateFromBodies(this.State,this.Bodies);
-            % Integrate state
-            this.Integrator.Integrate(this.State,dt);
-            % State -> bodies
+            % Integrate
+            this.Integrator.Start(this.State,dt);
+            this.State = this.Integrator.Solve();
+            this.Integrator.End();
+            % Update .Bodies
             this.UpdateBodiesFromState(this.State,this.Bodies);
-        end        
+            
+            % == Recalculate world positions == 
+            this.UpdateTransforms();            
+        end 
         function [this] = CalculationMotion(this)
             % This function applies gravity to all particles
 

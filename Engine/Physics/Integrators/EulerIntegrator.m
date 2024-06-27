@@ -4,33 +4,32 @@ classdef EulerIntegrator < Integrator
     properties (Constant)
         Name = "Forward Euler-method";
     end
-    methods (Static, Access = protected)
-        function [objectData] = IntegrateObject(objectData,dt)
-            % This function computes the euler step for a set of provided
-            % bodies/transforms.
-            
-            p0 = objectData.SO3.Position;
-            q0 = objectData.SO3.Rotation;
+    methods
+        function [state] = Solve(this)
+            % This function calculates the integration step using the
+            % defined approach.
 
-            v0 = objectData.LinearVelocity;
-            w0 = objectData.AngularVelocity;
+            % Copy the structure
+            state = this.InitialState;
 
-            % Compute the simple Forward-Euler step
-            v = v0 + objectData.LinearAcceleration*dt;
-            w = w0 + objectData.AngularAcceleration*dt;
-            
-            % Compute
-            dq = Quaternion.Rate(q0,w);
+            for i = 1:state.NumberOfObjects
+                objectData = state.Objects(i);
 
-            % Euler step
-            rotation = q0 + dq*dt;
-            position = p0 + v*dt;
+                % Record the last pose
+                objectData.PreviousSO3 = objectData.SO3;
 
-            % Update the pose
-            objectData.SO3 = SO3(position,rotation);
-            % Update the velocities
-            objectData.LinearVelocity = v;
-            objectData.AngularVelocity = w;
+                % Is static, do not integrate
+                if objectData.IsStatic
+                    objectData.LinearVelocity = zeros(3,1);
+                    objectData.AngularVelocity = zeros(3,1);
+                    objectData.LinearAcceleration = zeros(3,1);
+                    objectData.AngularAcceleration = zeros(3,1);
+                else
+                    objectData = this.IntegrateBody(objectData,this.TimeDelta);
+                end
+                % Update the structure
+                state.Objects(i) = objectData;
+            end
         end
     end
 end
