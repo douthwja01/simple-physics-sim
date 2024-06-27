@@ -1,6 +1,7 @@
 classdef Particle < Element
     %PARTICLE is the basic kinematic model for objects with motion
-    %capabilities.
+    %capabilities.Particles are modelled as point masses with limited
+    %dynamic interaction.
     
     properties        
         % Friction
@@ -8,6 +9,7 @@ classdef Particle < Element
         DynamicFriction = 0.8;      % Dynamic friction coefficient
         Restitution = 0.5;          % Elasticity of collisions 
         % Kinematic properties
+        IsSimulated = true;         % Is the result of simulated motion
         IsStatic = false;           % Is capable of movement
         LinearVelocity = zeros(3,1);
         AngularVelocity = zeros(3,1);

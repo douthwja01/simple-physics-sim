@@ -1,23 +1,32 @@
-
+% This c
 classdef RigidBody < Particle
-    % RIGIDBODY - A more complex dynamic representation of a particle with
-    % non-point mass distribution.
+
 
     properties %(SetAccess = private)
         Mass = 1;
         InverseMass = 1;
-        Inertia = eye(3);        InverseInertia = eye(3);
+        Inertia = eye(3);
+        InverseInertia = eye(3);
         Gravity = -9.81;            % Local value of gravity (viable between instances)
         TakesGravity = true;        % Uses world gravity
+%         StaticFriction = 0.6;       % Static friction coefficient
+%         DynamicFriction = 0.8;      % Dynamic friction coefficient
+%         Restitution = 0.5;          % Elasticity of collisions 
 % 		, AxisLock(0.f)
 % 		, IsAxisLocked(0.f)
-        IsSimulated = true;         
+% 		SimGravity(true)
         IsDynamic = true;           % Has dynamic reactions
+%         IsStatic = false;
         % Dynamic properties
         LinearAcceleration = zeros(3,1);
         AngularAcceleration = zeros(3,1);
         LinearMomentum = zeros(3,1);
         AngularMomentum = zeros(3,1);
+    end
+
+    properties (Access = private)
+        NetForce = zeros(3,1);
+        NetTorque = zeros(3,1);
     end
 
     methods
@@ -36,7 +45,7 @@ classdef RigidBody < Particle
         function set.IsDynamic(this,isDynamic)
             assert(islogical(isDynamic),"Expecting a boolean is dynamic.");
             this.IsDynamic = isDynamic;
-        end     
+        end
         function set.LinearAcceleration(this,dv)
             assert(IsColumn(dv,3),"Expecting a valid Cartesian linear acceleration [3x1].");
             this.LinearAcceleration = dv;
@@ -54,13 +63,13 @@ classdef RigidBody < Particle
             this.AngularMomentum = m;
         end
     end
-    % Rigidbody interfaces
+
     methods
         function [this] = ApplyForce(this,f,p)
             % Sanity check one
             assert(IsColumn(f,3),"Expecting a valid 3D force vector.");
             % Update the orce accumulator
-            this.forceAccumulator = this.forceAccumulator + f;
+            this.NetForce = this.NetForce + f;
             if nargin < 3
                 return;
             end
@@ -71,18 +80,11 @@ classdef RigidBody < Particle
         end
         function [this] = ApplyTorque(this,tau)
             assert(IsColumn(tau,3),"Expecting a valid 3D torque vector.");
-            this.torqueAccumulator = this.torqueAccumulator + tau;
+            this.NetTorque = this.NetTorque + tau;
         end
-        function [this] = ClearAccumulators(this)
-            % This function clears the accumulators defining the forces and
-            % torques acting on the body are defined.
-
-            this.forceAccumulator = zeros(3,1);
-            this.torqueAccumulator = zeros(3,1);
+        function [this] = Accelerate(this,a)
+            % Calcuate the acceleration
+            this.LinearAcceleration = a;
         end
-%         function [this] = Accelerate(this,a)
-%             % Calcuate the acceleration
-%             this.LinearAcceleration = a;
-%         end
     end
 end
