@@ -10,7 +10,7 @@ classdef Entity < matlab.mixin.Heterogeneous & handle
         Renderer = Renderer.empty;
         RigidBody = Element.empty;
         Collider = Element.empty;
-        Joints = Element.empty;
+        Joints = [];
     end
     methods
         function [this] = Entity(name)

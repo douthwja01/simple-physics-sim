@@ -37,7 +37,7 @@ classdef CollisionWorld < World
         % Get/sets
         function set.BroadPhaseDetector(this,detector)
             % Add a given solver to the array of collision solvers.
-            assert(isa(detector,"BroadPhaseCollisionDetection"),"Expecting a valid broad-phase collision solver.");
+            assert(isa(detector,"BroadPhaseCollisionDetector"),"Expecting a valid broad-phase collision solver.");
             this.BroadPhaseDetector = detector;
         end
     end
@@ -116,7 +116,9 @@ classdef CollisionWorld < World
         end
         function [this] = RemoveCollider(this,collider)
             % Remove a collider from the collision world.
-
+            if isempty(collider)
+                return
+            end
             % Sanity check
             if isempty(collider)
                 return

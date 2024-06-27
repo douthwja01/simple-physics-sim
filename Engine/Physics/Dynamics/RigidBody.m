@@ -20,11 +20,6 @@ classdef RigidBody < Particle
         AngularMomentum = zeros(3,1);
     end
 
-    properties (Access = private)
-        NetForce = zeros(3,1);
-        NetTorque = zeros(3,1);
-    end
-
     methods
         function [this] = RigidBody(entity)
             % CONSTRUCTOR - Construct a copy of the rigidbody class.
@@ -59,13 +54,13 @@ classdef RigidBody < Particle
             this.AngularMomentum = m;
         end
     end
-
+    % Rigidbody interfaces
     methods
         function [this] = ApplyForce(this,f,p)
             % Sanity check one
             assert(IsColumn(f,3),"Expecting a valid 3D force vector.");
             % Update the orce accumulator
-            this.NetForce = this.NetForce + f;
+            this.forceAccumulator = this.forceAccumulator + f;
             if nargin < 3
                 return;
             end
@@ -76,11 +71,18 @@ classdef RigidBody < Particle
         end
         function [this] = ApplyTorque(this,tau)
             assert(IsColumn(tau,3),"Expecting a valid 3D torque vector.");
-            this.NetTorque = this.NetTorque + tau;
+            this.torqueAccumulator = this.torqueAccumulator + tau;
         end
-        function [this] = Accelerate(this,a)
-            % Calcuate the acceleration
-            this.LinearAcceleration = a;
+        function [this] = ClearAccumulators(this)
+            % This function clears the accumulators defining the forces and
+            % torques acting on the body are defined.
+
+            this.forceAccumulator = zeros(3,1);
+            this.torqueAccumulator = zeros(3,1);
         end
+%         function [this] = Accelerate(this,a)
+%             % Calcuate the acceleration
+%             this.LinearAcceleration = a;
+%         end
     end
 end
