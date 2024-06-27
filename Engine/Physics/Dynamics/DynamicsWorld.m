@@ -5,7 +5,7 @@ classdef DynamicsWorld < CollisionWorld
 
     properties
         Gravity = [0;0;-9.81];
-        Dynamics = RNEDynamics();           % Dynamics calculation approach
+%         Dynamics = RNEDynamics();           % Dynamics calculation approach
         Integrator = VerletIntegrator();    % Numerical integration approach
         EnableSubStepping = true;
         SubSteps = 5;
@@ -33,10 +33,10 @@ classdef DynamicsWorld < CollisionWorld
             this.State = WorldState(numel(this.Bodies));
         end
         % Get/sets
-        function set.Dynamics(this,dyn)
-            assert(isa(dyn,"DynamicsSolver"),"Expecting a valid dynamics-solver.");
-            this.Dynamics = dyn;
-        end
+%         function set.Dynamics(this,dyn)
+%             assert(isa(dyn,"DynamicsSolver"),"Expecting a valid dynamics-solver.");
+%             this.Dynamics = dyn;
+%         end
         function set.Integrator(this,int)
             assert(isa(int,"Integrator"),"Expecting a valid integrator.");
             this.Integrator = int;
@@ -63,7 +63,7 @@ classdef DynamicsWorld < CollisionWorld
             end
 
             % Configuration sanity check
-            assert(~isempty(this.Dynamics),"Cannot initialise, no dynamics element assigned.");
+%             assert(~isempty(this.Dynamics),"Cannot initialise, no dynamics element assigned.");
             assert(~isempty(this.Integrator),"Cannot initialise, no valid numerical integration method assigned.");
         end
         function [this] = Step(this,dt)
@@ -128,9 +128,10 @@ classdef DynamicsWorld < CollisionWorld
 
             % == Find/solve the collisions == 
             this.FindResolveCollisions(dt);
-            % == Compute forces and torques ==
-            this.Dynamics.ComputeDynamics([this.Bodies]);
-
+            % == Compute motion updates ==
+%             this.Dynamics.ComputeDynamics([this.Bodies]);
+            this.CalculationMotion();
+            
             % == Integrate the new motion properties == 
             % Update .State
             this.UpdateStateFromBodies(this.State,this.Bodies);
@@ -143,7 +144,21 @@ classdef DynamicsWorld < CollisionWorld
             
             % == Recalculate world positions == 
             this.UpdateTransforms();            
-        end        
+        end 
+        function [this] = CalculationMotion(this)
+            % This function applies gravity to all particles
+
+            % Update rigidbodies (accelerations)
+            for i = 1:numel(this.Bodies)
+                body_i = this.Bodies(i);
+                % If this body is not effected by gravity
+                if ~body_i.IsDynamic
+                    continue;
+                end
+                % Apply gravity
+                body_i.Accelerate(this.Gravity);
+            end
+        end
     end
     methods (Static)
         function [state]  = UpdateStateFromBodies(state,bodies)

@@ -12,7 +12,7 @@ classdef EulerIntegrator < Integrator
             % Copy the structure
             state = this.InitialState;
 
-            for i = 1:this.state.NumberOfObjects
+            for i = 1:state.NumberOfObjects
                 objectData = state.Objects(i);
 
                 % Record the last pose
@@ -25,7 +25,7 @@ classdef EulerIntegrator < Integrator
                     objectData.LinearAcceleration = zeros(3,1);
                     objectData.AngularAcceleration = zeros(3,1);
                 else
-                    objectData = this.IntegrateBody(objectData,dt);
+                    objectData = this.IntegrateBody(objectData,this.TimeDelta);
                 end
                 % Update the structure
                 state.Objects(i) = objectData;

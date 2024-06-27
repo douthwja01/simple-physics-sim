@@ -10,7 +10,7 @@ classdef (Abstract) Integrator < Module
         [state] = Solve(this);
     end
     methods
-        function [this] = Start(state,dt)
+        function [this] = Start(this,state,dt)
             % This function is called to initialise the integrator for the
             % given state and step time.
             this.TimeDelta = dt;
