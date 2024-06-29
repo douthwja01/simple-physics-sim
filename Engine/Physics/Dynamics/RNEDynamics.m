@@ -8,51 +8,59 @@ classdef RNEDynamics < DynamicsModule
 
     %% Internal
     methods (Access = protected)
-        function [this] = TopLevelRoutine(this,bodies)
+        function [this] = ComputeDynamics(this,bodies,dt)
             % Compute the motion of the provided bodies utilitising the
             % given approach.
 
-            % Resolve velocities
-            this.ComputeVelocities(bodies);
-            % Resolve velocities
-            this.ComputeAccelerations(bodies);
-            % Resolve velocities
-            this.ComputeForces(bodies);
-        end
-        
-        function [this] = ComputeVelocities(this,transforms)
-            % This function computes the velocities of all the provided
-            % transforms.
+            for i = 1:numel(bodies)
+                body_i = bodies(i);
+                tf_i = body_i.Transform;
+            
+                orientation = tf_i.GetOrientationParentSpace();
+                position = tf_i.GetPositionParentSpace();
 
-            % We can assume that all bodies are non-static.
+                v_i = body_i.LinearVelocity;
+                w_i = body_i.AngularVelocity;
 
-            for i = 1:numel(transforms)
-                transform_i = transforms(i);
-                % Get the joint
-                joint = transform_i.Entity.Joints;
-                if isempty(joint)
-                    continue;
-                end
+%                 orientation = QuatAddScaled(orientation, m_angularVelocity, timeStep);
+                dQ = Quaternion.Rate(orientation,w_i);
 
+                orientation = orientation + dQ*dt;
+                position = position + v_i*dt;
                 
-            end
-        end
-        function [this] = ComputeAccelerations(this,transforms)
-            % This function computes the accelerations of all the provided
-            % transforms.
+                % Assign zeroth order states
+                tf_i.SetOrientation(orientation);
+                tf_i.SetPosition(position);
+            
+                % Calculate the local velocities & accelerations
 
-            for i = 1:numel(transforms)
-                transform_i = transforms(i);
+                dv_i = body_i.LinearAcceleration;
+                dv_i = dv_i + body_i.forceAccumulator*body_i.InverseMass;
+                dw_i = body_i.inverseInertiaTensor*body_im_torqueAccum;
+            
+                v_i = v_i + m_impulseAccum*m_inverseMass;
+                w_i = w_i + m_angularImpulseAccum*m_inverseMass;
+            
+                v_i = v_i + dv_i * dt;
+                w_i = w_i + dw_i * dt;
+            
+                w_i = w_i * body_i.AngularDamping^timeStep;
+                v_i = v_i * body_i.LinearDamping^timeStep;
 
-            end
-        end
-        function [this] = ComputeForces(this,transforms)
-            % This function computes the forces of all the provided
-            % transforms.
+                % Assign the new properties
+                body_i.LinearVelocity = v_i;
+                body_i.AngularVelocity = w_i;
+                body_i.LinearAcceleration = dv_i;
+                body_i.AngularAcceleration = dw_i;
 
-            for i = 1:numel(transforms)
-                transform_i = transforms(i);
-
+%                 % Get the joint
+%                 joint = body_i.Entity.Joints;
+%                 if isempty(joint)
+%                     continue;
+%                 end
+                
+%                 R = body_i.Local.GetRotationMatrix();
+                
             end
         end
     end

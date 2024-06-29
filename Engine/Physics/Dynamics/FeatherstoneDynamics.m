@@ -25,7 +25,7 @@ classdef FeatherstoneDynamics < DynamicsModule
 
     %% Internal
     methods (Access = protected)
-        function [this] = TopLevelRoutine(this,bodies)
+        function [this] = ComputeDynamics(this,bodies,dt)
             % Compute the motion of the provided bodies utilitising the
             % given approach.
 

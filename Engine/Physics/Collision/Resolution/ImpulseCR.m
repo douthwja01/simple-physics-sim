@@ -17,11 +17,11 @@ classdef ImpulseCR < CollisionResolver
 
                 bodyA = manifold.ColliderA.Entity.RigidBody;
                 hasRigidBodyA = ~isempty(bodyA);
-                tfA = manifold.ColliderA.Transform;
+                %tfA = manifold.ColliderA.Transform;
 
                 bodyB = manifold.ColliderB.Entity.RigidBody;
                 hasRigidBodyB = ~isempty(bodyB);
-                tfB = manifold.ColliderB.Transform;
+                %tfB = manifold.ColliderB.Transform;
 
                 collisionNormal = -manifold.Points.Normal;
 

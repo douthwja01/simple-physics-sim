@@ -129,13 +129,13 @@ classdef CollisionWorld < World
             this.Colliders = this.Colliders(this.Colliders ~= collider);
         end
         % Managing collision NarrowPhaseSolvers
-        function [this] = AddSolver(this,solver)
+        function [this] = AddCollisionSolver(this,solver)
             assert(isa(solver,"CollisionResolver"),"Expecting a valid narrow-phase collision solver.");
 
             % Add a given solver to the array of collision solvers.
             this.Resolvers = vertcat(this.Resolvers,solver);
         end
-        function [this] = RemoveSolver(this,solver)
+        function [this] = RemoveCollisionSolver(this,solver)
             % Delete the object from the world
             if isnumeric(solver)
                 % Temporary index

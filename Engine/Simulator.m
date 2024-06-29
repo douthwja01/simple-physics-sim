@@ -28,7 +28,7 @@ classdef Simulator < handle
             % Create the dynamics world
             this.World = DynamicsWorld(this.WorldSize);
             % Add impulse collision solver
-            this.World.AddSolver(ImpulseCR());
+            this.World.AddCollisionSolver(ImpulseCR());
             % Create a graphics handler
             this.Graphics = MatlabFigureGraphics();
         end

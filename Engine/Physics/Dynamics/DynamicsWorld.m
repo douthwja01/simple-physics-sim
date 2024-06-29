@@ -128,10 +128,10 @@ classdef DynamicsWorld < CollisionWorld
 
             % == Find/solve the collisions == 
             this.FindResolveCollisions(dt);
+
             % == Compute motion updates ==
-            this.Dynamics.ComputeDynamics([this.Bodies]);
-%             this.CalculationMotion();
-            
+            this.Dynamics.Step([this.Bodies],dt);
+
             % == Integrate the new motion properties == 
             % Update .State
             this.UpdateStateFromBodies(this.State,this.Bodies);
@@ -145,20 +145,6 @@ classdef DynamicsWorld < CollisionWorld
             % == Recalculate world positions == 
             this.UpdateTransforms();            
         end 
-        function [this] = CalculationMotion(this)
-            % This function applies gravity to all particles
-
-            % Update rigidbodies (accelerations)
-            for i = 1:numel(this.Bodies)
-                body_i = this.Bodies(i);
-                % If this body is not effected by gravity
-                if ~body_i.IsDynamic
-                    continue;
-                end
-                % Apply gravity
-                body_i.Accelerate(this.Gravity);
-            end
-        end
     end
     methods (Static)
         function [state]  = UpdateStateFromBodies(state,bodies)

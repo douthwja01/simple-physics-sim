@@ -53,7 +53,7 @@ sim.World.EnableSubStepping = false;
 sim.World.Integrator = EulerIntegrator();
 % Collision solvers
 sim.World.BroadPhaseDetector = SweepAndPruneBPCD();
-sim.World.Dynamics = FeatherstoneDynamics();
+sim.World.Dynamics = RNEDynamics(); %FeatherstoneDynamics();
 % sim.World.AddSolver(RotationalImpulseCR())
 % Simulate
 sim.Simulate(inf);

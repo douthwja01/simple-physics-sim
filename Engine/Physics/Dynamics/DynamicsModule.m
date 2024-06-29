@@ -22,30 +22,24 @@ classdef (Abstract) DynamicsModule < Module
 %             this.ComputeAccelerations();  
          
     methods
-        function [this] = ComputeDynamics(this,bodies)
+        function [this] = Step(this,bodies,dt)
             % This function is the entry point for the dynamics computation
             % approach.
 
-            % Clears all the dynamic properties/accumulators ahead of
-            % recalculation for this frame.
+            % Compute Dynamics routine (may be different)
+            this.ComputeDynamics(bodies,dt);
+
+            % Clears all the dynamic properties/accumulators for the next
+            % frame.
             for i = 1:numel(bodies)
                 bodies(i).ClearAccumulators();
             end
-
-            % Compute Dynamics routine (may be different)
-            this.TopLevelRoutine(bodies);
         end
     end
 
     %% Internals
     methods (Abstract, Access = protected)
         % Compute the dynamics of a set of bodies
-        [this] = TopLevelRoutine(this,bodies);
-        % Compute the velocities of the transforms
-        [this] = ComputeVelocities(this,transforms);
-        % Compute the accelerations of the transforms
-        [this] = ComputeAccelerations(this,transforms);
-        % Compute the forces of the transforms
-        [this] = ComputeForces(this,transforms);
+        [this] = ComputeDynamics(this,bodies,dt);
     end
 end
