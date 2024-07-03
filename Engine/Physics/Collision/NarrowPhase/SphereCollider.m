@@ -194,8 +194,11 @@ classdef SphereCollider < Collider
                 container = gca;
             end
             % Create a visual mesh    
-            so3 = this.Transform.Inertial;
-            mesh = MeshExtensions.Sphere(so3.Position,this.Radius,10);
+            p = this.Transform.GetWorldPosition();
+            s = this.Transform.GetWorldScale();
+            % Create a mesh
+            mesh = MeshExtensions.Sphere(p,this.Radius,10);
+            mesh = mesh.ScaleBy(s);
             % Draw the mesh
             h = mesh.Draw(container,colour);
             set(h,"FaceAlpha",0.2);
@@ -210,9 +213,11 @@ classdef SphereCollider < Collider
             r = this.Radius;
             unit_aabb = AABB([-r,r],[-r,r],[-r,r]);
             % Get the world properties
-            so3 = this.Transform.Inertial;
+%             so3 = this.Transform.Inertial;
+            p = this.Transform.GetWorldPosition();
+            s = this.Transform.GetWorldScale();
             % Offset and scale the unit AABB
-            aabb = so3.Position + so3.Scale*unit_aabb;
+            aabb = p + s*unit_aabb;
             % Assign the owner's id
             cid = this.Cid;
         end

@@ -143,7 +143,7 @@ classdef DynamicsWorld < CollisionWorld
             this.UpdateBodiesFromState(this.State,this.Bodies);
             
             % == Recalculate world positions == 
-            this.UpdateTransforms();            
+            %this.UpdateTransforms();            
         end 
         function [this] = CalculationMotion(this)
             % This function applies gravity to all particles
@@ -175,7 +175,7 @@ classdef DynamicsWorld < CollisionWorld
 
                 data_i.IsStatic = body_i.IsStatic;
                 % Pose
-                data_i.SO3 = body_i.Transform.Inertial;
+                data_i.SO3 = body_i.Transform.Local; %Inertial;
                 % Velocities
                 data_i.LinearVelocity = body_i.LinearVelocity;
                 data_i.AngularVelocity = body_i.AngularVelocity;
@@ -200,7 +200,7 @@ classdef DynamicsWorld < CollisionWorld
                 data_i = state.Objects(i);
                 body_i = bodies(i);
                 % Pose
-                body_i.Transform.Inertial = data_i.SO3;
+                body_i.Transform.Local = data_i.SO3; %Inertial
                 % Velocities
                 body_i.LinearVelocity = data_i.LinearVelocity;
                 body_i.AngularVelocity = data_i.AngularVelocity;

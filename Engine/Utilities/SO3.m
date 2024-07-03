@@ -25,7 +25,7 @@ classdef SO3 %< handle
                p = zeros(3,1);
             end
             if nargin < 2
-                q = Quaternion.Zero;
+                q = Quaternion.Identity;
             end
             % Assign initial properties
             this.Position = p;
@@ -57,13 +57,17 @@ classdef SO3 %< handle
             % This function returns the current transformation matrix.
 
             % Extract the state
-            Rq = this.Orientation.GetMatrix();
+            Rq = this.Orientation.ToMatrix();
             % Create the matrix
             Tq = [Rq,this.Position;zeros(1,3),1];
             % The scale matrix
             Ts = this.GetScaleMatrix();
             % Combine
             T = Tq*Ts;
+        end
+        function [R]    = GetRotationMatrix(this)
+            % The orientation of this SO3 as a rotation matrix.
+            R = this.Orientation.ToMatrix();
         end
         function [Ts]   = GetScaleMatrix(this)
             % Get the matrix representing the scale assigned to this SO3.
@@ -261,9 +265,9 @@ classdef SO3 %< handle
             s = sym("q%d",[6,1],"real");
             T = SO3.FromScalars(s(1),s(2),s(3),s(4),s(5),s(6));
         end
-        function [T] = Zero()
+        function [T] = Identity()
             % Reset to default transform
-            T = SO3(zeros(3,1),Quaternion());
+            T = SO3(zeros(3,1),Quaternion.Identity);
         end
     end
 

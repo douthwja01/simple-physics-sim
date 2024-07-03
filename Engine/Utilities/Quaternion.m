@@ -89,7 +89,7 @@ classdef Quaternion < handle
 
             assert(isa(v,"Quaternion"),"Expecting another quaternion.");
 
-            q = this.GetVector();
+            q = this.ToVector();
             vData = v.ToVector();
             % Quaternion projection matrix
             qv = [vData(1), -vData(2), -vData(3), -vData(4);
@@ -103,7 +103,7 @@ classdef Quaternion < handle
         end
         function [Qinv] = Inverse(this)
             % Calculate the quaternion inverse.
-            q = this.GetVector();
+            q = this.ToVector();
             qSqr = norm(q);
             qInv = zeros(4,1);
             qInv(1) =  q(1)/qSqr;
@@ -115,12 +115,12 @@ classdef Quaternion < handle
         end
         function [Q] = Normalise(this)
             % This function normalises the quaternion
-            q0 = this.GetVector();
+            q0 = this.ToVector();
             q0 = q0/sqrt(q0(1)^2 + q0(2)^2 + q0(3)^2 + q0(4)^2);
             Q = Quaternion(q0);
         end
         % Conversions
-        function [R] = GetMatrix(this)
+        function [R] = ToMatrix(this)
             % This function computes the rotation matrix of the quaternion
             % variables describing the 3D rotations of 3D body.
 
@@ -129,7 +129,7 @@ classdef Quaternion < handle
             if this.IsSymbolic()
                 R = sym(R);
             end
-            q = this.GetVector();
+            q = this.ToVector();
             % Define the quaternion rotation matrix
             R(1,1) = q(1)^2 + q(2)^2 - q(3)^2 - q(4)^2;    
             R(1,2) = 2*(q(2)*q(3) - q(1)*q(4));
@@ -141,15 +141,15 @@ classdef Quaternion < handle
             R(3,2) = 2*(q(1)*q(2) + q(3)*q(4));
             R(3,3) = q(1)^2 - q(2)^2 - q(3)^2 + q(4)^2;
         end
-        function [phi,theta,psi] = GetEulersAngles(this)
+        function [phi,theta,psi] = ToEulersAngles(this)
             % For convenience 
-            q = this.GetVector();
+            q = this.ToVector();
             % Compute the euler rotation from a unit quaternion
             phi = atan2(2*(q(1)*q(2) + q(3)*q(4)),(1 - 2*(q(2)^2 + q(3)^2)));
             theta = asin(2*(q(1)*q(3) - q(4)*q(2)));
             psi = atan2(2*(q(1)*q(4) + q(2)*q(3)),(1 - 2*(q(3)^2 + q(4)^2)));
         end
-        function [q] = GetVector(this)
+        function [q] = ToVector(this)
             % Put the components in an array
             q = [this.X;this.Y;this.Z;this.W];
         end
@@ -184,7 +184,7 @@ classdef Quaternion < handle
             assert(isa(Q,"Quaternion"),"Expecting a valid quaternion.");
             assert(IsColumn(omega,3),"Expecting a body axis rate [3x1].");
 
-            q0 = Q.GetVector();
+            q0 = Q.ToVector();
             % Rewritten to allow multiplication by omega_b directly (of [4x3])
             Jq = 0.5*[-q0(2), -q0(3), -q0(4);
                 q0(1), -q0(4),  q0(3);
@@ -193,7 +193,7 @@ classdef Quaternion < handle
             % The differential
             dQ = Quaternion(Jq*omega);
         end
-        function [Q] = Zero()
+        function [Q] = Identity()
             Q = Quaternion();
         end
         function [Q] = Random()

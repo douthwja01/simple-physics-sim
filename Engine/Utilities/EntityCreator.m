@@ -81,8 +81,8 @@ classdef EntityCreator
             % Entity box
             this = Entity(name);
             % Set the entity location
-            this.Transform.Inertial.Position = position;
-            this.Transform.Inertial.Rotation = rotation;
+            this.Transform.SetPosition(position);
+            this.Transform.SetOrientation(rotation);
         end
     end
 end
