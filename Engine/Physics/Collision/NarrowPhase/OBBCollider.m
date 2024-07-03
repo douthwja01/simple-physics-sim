@@ -65,8 +65,7 @@ classdef OBBCollider < Collider
             end
 
             % Transform the sphere point into the local point
-%             localSpherePosition = this.Transform.InverseTransformPoint(spherePosition);
-            localSpherePosition = this.Transform.WorldToLocalSpace(spherePosition);
+            localSpherePosition = this.Transform.InverseTransformPoint(spherePosition);
 
             % Calculate the closest point on the OBB to the sphere center
             dimSizes = this.Size/2;
@@ -76,10 +75,8 @@ classdef OBBCollider < Collider
             localClosestPoint(3) = Clamp([-dimSizes(3),dimSizes(3)],localSpherePosition(3));
 
             % Transform the local point back into world
-            %closestPoint = this.Transform.TransformPoint(localClosestPoint);
-            closestPoint = this.Transform.LocalToWorldSpace(localClosestPoint);
-
-
+            closestPoint = this.Transform.TransformPoint(localClosestPoint);
+            % Axial separation
             collisionVector = closestPoint - spherePosition;
             collisionDistance = norm(collisionVector);
             collisionAxis = collisionVector/collisionDistance;
