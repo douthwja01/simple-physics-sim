@@ -76,7 +76,7 @@ classdef Transform < TreeElement
             % Set dimensional scalars of this transform in the parent
             % space (local scalars).
             this.Local.Scale = s;
-            this.HasChanged = true;
+%             this.HasChanged = true;
         end
         
         % Get/sets for parent properites
@@ -127,25 +127,22 @@ classdef Transform < TreeElement
 
             if this.NumberOfParents == 0
                 p = this.Local.Position;
-            else
-                worldOrientation = this.Parent.GetWorldOrientation();
-                worldOffset =  this.Parent.GetWorldPosition();
-%                 p = QuatTransform(worldOrientation,this.Local.Position) + worldOffset;
-                p = Quaternion.RotateVector(worldOrientation,this.Local.Position) + worldOffset;
+                return;
             end
+            % The position within the parent
+            p = this.Parent.GetWorldMatrix()*[this.Local.Position;1];
+            p = p(1:3,1);
         end
         function [this] = SetWorldPosition(this,p)
             % Get the position of this transform in the world space.
 
+            % No parents, return
             if this.NumberOfParent == 0
                 this.Local.Position = p;
+                return;
             end
-
-            worldOrientation = this.Parent.GetWorldOrientation();
-            worldOffset =  this.Parent.GetWorldPosition();
-            %p = QuatTransform(worldOrientation,this.Local.Position) + worldOffset;
-            p_local =  Quaternion.RotateVector(worldOrientation,this.Local.Position) ...
-                + worldOffset;
+            % Map the point to the parent space
+            p_local = this.Parent.GetWorldMatrix()'*[p;1];
             % Set the local position
             this.Local.Position = p_local;
         end
@@ -153,9 +150,9 @@ classdef Transform < TreeElement
             % Get the orientation of the transform in the world space.
             if this.NumberOfParents == 0
                 q = this.Local.Orientation;
-            else
-                q = QuatMultiply(this.Parent.GetWorldOrientation(), this.Local.Orientation);
+                return;
             end
+            q = this.Parent.GetWorldOrientation()*this.Local.Orientation;
         end
         function [this] = SetWorldOrientation(this,q)
             % Set the local orientation of this transform using a rotation
@@ -207,27 +204,16 @@ classdef Transform < TreeElement
                 p = this.Parent.WorldToLocalSpace(p_world);
             end
             d = p - this.Local.Position;
-
 %             p = QuatTransformInverse(this.Local.Orientation,d);
-%             qInv = this.Local.Orientation.Inverse();
-%             qInv = qInv.Normalise();
-%             p = Quaternion.RotateVector(qInv,d);
-            
-            T = this.GetWorldMatrix();
-
-            p = T'*[p;0];
-            p = p(1:3,1);
+            p = Quaternion.RotateVector(this.Local.Orientation,d);
         end
         function [p] = LocalToWorldSpace(this,p_local)
             % Remap a point provided in the local space to the world space
             % of this transform.
 
-            T = this.GetWorldMatrix();
-            p = T*[p_local;0];
-            p = p(1:3,1);
+            p = Quaternion.RotateVector(this.Local.Orientation,p_local);
 
-%             p = Quaternion.RotateVector(this.Local.Orientation,p_local);
-            %p = QuatTransform(this.Local.Orientation, p_local);
+%             p = QuatTransform(this.Local.Orientation, p_local);
             
             d = p + this.Local.Position;
             if this.NumberOfParents == 0
@@ -353,30 +339,24 @@ classdef Transform < TreeElement
             % this transform.
 
             % Get the transformation matrix in the world
-%             Rwl = this.Inertial.GetRotationMatrix();
-            Twl = this.GetWorldMatrix();
-
+            Rwl = this.GetWorldRotationMatrix(); % Equivalent to Twl\[v_w;0]
             % Multiply by the matrix
-            v_l = Twl'*[v_w;0];
-            v_l = v_l(1:3,1);
+            v_l = Rwl\v_w;
         end
         function [v_w] = TransformVector(this,v_l)
             % Transform a vector from this transform frame into the world
             % frame.
 
             % Get the transformation matrix in the world
-            %Rwl = this.Inertial.GetRotationMatrix();
-            Twl = this.GetWorldMatrix();
+            Rwl = this.GetWorldRotationMatrix(); % Equivalent to Twl*[v_w;0]
             % Multiply by the matrix
-            v_w = Twl*[v_l;0];
-            v_w = v_w(1:3,1);
+            v_w = Rwl*v_l;
         end
         function [p_l] = InverseTransformPoint(this,p_w)
             % Transform a point in the world frame into the local frame of
             % this transform.
 
             % Get the transformation matrix in the world
-            %Twl = this.Inertial.GetMatrix();
             Twl = this.GetWorldMatrix();
             % Invert the matrix and multiply
             p_l = Twl\[p_w;1];
@@ -387,7 +367,6 @@ classdef Transform < TreeElement
             % Transform a point in this transform frame into the world frame.
 
             % Get the transformation matrix in the world
-%             Twl = this.Inertial.GetMatrix();
             Twl = this.GetWorldMatrix();
             % Multiply the matrix
             p_w = Twl*[p_l;1];
