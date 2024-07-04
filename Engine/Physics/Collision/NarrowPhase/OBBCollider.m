@@ -225,8 +225,6 @@ classdef OBBCollider < Collider
 
             % Variables
             isColliding = false;
-%             so3A = this.Transform.Inertial;
-%             so3B = obb.Transform.Inertial;
             positionA = this.Transform.GetWorldPosition();
             positionB = obb.Transform.GetWorldPosition();
 
@@ -319,7 +317,7 @@ classdef OBBCollider < Collider
                 0,-1,0;
                 -1,0,0];
             % Return the rotated normals
-            n = n_unit*this.Transform.Inertial.Rotation.GetMatrix();
+            n = n_unit*this.Transform.GetWorldRotationMatrix();
         end
         function [mesh] = GetWorldMesh(this)
             % Calculate the boxes mesh in the world frame.
@@ -328,7 +326,7 @@ classdef OBBCollider < Collider
             % Transform the mesh by the box dimensions
             mesh = mesh.ScaleBy(this.Size);
             % Transform the base mesh (by scale and position)
-            mesh = mesh.TransformBy(this.Transform.Inertial.GetMatrix());
+            mesh = mesh.TransformBy(this.Transform.GetWorldMatrix());
         end
         function [aabb,cid] = GetWorldAABB(this)
             % This function recalculates the bounding box from the collider
@@ -338,7 +336,6 @@ classdef OBBCollider < Collider
             r = this.ImaginaryRadius;
             unit_aabb = AABB([-r,r],[-r,r],[-r,r]);
             % Get the world properties
-%             so3 = this.Transform.Inertial;
             p = this.Transform.GetWorldPosition();
             s = this.Transform.GetWorldScale();
             % Offset and scale the unit AABB

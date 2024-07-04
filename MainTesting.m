@@ -31,23 +31,48 @@ gridPoints = CreateGrid([-1.5;0;4],numberOfObjects,numberPerColumn,1.3);
 %     sim.Add(entity_i);
 % end
 
+A = EntityCreator.Box( ...
+        "Box A", ...
+        [0;0;5], ...
+        Quaternion.FromEulers(0,0,pi/6));
+A.RigidBody = RigidBody();
+sim.Add(A);
+
+B = EntityCreator.Box( ...
+        "Box B", ...
+        [0;0;4], ...
+        Quaternion.FromEulers(0,0,pi/6));
+B.RigidBody = RigidBody();
+
+B.Transform.Parent = A.Transform;
+sim.Add(B);
+
+C = EntityCreator.Box( ...
+        "Box C", ...
+        [0;0;4], ...
+        Quaternion.FromEulers(0,0,pi/6));
+C.RigidBody = RigidBody();
+
+C.Transform.Parent = B.Transform;
+sim.Add(C);
+
 % Add an obstacle
 fixed = EntityCreator.Sphere( ...
     "Obstacle", ...
     [0;0;2], ...
     Quaternion.Random());
 % Do not move
-fixed.Transform.IsStatic = true;
-% Add elements
 fixed.RigidBody = RigidBody();
+fixed.RigidBody.IsStatic = true;
 fixed.Renderer.Colour = "r";
 % Add the fix object
 sim.Add(fixed);
 
 % Add the ground plane
 ground = EntityCreator.Plane("Ground",zeros(3,1));
-ground.Transform.Inertial.Scale = [10;10;1];
-ground.Transform.IsStatic = true;
+ground.Transform.SetWorldScale([10;10;1]);
+ground.RigidBody = RigidBody();
+ground.RigidBody.IsStatic = true;
 % Visuals
 ground.Renderer.Colour = "g";
 % Add the ground object

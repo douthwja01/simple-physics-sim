@@ -50,6 +50,13 @@ classdef World < Module
             assert(isa(transform,"Transform"),"Expecting a valid Transform reference.");
             transform.RemoveParent();
         end
+        % Utilities
+        function [tfs] = ListTransforms(this)
+            % List all transforms in the world object.
+            tfs = this.Root.Transform.ListChildrenOfType("Transform");
+        end
+
+        % Updating
         function [this] = UpdateTransforms(this)
             % This function moves through the world hierarchy to compute
             % the transformations of all entities in the scene/world.
