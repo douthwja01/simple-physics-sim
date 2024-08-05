@@ -171,13 +171,13 @@ classdef PlaneCollider < Collider
             % Scale to configuration dimensions
             toSize = mesh.ScaleBy(this.Depth,this.Width,1);
             % Transform by transformation in space
-            so3 = this.Transform.Inertial;
-            mesh = toSize.TransformBy(so3.GetMatrix());
+%             so3 = this.Transform.Inertial;
+            T = this.Transform.GetWorldMatrix();
+
+            mesh = toSize.TransformBy(T);
             
             % aabb from extents
             aabb = AABB.FromMesh(mesh);
-
-%             this.Draw();
             % Return the collider ID
             cid = this.Cid;
         end

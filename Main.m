@@ -11,9 +11,10 @@ gridPoints = CreateGrid([0;0;4],numberOfObjects,numberPerColumn,1.5);
 
 for i = 1:numberOfObjects
     % Place the object
-    entity_i = EntityCreator.Box(sprintf("Object %d (Box)",i),gridPoints(:,i),Quaternion.Zero);
+    entity_i = EntityCreator.Box(sprintf("Object %d (Box)",i),gridPoints(:,i),Quaternion.Identity);
 
-    entity_i.Transform.Inertial.Rotation = Quaternion.FromEulers(rand(1),rand(1),rand(1));
+    entity_i.Transform.SetWorldOrientation(Quaternion.FromEulers(rand(1),rand(1),rand(1)));
+    
     % Add elements
     entity_i.RigidBody = RigidBody();
     entity_i.Renderer.Alpha = 0.2;
@@ -27,8 +28,7 @@ for i = 1:numberOfObjects
 end
 
 % Add an obstacle
-fixed = EntityCreator.Sphere("Obstacle");
-fixed.Transform.Inertial.Position = [0;0;2]; %SetWorldPosition([0;0;2]);
+fixed = EntityCreator.Sphere("Obstacle",[0;0;2]);
 % Add elements
 fixed.RigidBody = RigidBody();
 fixed.RigidBody.IsStatic = true;
@@ -39,8 +39,9 @@ sim.Add(fixed);
 
 % Add the ground plane
 ground = EntityCreator.Plane("Ground");
-ground.Transform.Inertial.Scale = [10;10;1];
-% ground.Transform.IsStatic = true;
+ground.Transform.SetWorldScale([10;10;1]);
+ground.RigidBody = RigidBody();
+ground.RigidBody.IsStatic = true;
 % Collisions
 ground.Renderer.Colour = "g";
 sim.Add(ground);

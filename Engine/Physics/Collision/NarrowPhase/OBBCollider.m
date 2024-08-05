@@ -53,8 +53,8 @@ classdef OBBCollider < Collider
 
             % Containers
             isColliding = false;
-            boxPosition = this.Transform.Inertial.Position;
-            spherePosition = sphere.Transform.Inertial.Position;
+            boxPosition = this.Transform.GetWorldPosition();
+            spherePosition = sphere.Transform.GetWorldPosition();
 
             relativePosition = spherePosition - boxPosition;
             distance = norm(relativePosition);
@@ -76,7 +76,7 @@ classdef OBBCollider < Collider
 
             % Transform the local point back into world
             closestPoint = this.Transform.TransformPoint(localClosestPoint);
-
+            % Axial separation
             collisionVector = closestPoint - spherePosition;
             collisionDistance = norm(collisionVector);
             collisionAxis = collisionVector/collisionDistance;
@@ -101,14 +101,15 @@ classdef OBBCollider < Collider
             assert(plane.Code == ColliderCode.Plane,"Expecting a second plane collider.");
 
             % Get statics
-            boxSo3 = this.Transform.Inertial;
-            planeSo3 = plane.Transform.Inertial;
+            boxPosition = this.Transform.GetWorldPosition();    %Inertial;
+            planePosition = plane.Transform.GetWorldPosition(); %Inertial;
+            planeOrientation = plane.Transform.GetWorldRotationMatrix();
             % Normal in the inertial frame
-            planeNormal = planeSo3.Rotation.GetMatrix()*plane.Normal;
+            planeNormal = planeOrientation*plane.Normal;
             
             % Get the AABB vertices
             boxInterval   = CollisionExtensions.GetAxisInterval(this.GetVertices(),planeNormal);
-            planeInterval = dot(planeNormal,planeSo3.Position);
+            planeInterval = dot(planeNormal,planePosition);
             isColliding   = boxInterval.Contains(planeInterval);
             % No Collision possible
             if ~isColliding
@@ -119,8 +120,8 @@ classdef OBBCollider < Collider
             extentProjection = boxInterval.Span/2;
             toResolve = planeInterval - boxInterval.Min;
             % Calculate points
-            boxPointInPlane = boxSo3.Position - extentProjection*planeNormal;
-            planePointInBox = boxSo3.Position - (extentProjection - toResolve)*planeNormal;
+            boxPointInPlane = boxPosition - extentProjection*planeNormal;
+            planePointInBox = boxPosition - (extentProjection - toResolve)*planeNormal;
 
 %             % Debugging
 %             aLine = [boxSo3.Position,boxPointInPlane]';
@@ -224,19 +225,18 @@ classdef OBBCollider < Collider
 
             % Variables
             isColliding = false;
-            so3A = this.Transform.Inertial;
-            so3B = obb.Transform.Inertial;
+            positionA = this.Transform.GetWorldPosition();
+            positionB = obb.Transform.GetWorldPosition();
 
-            distance = norm(so3B.Position - so3A.Position);
+            distance = norm(positionB - positionA);
             if distance > (this.ImaginaryRadius + obb.ImaginaryRadius)
                 points = ContactPoints();
                 return;
             end
 
             % Array of testable axes
-            axesA = so3A.Rotation.GetMatrix()'; % [Should not be transposed?]
-            axesB = so3B.Rotation.GetMatrix()';
-            axes = [axesA;axesB];
+            axesA = this.Transform.GetWorldRotationMatrix()'; % [Should not be transposed?]
+            axesB = obb.Transform.GetWorldRotationMatrix()';         axes = [axesA;axesB];
             for i = 1:3 
                 for  j = 4:6
                     axes = vertcat(axes,cross(axes(i,:),axes(j,:)));
@@ -280,8 +280,8 @@ classdef OBBCollider < Collider
             end
             
             % Calculate the collision points based on the minimum separation axis
-            pointAinB = so3A.Position + (minAProjection.Span/2) * minSeparationAxis;
-            pointBinA = so3B.Position - (minBProjection.Span/2) * minSeparationAxis;
+            pointAinB = positionA + (minAProjection.Span/2) * minSeparationAxis;
+            pointBinA = positionB - (minBProjection.Span/2) * minSeparationAxis;
 
 %             % Debugging 
 %             aLine = [so3A.Position,pointAinB]';
@@ -317,7 +317,7 @@ classdef OBBCollider < Collider
                 0,-1,0;
                 -1,0,0];
             % Return the rotated normals
-            n = n_unit*this.Transform.Inertial.Rotation.GetMatrix();
+            n = n_unit*this.Transform.GetWorldRotationMatrix();
         end
         function [mesh] = GetWorldMesh(this)
             % Calculate the boxes mesh in the world frame.
@@ -326,7 +326,7 @@ classdef OBBCollider < Collider
             % Transform the mesh by the box dimensions
             mesh = mesh.ScaleBy(this.Size);
             % Transform the base mesh (by scale and position)
-            mesh = mesh.TransformBy(this.Transform.Inertial.GetMatrix());
+            mesh = mesh.TransformBy(this.Transform.GetWorldMatrix());
         end
         function [aabb,cid] = GetWorldAABB(this)
             % This function recalculates the bounding box from the collider
@@ -336,9 +336,10 @@ classdef OBBCollider < Collider
             r = this.ImaginaryRadius;
             unit_aabb = AABB([-r,r],[-r,r],[-r,r]);
             % Get the world properties
-            so3 = this.Transform.Inertial;
+            p = this.Transform.GetWorldPosition();
+            s = this.Transform.GetWorldScale();
             % Offset and scale the unit AABB
-            aabb = so3.Position + so3.Scale*unit_aabb;
+            aabb = p + s*unit_aabb;
             % Assign the owner's id
             cid = this.Cid;
         end
@@ -372,7 +373,8 @@ classdef OBBCollider < Collider
             vertices(8,:) = [minExtents(1),maxExtents(2),minExtents(3)];
             % Transform
             temp = [vertices,ones(8,1)];
-            T = this.Transform.Inertial.GetMatrix();
+%             T = this.Transform.Inertial.GetMatrix();
+            T = this.Transform.GetWorldMatrix();
             temp = T*temp';
             vertices = temp(1:3,:)';
         end

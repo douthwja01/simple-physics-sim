@@ -28,7 +28,7 @@ classdef (Abstract) Integrator < Module
             % bodies/transforms.
             
             p0 = objectData.SO3.Position;
-            q0 = objectData.SO3.Rotation;
+            q0 = objectData.SO3.Orientation;
 
             v0 = objectData.LinearVelocity;
             w0 = objectData.AngularVelocity;

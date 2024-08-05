@@ -6,7 +6,7 @@
 classdef SO3 %< handle
     properties
         Position = zeros(3,1);
-        Rotation = Quaternion();
+        Orientation = Quaternion();
         Scale = ones(3,1);
     end
     properties (Hidden)
@@ -25,11 +25,11 @@ classdef SO3 %< handle
                p = zeros(3,1);
             end
             if nargin < 2
-                q = Quaternion.Zero;
+                q = Quaternion.Identity;
             end
             % Assign initial properties
             this.Position = p;
-            this.Rotation = q;
+            this.Orientation = q;
             this.HasChanged = false; % Ignore initial assignments
         end
         % Get/sets
@@ -38,9 +38,9 @@ classdef SO3 %< handle
             this.Position = p;
             this.HasChanged = true;
         end
-        function [this] = set.Rotation(this,q)
+        function [this] = set.Orientation(this,q)
             assert(isa(q,"Quaternion"),"Expecting a valid Quaternion [4x1].");
-            this.Rotation = q.Normalise();
+            this.Orientation = q.Normalise();
             this.HasChanged = true;
         end
         function [this] = set.Scale(this,s)
@@ -57,13 +57,17 @@ classdef SO3 %< handle
             % This function returns the current transformation matrix.
 
             % Extract the state
-            Rq = this.Rotation.GetMatrix();
+            Rq = this.Orientation.ToMatrix();
             % Create the matrix
             Tq = [Rq,this.Position;zeros(1,3),1];
             % The scale matrix
             Ts = this.GetScaleMatrix();
             % Combine
             T = Tq*Ts;
+        end
+        function [R]    = GetRotationMatrix(this)
+            % The orientation of this SO3 as a rotation matrix.
+            R = this.Orientation.ToMatrix();
         end
         function [Ts]   = GetScaleMatrix(this)
             % Get the matrix representing the scale assigned to this SO3.
@@ -74,7 +78,7 @@ classdef SO3 %< handle
         function [state] = GetState(this)
             % Return a representitive state vector sufficient to describe
             % the transform's pose.
-            state = [this.Rotation;this.Position];
+            state = [this.Orientation;this.Position];
         end        
         % Sets
         function [this] = SetMatrix(this,T)
@@ -85,7 +89,7 @@ classdef SO3 %< handle
             sY = norm(T(2,1:3));
             sZ = norm(T(3,1:3));
             this.Scale = [sX;sY;sZ];
-            this.Rotation = Quaternion.FromRotationMatrix(T(1:3,1:3));
+            this.Orientation = Quaternion.FromRotationMatrix(T(1:3,1:3));
             this.Position = T(4,1:3)';
         end
         function [this] = SetState(this,state)
@@ -94,7 +98,7 @@ classdef SO3 %< handle
 
             assert(numel(state) == 7,"Expecting a valid state vector [7x1].");
             % Assign the values
-            this.Rotation = state(1:4,1);
+            this.Orientation = state(1:4,1);
             this.Position = state(5:7,1);
         end
         % General
@@ -114,7 +118,7 @@ classdef SO3 %< handle
         end
         function [flag] = IsSymbolic(this)
             % A simple check if the transform is symbolically defined.
-            flag = isa(this.Position,"sym") || isa(this.Rotation,"sym");
+            flag = isa(this.Position,"sym") || isa(this.Orientation,"sym");
         end
         function [hand] = Plot(this,container)
             % Plot a given transform to a given container or default to the
@@ -261,9 +265,9 @@ classdef SO3 %< handle
             s = sym("q%d",[6,1],"real");
             T = SO3.FromScalars(s(1),s(2),s(3),s(4),s(5),s(6));
         end
-        function [T] = Zero()
+        function [T] = Identity()
             % Reset to default transform
-            T = SO3(zeros(3,1),Quaternion());
+            T = SO3(zeros(3,1),Quaternion.Identity);
         end
     end
 

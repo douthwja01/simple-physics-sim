@@ -17,13 +17,15 @@ classdef ImpulseCR < CollisionResolver
 
                 bodyA = manifold.ColliderA.Entity.RigidBody;
                 hasRigidBodyA = ~isempty(bodyA);
-                %tfA = manifold.ColliderA.Transform;
 
                 bodyB = manifold.ColliderB.Entity.RigidBody;
                 hasRigidBodyB = ~isempty(bodyB);
-                %tfB = manifold.ColliderB.Transform;
 
                 collisionNormal = -manifold.Points.Normal;
+
+                if ~isa(bodyB,"RigidBody")
+                    fprintf("Body B has no rigid body component to collide.");
+                end
 
                 % Object velocities
                 velocityA = bodyA.LinearVelocity;
