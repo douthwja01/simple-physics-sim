@@ -66,23 +66,8 @@ classdef DynamicsWorld < CollisionWorld
             assert(~isempty(this.Dynamics),"Cannot initialise, no dynamics element assigned.");
             assert(~isempty(this.Integrator),"Cannot initialise, no valid numerical integration method assigned.");
 
-
-            % [TESTING] Solver Global Matrix creation
-            xStartIndex = 0;
-            yStartIndex = 0;
-            for i = 1:numel(this.Bodies)
-
-                objectData = DynamicsWorld.CreateGlobalMatrixIndices( ...
-                    xStartIndex, ...
-                    yStartIndex, ...
-                    this.Bodies(i));
-
-                % Extract new indices
-                xStartIndex = objectData.xMax;
-                yStartIndex = objectData.yMax;
-                % Retain
-                matrixSet(i,1) = objectData;
-            end
+            % Initialise the dynamics-solver method
+            this.Dynamics.Initialise();
         end
         function [this] = Step(this,dt)
             % This function steps the physics simulation.
@@ -165,35 +150,6 @@ classdef DynamicsWorld < CollisionWorld
         end 
     end
     methods (Static)
-        function [objectData,newIndex] = CreateGlobalMatrixIndices( ...
-                xStartIndex, ...
-                yStartIndex, ...
-                body)
-            % This structure creates the data structure needed to map the
-            % degrees of freedom of a particle to its global state indices.
-
-            assert(isa(body,"Particle"),"Expecting a valid body component.");
-            
-            joints = body.Entity.Joints;
-            if isempty(joints)
-                dof = 6;
-            else
-                dof = joints.DegreesOfFreedom;
-            end
-            xMinIndex = xStartIndex+1;
-            xMaxIndex = xStartIndex+dof;
-            yMinIndex = yStartIndex+1;
-            yMaxIndex = yStartIndex+dof; % To confirm
-
-            objectData = struct( ...
-                "xMin",xMinIndex, ...
-                "xMax",xMaxIndex, ...
-                "yMin",yMinIndex, ...
-                "yMax",yMaxIndex);
-            % Pass on limits
-            newIndex = xMaxIndex;
-        end
-
         function [state]  = UpdateStateFromBodies(state,bodies)
             % This function updates the state vector from the bodies and
             % transforms.

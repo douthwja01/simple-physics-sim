@@ -30,7 +30,7 @@ classdef WorldState < handle
         end
 
     end
-    methods (Static)
+    methods (Static, Access = private)
         function [data] = GetStateStructure()
             % The state structre representing the integratable states of 3D 
             % object.

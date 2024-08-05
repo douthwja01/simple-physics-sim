@@ -22,6 +22,9 @@ classdef (Abstract) DynamicsModule < Module
 %             this.ComputeAccelerations();  
          
     methods
+        function [this] = Initialise(this)
+            % Do nothing by default (may need solver initialisation)
+        end
         function [this] = Step(this,bodies,dt)
             % This function is the entry point for the dynamics computation
             % approach.
@@ -33,6 +36,42 @@ classdef (Abstract) DynamicsModule < Module
             % frame.
             for i = 1:numel(bodies)
                 bodies(i).ClearAccumulators();
+            end
+        end
+    end
+
+    %% Utilties
+    methods 
+        function [this] = InitialiseGlobalProperties(this)
+            % [TESTING] Solver Global Matrix creation
+            xStartIndex = 0;
+            yStartIndex = 0;
+            for i = 1:numel(this.Bodies)
+
+                joints = body.Entity.Joints;
+                if isempty(joints)
+                    dof = 6;
+                else
+                    dof = joints.DegreesOfFreedom;
+                end
+                xMinIndex = xStartIndex+1;
+                xMaxIndex = xStartIndex+dof;
+                yMinIndex = yStartIndex+1;
+                yMaxIndex = yStartIndex+dof; % To confirm
+
+                objectData = struct( ...
+                    "xMin",xMinIndex, ...
+                    "xMax",xMaxIndex, ...
+                    "yMin",yMinIndex, ...
+                    "yMax",yMaxIndex);
+                % Pass on limits
+                newIndex = xMaxIndex;
+
+                % Extract new indices
+                xStartIndex = objectData.xMax;
+                yStartIndex = objectData.yMax;
+                % Retain
+                matrixSet(i,1) = objectData;
             end
         end
     end
