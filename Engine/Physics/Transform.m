@@ -21,7 +21,6 @@ classdef Transform < TreeElement
 
             % Create a new transform object
             this.Local = SO3.Identity();
-            %this.Inertial = SO3.Zero;
         end
         % Get/sets for local properties
         function [p] = GetPosition(this)

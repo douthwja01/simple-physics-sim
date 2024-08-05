@@ -7,7 +7,6 @@ classdef Particle < Element
         % Mass
         Mass = 1;
         InverseMass = 1;
-        
         % Friction
         StaticFriction = 0.6;       % Static friction coefficient
         DynamicFriction = 0.8;      % Dynamic friction coefficient
@@ -58,47 +57,28 @@ classdef Particle < Element
             this.AngularVelocity = w;
         end
     end
+    % Main methods
     methods
-        function [this] = Integrate(this,dt)
-
-            if this.IsStatic
+        function [this] = ApplyForce(this,f,p)
+            % Sanity check one
+            assert(IsColumn(f,3),"Expecting a valid 3D force vector.");
+            % Update the orce accumulator
+            this.forceAccumulators = this.forceAccumulators + f;
+            if nargin < 3
                 return;
-            else
-                %m_derivedValid = false;
             end
-
-            orientation = Transform.GetOrientationParentSpace();
-            position    = Transform.GetPositionParentSpace();
-
-            %orientation = QuatAddScaled(orientation, m_angularVelocity, timeStep);
-            dQ = Quaternion.Rate(orientation, this.AngularVelocity);
-            orientation = orientation + dQ*dt;
-
-            position = position + this.LinearVelocity*dt;
-
-            this.Transform.SetOrientation(orientation); % Set orientation in parent space
-            this.Transform.SetPosition(position);       % Set position in parent space
-
-            acceleration = this.LinearAcceleration;
-            acceleration = acceleration + this.forceAccumulator*this.inverseMass;
-            angularAcceleration = this.inverseInertiaTensor*this.torqueAccumulator;
-
-            this.LinearVelocity  = this.LinearVelocity  + this.linearImpulseAccumulator*this.inverseMass;
-            this.AngularVelocity = this.AngularVelocity + this.angularImpulseAccumulator*this.inverseMass;
-
-            this.LinearVelocity  = this.LinearVelocity  + acceleration*dt;
-            this.AngularVelocity = this.AngularVelocity + angularAcceleration*dt;
-
-            this.AngularVelocity = this.AngularVelocity*pow(this.angularDamping, dt);
-            this.LinearVelocity  = this.LinearVelocity*pow(this.linearDamping, dt);
-
-            for i = 1:this.Transform.NumberOfChildren
-                m_children(i).Integrate(timeStep);
-            end
-
-            this.LinearImpulseAccumulator = zeros(3,1);
-            this.AngularImpulseAccumulator = zeros(3,1);
+            % Apply a force 'f' at position 'p' on the body.
+            assert(IsColumn(p,3),"Expecting a valid 3D position vector.");
+            % Create a torque
+            this.ApplyTorque(cross(p,f));
         end
+        function [this] = ApplyTorque(this,tau)
+            assert(IsColumn(tau,3),"Expecting a valid 3D torque vector.");
+            this.torqueAccumulators = this.torqueAccumulators + tau;
+        end
+    end
+    % Utilities
+    methods
         function [this] = CheckAwake(this)
             % This function checks if the body needs to be awake via a
             % minimum frame movement.
@@ -128,3 +108,43 @@ classdef Particle < Element
     end
 end
 
+% function [this] = Integrate(this,dt)
+%
+%     if this.IsStatic
+%         return;
+%     else
+%         %m_derivedValid = false;
+%     end
+%
+%     orientation = Transform.GetOrientationParentSpace();
+%     position    = Transform.GetPositionParentSpace();
+%
+%     %orientation = QuatAddScaled(orientation, m_angularVelocity, timeStep);
+%     dQ = Quaternion.Rate(orientation, this.AngularVelocity);
+%     orientation = orientation + dQ*dt;
+%
+%     position = position + this.LinearVelocity*dt;
+%
+%     this.Transform.SetOrientation(orientation); % Set orientation in parent space
+%     this.Transform.SetPosition(position);       % Set position in parent space
+%
+%     acceleration = this.LinearAcceleration;
+%     acceleration = acceleration + this.forceAccumulator*this.inverseMass;
+%     angularAcceleration = this.inverseInertiaTensor*this.torqueAccumulator;
+%
+%     this.LinearVelocity  = this.LinearVelocity  + this.linearImpulseAccumulator*this.inverseMass;
+%     this.AngularVelocity = this.AngularVelocity + this.angularImpulseAccumulator*this.inverseMass;
+%
+%     this.LinearVelocity  = this.LinearVelocity  + acceleration*dt;
+%     this.AngularVelocity = this.AngularVelocity + angularAcceleration*dt;
+%
+%     this.AngularVelocity = this.AngularVelocity*pow(this.angularDamping, dt);
+%     this.LinearVelocity  = this.LinearVelocity*pow(this.linearDamping, dt);
+%
+%     for i = 1:this.Transform.NumberOfChildren
+%         m_children(i).Integrate(timeStep);
+%     end
+%
+%     this.LinearImpulseAccumulator = zeros(3,1);
+%     this.AngularImpulseAccumulator = zeros(3,1);
+% end

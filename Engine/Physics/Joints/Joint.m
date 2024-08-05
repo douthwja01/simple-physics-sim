@@ -15,7 +15,7 @@ classdef (Abstract) Joint < Element
             %JOINT Construct an instance of this class.
 
             % Assign the joint location
-            this.Location = SO3.Zero;
+            this.Location = SO3.Identity();
         end
         % Get/sets
         function set.Location(this,l)

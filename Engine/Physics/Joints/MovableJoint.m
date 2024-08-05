@@ -21,7 +21,7 @@ classdef (Abstract) MovableJoint < Joint
             % Transform recalculation feedback
             addlistener(this,"JointPosition","PostSet",@(src,evnt)OnJointPositionUpdate(this));
             % Default joint pivot
-            this.Pivot = SO3.Zero();
+            this.Pivot = SO3.Identity();
             % Default joint states
             this.JointPosition = zeros(this.DegreesOfFreedom,1);
             this.JointVelocity = zeros(this.DegreesOfFreedom,1);

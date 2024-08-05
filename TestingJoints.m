@@ -35,8 +35,10 @@ end
 
 % Add the ground plane
 ground = EntityCreator.Plane("Ground",zeros(3,1));
-% Do not move
-ground.Transform.IsStatic = true;
+ground.Transform.SetWorldScale([10;10;1]);
+ground.RigidBody = RigidBody();
+ground.RigidBody.IsStatic = true;
+
 % Collisions
 ground.Collider.Width = 10;
 ground.Collider.Depth = 10;
@@ -62,7 +64,7 @@ boxThree.Transform.Parent = boxTwo.Transform;
 
 % Simulate
 sim.WorldSize = 10;
-sim.Physics.Dynamics = FeatherstoneDynamics();
-sim.Physics.SubSteps = 10;
-sim.Physics.Integrator = EulerIntegrator();
+sim.World.Dynamics = FeatherstoneDynamics();
+sim.World.SubSteps = 10;
+sim.World.Integrator = EulerIntegrator();
 sim.Simulate(inf);

@@ -53,26 +53,4 @@ classdef RigidBody < Particle
             this.AngularMomentum = m;
         end
     end
-
-    methods
-
-            
-        function [this] = ApplyForce(this,f,p)
-            % Sanity check one
-            assert(IsColumn(f,3),"Expecting a valid 3D force vector.");
-            % Update the orce accumulator
-            this.forceAccumulators = this.forceAccumulators + f;
-            if nargin < 3
-                return;
-            end
-            % Apply a force 'f' at position 'p' on the body.
-            assert(IsColumn(p,3),"Expecting a valid 3D position vector.");
-            % Create a torque
-            this.ApplyTorque(cross(p,f));
-        end
-        function [this] = ApplyTorque(this,tau)
-            assert(IsColumn(tau,3),"Expecting a valid 3D torque vector.");
-            this.torqueAccumulators = this.torqueAccumulators + tau;
-        end
-    end
 end

@@ -14,8 +14,9 @@ classdef RNEDynamics < DynamicsModule
 
             for i = 1:numel(bodies)
                 body_i = bodies(i);
+
+                % Get the transform data
                 tf_i = body_i.Transform;
-            
                 orientation = tf_i.GetOrientationParentSpace();
                 position = tf_i.GetPositionParentSpace();
 
@@ -33,34 +34,24 @@ classdef RNEDynamics < DynamicsModule
                 tf_i.SetPosition(position);
             
                 % Calculate the local velocities & accelerations
-
                 dv_i = body_i.LinearAcceleration;
-                dv_i = dv_i + body_i.forceAccumulator*body_i.InverseMass;
-                dw_i = body_i.inverseInertiaTensor*body_im_torqueAccum;
+                dv_i = dv_i + body_i.InverseMass*body_i.forceAccumulator;
+                dw_i = body_i.InverseInertia*body_i.torqueAccumulator;
             
-                v_i = v_i + m_impulseAccum*m_inverseMass;
-                w_i = w_i + m_angularImpulseAccum*m_inverseMass;
+                v_i = v_i + body_i.linearImpulseAccumulator*body_i.InverseMass;
+                w_i = w_i + body_i.angularImpulseAccumulator*body_i.InverseMass;
             
                 v_i = v_i + dv_i * dt;
                 w_i = w_i + dw_i * dt;
             
-                w_i = w_i * body_i.AngularDamping^timeStep;
-                v_i = v_i * body_i.LinearDamping^timeStep;
+                w_i = w_i * body_i.angularDamping^dt;
+                v_i = v_i * body_i.linearDamping^dt;
 
                 % Assign the new properties
                 body_i.LinearVelocity = v_i;
                 body_i.AngularVelocity = w_i;
                 body_i.LinearAcceleration = dv_i;
                 body_i.AngularAcceleration = dw_i;
-
-%                 % Get the joint
-%                 joint = body_i.Entity.Joints;
-%                 if isempty(joint)
-%                     continue;
-%                 end
-                
-%                 R = body_i.Local.GetRotationMatrix();
-                
             end
         end
     end

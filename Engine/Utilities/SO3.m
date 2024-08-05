@@ -69,6 +69,9 @@ classdef SO3 %< handle
             % The orientation of this SO3 as a rotation matrix.
             R = this.Orientation.ToMatrix();
         end
+        function [this] = SetRotationMatrix(this,R)
+            this.Orientation = Quaternion.FromRotationMatrix(R);
+        end
         function [Ts]   = GetScaleMatrix(this)
             % Get the matrix representing the scale assigned to this SO3.
             s = this.Scale;

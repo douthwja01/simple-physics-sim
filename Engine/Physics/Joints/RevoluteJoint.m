@@ -49,8 +49,8 @@ classdef RevoluteJoint < ActuatedJoint
                 otherwise
                     error("Axis code not applicable.");
             end
-            % Set the pivot rotation
-            this.Pivot.Rotation = Quaternion.FromRotationMatrix(R);
+            % Set the pivot orientation
+            this.Pivot.SetRotationMatrix(R);
         end
     end
 end
