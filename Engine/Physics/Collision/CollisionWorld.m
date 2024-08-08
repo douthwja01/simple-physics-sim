@@ -8,7 +8,6 @@ classdef CollisionWorld < World
     properties (SetAccess = private)
         % Collidables
         Colliders;
-        Resolvers = CollisionResolver.empty(0,1);
         % Simulation callbacks
         CollisionCallback = function_handle.empty;
         TriggerCallback = function_handle.empty;
@@ -45,12 +44,9 @@ classdef CollisionWorld < World
     %% Utilities
     methods
         % Resolve world Collisions
-        function [this] = FindResolveCollisions(this,dt)
+        function [collisions,triggers] = FindCollisions(this)
             % This function builds the lists of 'detected' collisions and
             % triggers.
-
-            % Sanity check
-            assert(isscalar(dt),"Expecting a valid numeric time-step.");
 
             % Reset containers
             triggers = Manifold.empty;
@@ -87,19 +83,9 @@ classdef CollisionWorld < World
             % --------------------
 
             % No collisions occurred
-            if isempty(collisions)
-                return;
+            if ~isempty(collisions)
+                this.SendNotifications(triggers,collisions);
             end
-
-            % 3. --- RESOLUTION PHASE ---
-            % This routine computes the collision resolution
-            this.CalculateCollisionResponses(collisions,dt);
-
-            % --- EVENT GENERATION PHASE ---
-            % Notify colliders events
-            CollisionWorld.SendColliderEvents(triggers,collisions);
-            % Notify world/engine events
-            this.SendWorldEvents(triggers,collisions);
         end
         % Managing collision objects
         function [this] = AddCollider(this,collider)
@@ -126,26 +112,6 @@ classdef CollisionWorld < World
             % Remove a given solver from the array of collisions solvers.
             this.Colliders = this.Colliders(this.Colliders ~= collider);
         end
-        % Managing collision NarrowPhaseSolvers
-        function [this] = AddSolver(this,solver)
-            assert(isa(solver,"CollisionResolver"),"Expecting a valid narrow-phase collision solver.");
-
-            % Add a given solver to the array of collision solvers.
-            this.Resolvers = vertcat(this.Resolvers,solver);
-        end
-        function [this] = RemoveSolver(this,solver)
-            % Delete the object from the world
-            if isnumeric(solver)
-                % Temporary index
-                vec = 1:1:numel(this.Resolvers);
-                % Remove the object
-                this.Resolvers = this.Resolvers(vec ~= solver);
-            else
-                assert(isa(solver,"NarrowPhaseCollisionSolver"),"Expecting a valid 'Solver' object.");
-                % Remove a given solver from the array of collisions solvers.
-                this.Resolvers = this.Resolvers(this.Resolvers ~= solver);
-            end
-        end
         % Callbacks
         function [this] = SetCollisionCallback(this,eventHandle)
             % This function allows the setting of a collision callback
@@ -162,47 +128,12 @@ classdef CollisionWorld < World
     end
 
     %% Internals
-    methods (Access = private)
-        function [this] = CalculateCollisionResponses(this,collisions,dt)
-            % This function solves the set of identified collisions by
-            % invoking the collision solvers.
+    methods (Access = protected)
+        function [this] = SendNotifications(this,triggers,collisions)
+            % EVENT GENERATION  
 
-            % Sanity check
-            assert(isnumeric(dt),"Expecting a valid time step.");
-
-            if isempty(collisions) || numel(collisions) < 1
-                return;
-            end
-
-            for i = 1:numel(this.Resolvers)
-                % Solve the collisions
-                this.Resolvers(i).Resolve(collisions,dt);
-            end
-        end
-        % Send the callbacks for all collisions & triggers
-        function SendWorldEvents(this,triggers,collisions)
-            % Send the trigger callbacks to listeners of the
-            % "TriggerFeedback" world-events.
-
-            % Notify the triggers world events.
-            for i = 1:numel(triggers)
-                % Send to subscribers of the engine
-                notify(this,"TriggerFeedback",triggers(i));
-            end
-
-            % Notify the collision world events.
-            for i = 1:numel(collisions)
-                % Send to subscribers of the engine.
-                notify(this,"CollisionFeedback",collisions(i));
-            end
-        end
-    end
-    methods (Static, Access = private)
-        function SendColliderEvents(triggers,collisions)
-            % Notify the colliders of the events they are participating in.
-
-            % Notify the triggers world events.
-
+            % === Notify Collider events ===
+            % Notify the trigger callback events.
             for i = 1:numel(triggers)
                 % Trigger instance
                 manifold_i = triggers(i);
@@ -217,8 +148,7 @@ classdef CollisionWorld < World
                     notify(manifold_i.ColliderB,"Collided",ColliderData(manifold_i.ColliderA));
                 end
             end
-
-            % Notify the collision world events.
+            % Notify the collision callback events.
             for i = 1:numel(collisions)
                 % Collision instance
                 manifold_i = collisions(i);
@@ -231,6 +161,18 @@ classdef CollisionWorld < World
                     % Notify
                     notify(manifold_i.ColliderB,"Collided",ColliderData(manifold_i.ColliderA));
                 end
+            end
+
+            % === Notify world/engine events === 
+            % Notify the triggers world events.
+            for i = 1:numel(triggers)
+                % Send to subscribers of the engine
+                notify(this,"TriggerFeedback",triggers(i));
+            end
+            % Notify the collision world events.
+            for i = 1:numel(collisions)
+                % Send to subscribers of the engine.
+                notify(this,"CollisionFeedback",collisions(i));
             end
         end
     end

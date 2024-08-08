@@ -1,4 +1,4 @@
-classdef VerletIntegrator < Integrator
+classdef VerletSolver < OdeSolver
     %VERLETINTEGRATOR - An integrator element based on the verlet method.
 
     % Verlet quaternion integration? 

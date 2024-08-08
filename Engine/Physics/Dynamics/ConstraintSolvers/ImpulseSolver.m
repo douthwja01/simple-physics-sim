@@ -1,4 +1,4 @@
-classdef ImpulseCR < CollisionResolver
+classdef ImpulseSolver < ConstraintSolver
     % This basic collision solver resolves collisions between two objects
     % by calculating the impulse required to move the two objects apparent
     % by the next time-step.
