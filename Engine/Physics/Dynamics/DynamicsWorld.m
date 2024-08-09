@@ -53,26 +53,6 @@ classdef DynamicsWorld < CollisionWorld
             assert(IsColumn(g,3),"Expecting a global gravity vector [3x1].");
             this.Gravity = g;
         end
-        % Constraint solvers
-        function [this] = AddConstraintSolver(this,solver)
-            assert(isa(solver,"ConstraintSolver"),"Expecting a valid 'ConstraintSolver' object.");
-
-            % Add a given solver to the array of collision solvers.
-            this.ConstraintSolver = vertcat(this.ConstraintSolver,solver);
-        end
-        function [this] = RemoveConstraintSolver(this,solver)
-            % Delete the object from the world
-            if isnumeric(solver)
-                % Temporary index
-                vec = 1:1:numel(this.ConstraintSolver);
-                % Remove the object
-                this.ConstraintSolver = this.ConstraintSolver(vec ~= solver);
-            else
-                assert(isa(solver,"ConstraintSolver"),"Expecting a valid 'ConstraintSolver' object.");
-                % Remove a given solver from the array of collisions solvers.
-                this.ConstraintSolver = this.CollisionResolver(this.CollisionResolver ~= solver);
-            end
-        end
     end
 
     %% Interactions
@@ -144,6 +124,26 @@ classdef DynamicsWorld < CollisionWorld
 
             this.State.Resize(numel(this.Bodies));
         end
+        % Constraint solvers
+        function [this] = AddConstraintSolver(this,solver)
+            assert(isa(solver,"ConstraintSolver"),"Expecting a valid 'ConstraintSolver' object.");
+
+            % Add a given solver to the array of collision solvers.
+            this.ConstraintSolver = vertcat(this.ConstraintSolver,solver);
+        end
+        function [this] = RemoveConstraintSolver(this,solver)
+            % Delete the object from the world
+            if isnumeric(solver)
+                % Temporary index
+                vec = 1:1:numel(this.ConstraintSolver);
+                % Remove the object
+                this.ConstraintSolver = this.ConstraintSolver(vec ~= solver);
+            else
+                assert(isa(solver,"ConstraintSolver"),"Expecting a valid 'ConstraintSolver' object.");
+                % Remove a given solver from the array of collisions solvers.
+                this.ConstraintSolver = this.CollisionResolver(this.CollisionResolver ~= solver);
+            end
+        end
     end
 
     %% Internals
@@ -174,7 +174,7 @@ classdef DynamicsWorld < CollisionWorld
             this.UpdateBodiesFromState(this.State,this.Bodies);
             
             % == Recalculate world positions == 
-            %this.UpdateTransforms();            
+%             this.UpdateTransforms();            
         end 
         function [this] = CalculationMotion(this)
             % This function applies gravity to all particles
