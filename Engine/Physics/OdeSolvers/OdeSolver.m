@@ -1,5 +1,5 @@
-classdef (Abstract) Integrator < Module
-    % INTEGRATOR - The base definition for modules integrating the state of
+classdef (Abstract) OdeSolver < Module
+    % ODESOLVER - The base definition for modules integrating the state of
     % the simulator.
     
     properties

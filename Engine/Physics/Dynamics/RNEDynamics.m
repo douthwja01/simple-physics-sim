@@ -8,7 +8,7 @@ classdef RNEDynamics < DynamicsModule
 
     %% Internal
     methods (Access = protected)
-        function [this] = ComputeDynamics(this,bodies,dt)
+        function [this] = ComputeDynamics(this,dt,bodies)
             % Compute the motion of the provided bodies utilitising the
             % given approach.
 
@@ -52,6 +52,20 @@ classdef RNEDynamics < DynamicsModule
                 body_i.AngularVelocity = w_i;
                 body_i.LinearAcceleration = dv_i;
                 body_i.AngularAcceleration = dw_i;
+            end
+        end
+        function [this] = CalculationMotion(this)
+            % This function applies gravity to all particles
+
+            % Update rigidbodies (accelerations)
+            for i = 1:numel(this.Bodies)
+                body_i = this.Bodies(i);
+                % If this body is not effected by gravity
+                if ~body_i.IsDynamic
+                    continue;
+                end
+                % Apply gravity
+                body_i.Accelerate(this.Gravity);
             end
         end
     end

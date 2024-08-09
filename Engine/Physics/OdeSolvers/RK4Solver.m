@@ -1,5 +1,5 @@
-classdef RK4Integrator < Integrator
-    % RK4INTEGRATOR - An integrator class that uses the RK4 method.
+classdef RK4Solver < OdeSolver
+    % RK4-ODE Solver - An integrator class that uses the RK4 method.
 
     % https://github.com/ange-yaghi/simple-2d-constraint-solver/blob/master/src/rk4_ode_solver.cpp
 
@@ -12,7 +12,7 @@ classdef RK4Integrator < Integrator
         Accumulator;
     end
     methods
-        function [this] = RK4Integrator()
+        function [this] = RK4Solver()
             % CONSTRUCTOR - Instantiate an instance of the integrator
             % class.
 
@@ -259,7 +259,7 @@ classdef RK4Integrator < Integrator
             % Wrapper
             X0 = [p0;v0;a0];
             % Integrate
-            dX = this.IntegrateFun(@RK4Integrator.MotionStep,dt,0,X0);
+            dX = this.IntegrateFun(@RK4Solver.MotionStep,dt,0,X0);
             % [SOMETHING IS WRONG HERE
             X = X0 + dX*dt;
             % Reapply

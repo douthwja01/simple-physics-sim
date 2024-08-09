@@ -50,11 +50,9 @@ sim.Add(ground);
 sim.WorldSize = 15;
 sim.World.SubSteps = 5;
 sim.World.EnableSubStepping = false;
-% Numeric integrators
-sim.World.Integrator = EulerIntegrator();
-% Collision solvers
-sim.World.BroadPhaseDetector = SweepAndPruneBPCD();
+% Backend
 sim.World.Dynamics = RNEDynamics(); %FeatherstoneDynamics();
-% sim.World.AddSolver(RotationalImpulseCR())
+% sim.World.ConstraintSolver = 
+sim.World.OdeSolver = EulerSolver();
 % Simulate
 sim.Simulate(inf);

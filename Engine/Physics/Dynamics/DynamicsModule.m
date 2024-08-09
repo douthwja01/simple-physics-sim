@@ -24,13 +24,16 @@ classdef (Abstract) DynamicsModule < Module
     methods
         function [this] = Initialise(this)
             % Do nothing by default (may need solver initialisation)
+
+            % Initialise global
+%             this.InitialiseGlobalProperties();
         end
-        function [this] = Step(this,bodies,dt)
+        function [this] = Update(this,dt,bodies)
             % This function is the entry point for the dynamics computation
             % approach.
 
             % Compute Dynamics routine (may be different)
-            this.ComputeDynamics(bodies,dt);
+            this.ComputeDynamics(dt,bodies);
 
             % Clears all the dynamic properties/accumulators for the next
             % frame.
@@ -40,15 +43,20 @@ classdef (Abstract) DynamicsModule < Module
         end
     end
 
+    %% Internals
+    methods (Abstract, Access = protected)
+        % Compute the dynamics of a set of bodies
+        [this] = ComputeDynamics(this,dt,bodies);
+    end
     %% Utilties
-    methods 
-        function [this] = InitialiseGlobalProperties(this)
+    methods (Static,Access = protected)
+        function [matrixSet] = InitialiseGlobalProperties(bodies)
             % [TESTING] Solver Global Matrix creation
             xStartIndex = 0;
             yStartIndex = 0;
-            for i = 1:numel(this.Bodies)
+            for i = 1:numel(bodies)
 
-                joints = body.Entity.Joints;
+                joints = bodies(i).Entity.Joints;
                 if isempty(joints)
                     dof = 6;
                 else
@@ -74,11 +82,5 @@ classdef (Abstract) DynamicsModule < Module
                 matrixSet(i,1) = objectData;
             end
         end
-    end
-
-    %% Internals
-    methods (Abstract, Access = protected)
-        % Compute the dynamics of a set of bodies
-        [this] = ComputeDynamics(this,bodies,dt);
     end
 end

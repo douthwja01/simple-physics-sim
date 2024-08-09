@@ -1,4 +1,4 @@
-classdef EulerIntegrator < Integrator
+classdef EulerSolver < OdeSolver
     %EULERINTEGRATOR - An integrator element based on the Euler method.
 
     properties (Constant)

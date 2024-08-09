@@ -1,4 +1,4 @@
-classdef PositionCR < CollisionResolver
+classdef PositionSolver < ConstraintSolver
     % This basic collision solver resolves collisions simply by resolving
     % the minimum seperation between the two colliders by directly setting
     % the position of the two objects via their transforms.

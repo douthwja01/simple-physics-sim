@@ -1,4 +1,4 @@
-classdef RotationalImpulseCR < CollisionResolver
+classdef RotationalImpulseSolver < ContraintSolver
     %ROTATIONALIMPULSESOLVER A collision solver that uses the rotational
     % impulse solution method.
 

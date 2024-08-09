@@ -17,7 +17,7 @@ classdef Simulator < handle
     properties (Access = private)
         IsStopped = false;
     end
-    % Main
+    %% Main
     methods
         function [this] = Simulator()
             % CONSTRUCTOR - Construct an instance of the time simulator 
@@ -27,12 +27,10 @@ classdef Simulator < handle
             this.AddEnginePaths;   
             % Create the dynamics world
             this.World = DynamicsWorld(this.WorldSize);
-            % Add impulse collision solver
-            this.World.AddCollisionSolver(ImpulseCR());
             % Create a graphics handler
             this.Graphics = MatlabFigureGraphics();
         end
-        % Get/sets
+        % Utilties
         function [this] = Simulate(this,duration)
             % This function executes the simulation sequence
 
@@ -43,8 +41,10 @@ classdef Simulator < handle
             
             % Initialise the physics world with substeps
             this.World.Initialise();
+           
             % Initialise the graphics output
             this.Graphics.Initialise(this.WorldSize);
+            
             % Callback registration
             addlistener(this.World,"CollisionFeedback",@(src,evnt)this.OnCollisionCallback(src,evnt));
             addlistener(this.World,"TriggerFeedback",@(src,evnt)this.OnTriggerCallback(src,evnt));
@@ -135,7 +135,6 @@ classdef Simulator < handle
             end
         end
     end
-
     %% Internals
     methods (Access = private)
         function [this] = AddEnginePaths(this)

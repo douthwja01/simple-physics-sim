@@ -477,7 +477,7 @@ classdef FeatherstoneDynamics < DynamicsModule
                 so3.Position, ...
                 so3.Rotation.GetMatrix());
         end
-        function [X]  = FromTranslationRotation(p,R)
+        function [X] = FromTranslationRotation(p,R)
             % From the positions and rotation.
 
             Xt = FeatherstoneDynamics.FromTranslation(p);

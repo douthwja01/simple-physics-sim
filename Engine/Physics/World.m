@@ -55,20 +55,21 @@ classdef World < Module
             % List all transforms in the world object.
             tfs = this.Root.Transform.ListChildrenOfType("Transform");
         end
+    end
 
+    %% Internals
+    methods (Access = protected)
         % Updating
         function [this] = UpdateTransforms(this)
             % This function moves through the world hierarchy to compute
             % the transformations of all entities in the scene/world.
 
-            % Move through hierarchically
-            this.RecursiveTransformUpdate(this.Root.Transform);
-            % Reset transform change status for next frame
-            this.RecursiveNullifyChanges(this.Root.Transform);
+%             % Move through hierarchically
+%             this.RecursiveTransformUpdate(this.Root.Transform);
+%             % Reset transform change status for next frame
+%             this.RecursiveNullifyChanges(this.Root.Transform);
         end
     end
-
-    %% Internals
     methods (Static, Access = private)
         function RecursiveNullifyChanges(current)
             % Moves through the transform set and resets the change 
@@ -110,44 +111,43 @@ classdef World < Module
                 World.RecursiveTransformUpdate(child);
             end
         end
-        function [transform] = UpdateTargetTransform(transform)
-            % This function updates the target transform to align its
-            % inertial and local properties depending on what properties
-            % have been changed during the frame.
-
-            if transform.Local.HasChanged && transform.Inertial.HasChanged
-                warning("Local and Inertia properties of Transform '%s' " + ...
-                    "assigned in the same frame, unclear to do.", ...
-                    transform.Entity.Name)
-            end
-
-            if transform.Local.HasChanged 
-                % The change is a local one, recalculate inertial
-                T = transform.Local.GetMatrix();
-                if transform.NumberOfParents ~= 0
-                    % Get the parent inertial transfrom
-                    Tp = transform.Parent.Inertial.GetMatrix();
-                    % Integrate
-                    T = Tp*T;
-                end
-                % Assign the new inertial matrix
-                transform.Inertial.SetMatrix(T);
-            end
-
-            if transform.Inertial.HasChanged 
-                % The change is a global one, recalculate local
-                T = transform.Inertial.GetMatrix();
-
-                if transform.NumberOfParents ~= 0
-                    % Get the parent inertial transfrom
-                    Tp = transform.Parent.Inertial.GetMatrix();
-                    % Get the difference between them 
-                    T = T/Tp;
-                end
-                % Assign the new local matrix
-                transform.Local.SetMatrix(T);
-            end
-
-        end
+%         function [transform] = UpdateTargetTransform(transform)
+%             % This function updates the target transform to align its
+%             % inertial and local properties depending on what properties
+%             % have been changed during the frame.
+% 
+%             if transform.Local.HasChanged && transform.Inertial.HasChanged
+%                 warning("Local and Inertia properties of Transform '%s' " + ...
+%                     "assigned in the same frame, unclear to do.", ...
+%                     transform.Entity.Name)
+%             end
+% 
+%             if transform.Local.HasChanged 
+%                 % The change is a local one, recalculate inertial
+%                 T = transform.Local.GetMatrix();
+%                 if transform.NumberOfParents ~= 0
+%                     % Get the parent inertial transfrom
+%                     Tp = transform.Parent.Inertial.GetMatrix();
+%                     % Integrate
+%                     T = Tp*T;
+%                 end
+%                 % Assign the new inertial matrix
+%                 transform.Inertial.SetMatrix(T);
+%             end
+% 
+%             if transform.Inertial.HasChanged 
+%                 % The change is a global one, recalculate local
+%                 T = transform.Inertial.GetMatrix();
+%                 if transform.NumberOfParents ~= 0
+%                     % Get the parent inertial transfrom
+%                     Tp = transform.Parent.Inertial.GetMatrix();
+%                     % Get the difference between them 
+%                     T = T/Tp;
+%                 end
+%                 % Assign the new local matrix
+%                 transform.Local.SetMatrix(T);
+%             end
+% 
+%         end
     end
 end

@@ -1,10 +1,10 @@
-classdef (Abstract) CollisionResolver < Module
-    % NARROWPHASESOLVER is a class to resolve collision occurance with
+classdef (Abstract) ConstraintSolver < Module
+    % ConstraintSolver is a class to resolve collision occurance with
     % higher accuracy that the broad-phase solvers. The usage of
     % narrow-phase collision solves typically follows a broad-phase solver.
 
     methods
-        function [this] = CollisionResolver()
+        function [this] = ConstraintSolver()
             % CONSTRUCTOR - Create an instance of a narrow-phase solver.
         end
     end
