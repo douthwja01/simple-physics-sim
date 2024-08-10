@@ -8,10 +8,8 @@ classdef DynamicsWorld < CollisionWorld
         SubSteps = 5;
         Gravity = [0;0;-9.81];
         % Solvers
-%         Dynamics = RNEDynamics();                                         % Dynamics (velocity, forces, acceleration etc) approach
+        Dynamics = RNEDynamics();                                           % Dynamics (velocity, forces, acceleration etc) approach
         ConstraintSolver = GlobalNumericSolver();                          % Resolve constraint forces.
-        Dynamics = RNEDynamics();                                         % Dynamics (velocity, forces, acceleration etc) approach
-        ConstraintSolver = ConstraintSolver.empty;                          % Resolve constraint forces.
         OdeSolver = VerletSolver();                                         % Numerical integration approach (x0 -> x1)
     end    
     properties (SetAccess = private)
@@ -71,10 +69,10 @@ classdef DynamicsWorld < CollisionWorld
             assert(~isempty(this.ConstraintSolver),"Cannot initialise, no valid constraint solver assigned.");
             assert(~isempty(this.OdeSolver),"Cannot initialise, no valid numerical integration method assigned.");
         
-            % Initialise the dynamics approach
-            this.Dynamics.Initialise();
-            % Initialise the modules
+            % Initialise the world sub-modules
+            this.Dynamics.Initialise(this.Bodies);
             this.ConstraintSolver.Initialise(this.Bodies);
+%             this.OdeSolver
         end
         function [this] = Step(this,dt)
             % This function steps the physics simulation.

@@ -23,6 +23,8 @@ classdef GlobalNumericSolver < GlobalConstraintSolver
         function [this] = Initialise(this,bodies)
             % Initialise the global numeric solver.
 
+            assert(isa(bodies,"Particle"),"Expecting an array of particles.");
+
             % Solver
             this.ChildSolvers = [ImpulseSolver()];%,PositionSolver()];
         end

@@ -22,11 +22,14 @@ classdef (Abstract) DynamicsModule < Module
 %             this.ComputeAccelerations();  
          
     methods
-        function [this] = Initialise(this)
+        function [this] = Initialise(this,bodies)
             % Do nothing by default (may need solver initialisation)
 
+            % Sanity check
+            assert(isa(bodies,"Particle"),"Expecting an array of particles.");
+
             % Initialise global
-%             this.InitialiseGlobalProperties();
+            this.InitialiseGlobalProperties(bodies);
         end
         function [this] = Update(this,dt,bodies)
             % This function is the entry point for the dynamics computation
