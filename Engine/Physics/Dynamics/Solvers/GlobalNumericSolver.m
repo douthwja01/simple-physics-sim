@@ -9,13 +9,19 @@ classdef GlobalNumericSolver < GlobalConstraintSolver
     properties
         ChildSolvers = NumericConstraintSolver.empty;
     end
-
+    %% Main
     methods
         function [this] = GlobalNumericSolver()
             % CONSTRUCTOR - Create an instance of a narrow-phase solver.
 
             % Initialise the parent
             [this] = this@GlobalConstraintSolver();
+        end
+    end
+    %% Utilties
+    methods
+        function [this] = Initialise(this,bodies)
+            % Initialise the global numeric solver.
 
             % Solver
             this.ChildSolvers = [ImpulseSolver()];%,PositionSolver()];

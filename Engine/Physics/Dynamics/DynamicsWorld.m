@@ -72,6 +72,9 @@ classdef DynamicsWorld < CollisionWorld
 %             assert(~isempty(this.Dynamics),"Cannot initialise, no dynamics element assigned.");
             assert(~isempty(this.ConstraintSolver),"Cannot initialise, no valid constraint solver assigned.");
             assert(~isempty(this.OdeSolver),"Cannot initialise, no valid numerical integration method assigned.");
+        
+            % Initialise the modules
+            this.ConstraintSolver.Initialise(this.Bodies);
         end
         function [this] = Step(this,dt)
             % This function steps the physics simulation.

@@ -7,4 +7,7 @@ classdef (Abstract) GlobalConstraintSolver < ConstraintSolver
             % CONSTRUCTOR - Create an instance of a narrow-phase solver.
         end
     end
+    methods (Abstract)
+        [this] = Initialise(this,bodies);
+    end
 end
