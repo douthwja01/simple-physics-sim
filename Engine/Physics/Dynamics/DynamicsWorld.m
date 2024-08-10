@@ -9,8 +9,8 @@ classdef DynamicsWorld < CollisionWorld
         Gravity = [0;0;-9.81];
         % Solvers
         Dynamics = RNEDynamics();                                           % Dynamics (velocity, forces, acceleration etc) approach
-        ConstraintSolver = GlobalNumericSolver();                          % Resolve constraint forces.
-        OdeSolver = VerletSolver();                                         % Numerical integration approach (x0 -> x1)
+        ConstraintSolver = GlobalNumericSolver();                           % Resolve constraint forces.
+        OdeSolver = EulerSolver();                                          % Numerical integration approach (x0 -> x1)
     end    
     properties (SetAccess = private)
         Bodies = RigidBody.empty;
@@ -72,7 +72,6 @@ classdef DynamicsWorld < CollisionWorld
             % Initialise the world sub-modules
             this.Dynamics.Initialise(this.Bodies);
             this.ConstraintSolver.Initialise(this.Bodies);
-%             this.OdeSolver
         end
         function [this] = Step(this,dt)
             % This function steps the physics simulation.
@@ -138,7 +137,7 @@ classdef DynamicsWorld < CollisionWorld
             this.UpdateTransforms();   
 
             % == Compute motion updates ==
-            this.Dynamics.Update(dt,[this.Bodies]);
+            this.Dynamics.Update(dt,this.Bodies);
 
             % == Find/solve the collisions == 
             [constraints] = this.FindCollisions();

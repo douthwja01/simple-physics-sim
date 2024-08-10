@@ -23,6 +23,7 @@ classdef GlobalNumericSolver < GlobalConstraintSolver
         function [this] = Initialise(this,bodies)
             % Initialise the global numeric solver.
 
+            % Sanity check
             assert(isa(bodies,"Particle"),"Expecting an array of particles.");
 
             % Solver

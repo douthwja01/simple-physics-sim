@@ -26,12 +26,46 @@ classdef AnalyticalGlobalConstraintSolver < GlobalConstraintSolver
             % Sanity check
             assert(isa(bodies,"Particle"),"Expecting an array of particles.");
 
-
+            % Initialise global
+            [matrixIndices] = this.InitialiseGlobalProperties(bodies);
         end
         function [this] = Solve(this,dt,constraints)
             % Solve the global set of constraints using the 
 
         end
     end
+    methods (Static,Access = protected)
+        function [matrixSet] = InitialiseGlobalProperties(bodies)
+            % [TESTING] Solver Global Matrix creation
+            xStartIndex = 0;
+            yStartIndex = 0;
+            for i = 1:numel(bodies)
 
+                joints = bodies(i).Entity.Joints;
+                if isempty(joints)
+                    dof = 6;
+                else
+                    dof = joints.DegreesOfFreedom;
+                end
+                xMinIndex = xStartIndex+1;
+                xMaxIndex = xStartIndex+dof;
+                yMinIndex = yStartIndex+1;
+                yMaxIndex = yStartIndex+dof; % To confirm
+
+                objectData = struct( ...
+                    "xMin",xMinIndex, ...
+                    "xMax",xMaxIndex, ...
+                    "yMin",yMinIndex, ...
+                    "yMax",yMaxIndex);
+                % Pass on limits
+                newIndex = xMaxIndex;
+
+                % Extract new indices
+                xStartIndex = objectData.xMax;
+                yStartIndex = objectData.yMax;
+                % Retain
+                matrixSet(i,1) = objectData;
+            end
+        end
+    end
 end
