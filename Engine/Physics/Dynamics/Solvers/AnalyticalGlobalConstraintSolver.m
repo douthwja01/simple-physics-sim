@@ -23,6 +23,10 @@ classdef AnalyticalGlobalConstraintSolver < GlobalConstraintSolver
         function [this] = Initialise(this,bodies)
             % Initialise the global analytical solver.
 
+            % Sanity check
+            assert(isa(bodies,"Particle"),"Expecting an array of particles/rigidbodies.");
+
+
         end
         function [this] = Solve(this,dt,constraints)
             % Solve the global set of constraints using the 
