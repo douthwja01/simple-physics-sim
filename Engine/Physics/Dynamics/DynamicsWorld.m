@@ -7,8 +7,9 @@ classdef DynamicsWorld < CollisionWorld
         EnableSubStepping = true;
         SubSteps = 5;
         Gravity = [0;0;-9.81];
+        % Solvers
 %         Dynamics = RNEDynamics();                                         % Dynamics (velocity, forces, acceleration etc) approach
-        ConstraintSolver = ConstraintSolver.empty;                          % Resolve constraint forces.
+        ConstraintSolver = GlobalNumericSolver();                          % Resolve constraint forces.
         OdeSolver = VerletSolver();                                         % Numerical integration approach (x0 -> x1)
     end    
     properties (SetAccess = private)
@@ -32,15 +33,16 @@ classdef DynamicsWorld < CollisionWorld
 
             % Create the world-state object
             this.State = WorldState(numel(this.Bodies));
-
-            % Add constraint solvers
-            this.AddConstraintSolver(ImpulseSolver());
         end
         % Get/sets
 %         function set.Dynamics(this,dyn)
 %             assert(isa(dyn,"DynamicsSolver"),"Expecting a valid dynamics-solver.");
 %             this.Dynamics = dyn;
 %         end
+        function set.ConstraintSolver(this,solver)
+            assert(isa(solver,"GlobalConstraintSolver"),"Expecting a valid global constraint solver.");
+            this.ConstraintSolver = solver;
+        end
         function set.OdeSolver(this,int)
             assert(isa(int,"OdeSolver"),"Expecting a valid ODE solver module.");
             this.OdeSolver = int;
@@ -124,26 +126,6 @@ classdef DynamicsWorld < CollisionWorld
 
             this.State.Resize(numel(this.Bodies));
         end
-        % Constraint solvers
-        function [this] = AddConstraintSolver(this,solver)
-            assert(isa(solver,"ConstraintSolver"),"Expecting a valid 'ConstraintSolver' object.");
-
-            % Add a given solver to the array of collision solvers.
-            this.ConstraintSolver = vertcat(this.ConstraintSolver,solver);
-        end
-        function [this] = RemoveConstraintSolver(this,solver)
-            % Delete the object from the world
-            if isnumeric(solver)
-                % Temporary index
-                vec = 1:1:numel(this.ConstraintSolver);
-                % Remove the object
-                this.ConstraintSolver = this.ConstraintSolver(vec ~= solver);
-            else
-                assert(isa(solver,"ConstraintSolver"),"Expecting a valid 'ConstraintSolver' object.");
-                % Remove a given solver from the array of collisions solvers.
-                this.ConstraintSolver = this.CollisionResolver(this.CollisionResolver ~= solver);
-            end
-        end
     end
 
     %% Internals
@@ -156,11 +138,13 @@ classdef DynamicsWorld < CollisionWorld
             this.CalculationMotion();
 
             % == Find/solve the collisions == 
-            [collisions] = this.FindCollisions();
+            [constraints] = this.FindCollisions();
 
             % == Solve the contraints == 
-            if ~isempty(collisions)
-                this.SolveConstraints(dt,collisions);
+            % (needs to be collision and dynamic)
+
+            if ~isempty(constraints)
+                this.ConstraintSolver.Solve(constraints,dt);
             end
 
             % == Integrate the new motion properties == 
@@ -188,22 +172,6 @@ classdef DynamicsWorld < CollisionWorld
                 end
                 % Apply gravity
                 body_i.Accelerate(this.Gravity);
-            end
-        end
-        function [this] = SolveConstraints(this,dt,collisions)
-            % This function solves the set of identified collisions by
-            % invoking the collision solvers.
-
-            % Sanity check
-            assert(isnumeric(dt),"Expecting a valid time step.");
-
-            if isempty(collisions) || numel(collisions) < 1
-                return;
-            end
-
-            for i = 1:numel(this.ConstraintSolver)
-                % Solve the collisions
-                this.ConstraintSolver(i).Resolve(collisions,dt);
             end
         end
     end
@@ -260,4 +228,5 @@ classdef DynamicsWorld < CollisionWorld
             end
         end
     end
+%% 
 end

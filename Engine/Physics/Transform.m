@@ -137,14 +137,14 @@ classdef Transform < TreeElement
             % Get the position of this transform in the world space.
 
             % No parents, return
-            if this.NumberOfParent == 0
+            if this.NumberOfParents == 0
                 this.Local.Position = p;
                 return;
             end
             % Map the point to the parent space
             p_local = this.Parent.GetWorldMatrix()'*[p;1];
             % Set the local position
-            this.Local.Position = p_local;
+            this.Local.Position = p_local(1:3,1);
         end
         function [q] = GetWorldOrientation(this)
             % Get the orientation of the transform in the world space.
