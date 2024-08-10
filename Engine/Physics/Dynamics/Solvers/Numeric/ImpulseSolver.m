@@ -1,4 +1,4 @@
-classdef ImpulseSolver < ConstraintSolver
+classdef ImpulseSolver < NumericConstraintSolver
     % This basic collision solver resolves collisions between two objects
     % by calculating the impulse required to move the two objects apparent
     % by the next time-step.
@@ -7,7 +7,7 @@ classdef ImpulseSolver < ConstraintSolver
         Name = "A simple impulse-based collision resolution implementation.";
     end
     methods
-        function [this] = Resolve(this,manifolds,dt)
+        function [this] = Solve(this,dt,manifolds)
             % Solve the set of collisions using the impulse solver.
 
             % Move through the collsion instances

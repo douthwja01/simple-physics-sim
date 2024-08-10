@@ -1,4 +1,4 @@
-classdef RotationalImpulseSolver < ContraintSolver
+classdef RotationalImpulseSolver < NumericConstraintSolver
     %ROTATIONALIMPULSESOLVER A collision solver that uses the rotational
     % impulse solution method.
 
@@ -10,7 +10,7 @@ classdef RotationalImpulseSolver < ContraintSolver
     end
 
     methods
-        function [this] = Resolve(this,manifolds,dt)
+        function [this] = Solve(this,dt,manifolds)
             % SOLVE - Solve the set of the collision manifolds using the
             % rotational impulse solver.
 

@@ -22,8 +22,8 @@ classdef SphereCollider < Collider
     methods
         function [isColliding,points] = CheckPoint(this,point)              % [DONE,TO TEST]
             % Check the collision points between a sphere and a point.
-            sphereSo3 = this.Transform.Inertial;
-            relativePosition = point - sphereSo3.Position;
+            spherePosition = this.Transform.GetWorldPosition();
+            relativePosition = point - spherePosition;
             distance = norm(relativePosition); 
             depth = distance - this.Radius;
             isColliding = depth < 0;
@@ -35,7 +35,7 @@ classdef SphereCollider < Collider
             % Collision occurring
             axis = relativePosition/distance;
             pointInSphere = point;
-            sphereCircumferencePoint = sphereSo3.Position + axis*this.Radius;
+            sphereCircumferencePoint = spherePosition + axis*this.Radius;
             % Return the points structure
             points = ContactPoints( ...
                 pointInSphere, ...
@@ -60,8 +60,8 @@ classdef SphereCollider < Collider
             assert(sphere.Code == ColliderCode.Sphere,"Second collider must be a sphere collider.");
 
             % Pull out the world positions
-            positionA = this.Transform.Inertial.Position;
-            positionB = sphere.Transform.Inertial.Position;
+            positionA = this.Transform.GetWorldPosition();
+            positionB = sphere.Transform.GetWorldPosition();
 
             % Separation axis
             seperationAxis = positionA - positionB;
@@ -93,18 +93,17 @@ classdef SphereCollider < Collider
             assert(plane.Code == ColliderCode.Plane,"Second collider must be a plane collider.");
             
             % Pull out the transforms
-            sphereSo3 = this.Transform.Inertial;
-            planeSo3  = plane.Transform.Inertial;
+            spherePosition = this.Transform.GetWorldPosition();
+            planePosition  = plane.Transform.GetWorldPosition();
 
             % Sphere properties
-		    spherePosition = sphereSo3.Position;
             sphereRadius = this.Radius; 
 
-            planeNormal = planeSo3.Rotation.GetMatrix()*plane.Normal;
+            planeNormal = plane.Transform.GetRotationMatrix()*plane.Normal;
             planeNormal = planeNormal/norm(planeNormal);
 
             % Planar projection
-            distance = dot(sphereSo3.Position - planeSo3.Position,planeNormal);
+            distance = dot(spherePosition - planePosition,planeNormal);
             
             % Is it colliding
             isColliding = ~(distance > sphereRadius);
@@ -139,8 +138,8 @@ classdef SphereCollider < Collider
             % Sanity check
             assert(aabb.Code == ColliderCode.AABB,"Expecting a valid AABB collider.");
 
-            spherePosition = this.Transform.Inertial.Position;
-            boxPosition = aabb.Transform.Inertial.Position;
+            spherePosition = this.Transform.GetWorldPosition();
+            boxPosition = aabb.Transform.GetWorldPosition();
 
             % Check spherical separation first
             relativePosition = boxPosition - spherePosition;
