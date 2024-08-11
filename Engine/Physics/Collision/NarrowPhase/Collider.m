@@ -7,7 +7,6 @@ classdef (Abstract) Collider < Element
     end
     properties
         IsTrigger = false;
-        Cid = uint32.empty;
         ShowEventsInConsole = false;
     end
     events
@@ -26,9 +25,6 @@ classdef (Abstract) Collider < Element
             end
             [this] = this@Element(entity);
 
-            % Create a random collider-id
-            this.Cid = uint32(RandIntOfLength(6));
-
             % Register for engine feedback
             addlistener(this,"Collided",@(src,evnt)this.OnColliderEvent(evnt));
         end
@@ -36,10 +32,6 @@ classdef (Abstract) Collider < Element
         function set.IsTrigger(this,isTrigger)
             assert(islogical(isTrigger),"Expecting a boolean trigger.");
             this.IsTrigger = isTrigger;
-        end
-        function set.Cid(this,cid)
-            assert(isa(cid,"uint32"),"Expecting a 'uint32' cid code.");            
-            this.Cid = cid;
         end
     end
 

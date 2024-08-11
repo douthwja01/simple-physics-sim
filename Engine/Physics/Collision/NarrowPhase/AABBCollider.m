@@ -16,12 +16,20 @@ classdef AABBCollider < Collider
     end
     methods
         % Constructor
-        function [this] = AABBCollider(size)
+        function [this] = AABBCollider(size,entity)
             % CONSTRUCTOR - Generate a box- collider with aligned axial
             % limits.
 
-            % Input checks
-            if nargin < 1
+            % Input check
+            if nargin > 1
+                entity = Entity.empty;
+            end
+
+            % Create a collider
+            [this] = this@Collider(entity);
+
+            % Sizing
+            if nargin > 0
                 size = ones(3,1);
             end
             this.Size = size;
@@ -33,11 +41,12 @@ classdef AABBCollider < Collider
             % Simply return the world AABB
 
             % Get the world properties
-            so3 = this.Transform.Inertial;
+            position = this.Transform.GetWorldPosition();
+            scale = this.Transform.GetWorldScale();
             % Offset and scale the unit AABB
-            aabb = so3.Position + so3.Scale*this.AABB;
+            aabb = position + scale*this.AABB;
             % Return the collider ID
-            cid = this.Cid;
+            cid = this.Uid;
         end
         % Get/Sets
         function set.Size(this,s)
@@ -290,8 +299,9 @@ classdef AABBCollider < Collider
         end        
         function [aabb] = GetTransformedAABB(this)
             % Return the AABB transformed in the world-space.
-            so3 = this.Transform.Inertial;
-            aabb = so3.Position + so3.Scale*this.AABB;
+            worldPosition = this.Transform.GetWorldPosition();
+            worldScale = this.Transform.GetWorldScale();
+            aabb = worldPosition + worldScale*this.AABB;
         end
     end
     methods (Static)
@@ -306,12 +316,6 @@ classdef AABBCollider < Collider
             [xlimits,ylimits,zlimits] = Mesh.Extents(mesh);
             % Create the primitive
             aabb = AABBCollider(xlimits,ylimits,zlimits);
-        end
-        function [collider] = FromAABB(aabb,cid)
-
-            % Create an equivalent aabb
-            collider = AABBCollider(aabb.Range(1),aabb.Range(2),aabb.Range(3));
-            collider.Cid = cid;
         end
     end
     methods (Access = protected)

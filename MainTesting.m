@@ -16,7 +16,7 @@ gridPoints = CreateGrid([-1.5;0;4],numberOfObjects,numberPerColumn,1.3);
 %         gridPoints(:,i), ...
 %         Quaternion.FromEulers(0,0,pi/6));
 %     % Add elements
-%     entity_i.RigidBody = RigidBody();
+%     entity_i.Body = RigidBody();
 %     % Renderer
 %     entity_i.Renderer.Alpha = 0.2;
 %     if mod(i,2) == 0
@@ -35,14 +35,14 @@ A = EntityCreator.Box( ...
         "Box A", ...
         [0;0;5], ...
         Quaternion.FromEulers(0,0,pi/6));
-A.RigidBody = RigidBody();
+A.Body = RigidBody();
 sim.Add(A);
 
 B = EntityCreator.Box( ...
         "Box B", ...
         [0;0;4], ...
         Quaternion.FromEulers(0,0,pi/6));
-B.RigidBody = RigidBody();
+B.Body = RigidBody();
 
 B.Transform.Parent = A.Transform;
 sim.Add(B);
@@ -51,7 +51,7 @@ C = EntityCreator.Box( ...
         "Box C", ...
         [0;0;4], ...
         Quaternion.FromEulers(0,0,pi/6));
-C.RigidBody = RigidBody();
+C.Body = RigidBody();
 
 C.Transform.Parent = B.Transform;
 sim.Add(C);
@@ -62,8 +62,8 @@ fixed = EntityCreator.Sphere( ...
     [0;0;2], ...
     Quaternion.Random());
 % Do not move
-fixed.RigidBody = RigidBody();
-fixed.RigidBody.IsStatic = true;
+fixed.Body = RigidBody();
+fixed.Body.IsStatic = true;
 fixed.Renderer.Colour = "r";
 % Add the fix object
 sim.Add(fixed);
@@ -71,8 +71,8 @@ sim.Add(fixed);
 % Add the ground plane
 ground = EntityCreator.Plane("Ground",zeros(3,1));
 ground.Transform.SetWorldScale([10;10;1]);
-ground.RigidBody = RigidBody();
-ground.RigidBody.IsStatic = true;
+ground.Body = RigidBody();
+ground.Body.IsStatic = true;
 % Visuals
 ground.Renderer.Colour = "g";
 % Add the ground object

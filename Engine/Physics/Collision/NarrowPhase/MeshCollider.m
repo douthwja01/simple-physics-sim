@@ -10,11 +10,16 @@ classdef MeshCollider < Collider
     end
     
     methods
-        function [this] = MeshCollider()
+        function [this] = MeshCollider(entity)
             % CONSTRUCTOR - Construct an instance of a mesh-collider.
             
-            % Call the parent
-            [this] = this@Collider();
+            % Input check
+            if nargin < 1
+                entity = Entity.empty;
+            end
+            
+            % Create a collider
+            [this] = this@Collider(entity);
         end
         % Get/sets
         function set.Mesh(this,mesh)
@@ -44,7 +49,7 @@ classdef MeshCollider < Collider
             % Recompute AABB
             aabb = AABB.FromMesh(mesh);
             % Assign the owner's id
-            aabb.Cid = this.Cid;
+            aabb.ReassignUid(this.Uid);
         end
         function [h] = Draw(this,container)
             % Draw the mesh collider

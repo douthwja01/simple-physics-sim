@@ -8,8 +8,8 @@ classdef (Abstract) Element < matlab.mixin.Heterogeneous & handle
     properties (Dependent)
         Transform;          % The entity's transform
     end
-    properties (Hidden)
-        Uid;                % Unique reference (must be generated)
+    properties (SetAccess = private, Hidden)
+        Uid = uint32.empty; % Unique reference (must be generated)
     end
     % Main
     methods
@@ -20,16 +20,13 @@ classdef (Abstract) Element < matlab.mixin.Heterogeneous & handle
             if nargin > 0
                 this.AssignEntity(entity);
             end
+
+            % Generate a new unique identity
+            this.ReassignUid(uint32(RandIntOfLength(6)));
         end
         % Get/sets
         function [p] = get.Transform(this)
             p = this.Entity.Transform;
-        end
-        function [uid]  = get.Uid(this)
-            if isempty(this.Uid)
-                this.Uid = this.CreateRandomUID(5);
-            end
-            uid = this.Uid;
         end
         function [this] = AssignEntity(this,entity)
             assert(isa(entity,"Entity"),"Expecting a valid entity.");
@@ -38,8 +35,12 @@ classdef (Abstract) Element < matlab.mixin.Heterogeneous & handle
         function [this] = UnassignEntity(this)
             this.Entity = Element.empty;
         end
+        function [this] = ReassignUid(this,uid)
+            assert(isa(uid,"uint32"),"Expecting a valid uInt32 id code.");
+            this.Uid = uid;
+        end
     end
-    % Utilities
+    %% Element Utilities
     methods
         function [flag] = IsSame(this,eParam)                        	    
             % This function compares the data given to fields of this
@@ -53,7 +54,7 @@ classdef (Abstract) Element < matlab.mixin.Heterogeneous & handle
                 flag = this.Uid == eParam.Uid;
                 return
             end
-            if isa(eParam,"uint64")
+            if isa(eParam,"uint32")
                 flag = this.Uid == eParam;
                 return
             end
@@ -62,7 +63,7 @@ classdef (Abstract) Element < matlab.mixin.Heterogeneous & handle
             end
         end
     end
-    % Internals
+    %% Internals
     methods (Static, Access = private)
         function [uid]  = CreateRandomUID(n)
             % Create a random unique reference
