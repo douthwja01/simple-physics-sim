@@ -99,7 +99,7 @@ classdef Simulator < handle
             % Add collider
             this.World.AddCollider(entity.Collider);
             % Add Rigid-body
-            this.World.AddRigidBody(entity.RigidBody);
+            this.World.AddRigidBody(entity.Body);
             % Add renderer
             this.Graphics.AddRenderer(entity.Renderer);
             % Add to entity-list
@@ -116,7 +116,7 @@ classdef Simulator < handle
             % Remove collider
             this.World.RemoveCollider(entity.Collider);
             % Remove Rigid-body
-            this.World.RemoveRigidBody(entity.RigidBody);
+            this.World.RemoveRigidBody(entity.Body);
             % Add the entity by its transform
             this.World.RemoveTransform(entity.Transform);
 

@@ -8,7 +8,7 @@ classdef Entity < matlab.mixin.Heterogeneous & handle
     properties 
         Transform = Transform.empty;
         Renderer = Renderer.empty;
-        RigidBody = Element.empty;
+        Body = Element.empty;
         Collider = Element.empty;
         Joints = Element.empty;
     end
@@ -42,9 +42,9 @@ classdef Entity < matlab.mixin.Heterogeneous & handle
             this.Renderer = r;
             r.AssignEntity(this);
         end
-        function set.RigidBody(this,r)
-            assert(isa(r,"RigidBody"),"Expecting a valid rigidbody element.");
-            this.RigidBody = r;
+        function set.Body(this,r)
+            assert(isa(r,"Particle"),"Expecting a valid particle/rigidbody element.");
+            this.Body = r;
             r.AssignEntity(this);
         end
         function set.Collider(this,c)

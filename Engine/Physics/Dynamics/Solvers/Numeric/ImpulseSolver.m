@@ -15,11 +15,11 @@ classdef ImpulseSolver < NumericConstraintSolver
                 % The current manifold
                 manifold = manifolds(i);
 
-                bodyA = manifold.ColliderA.Entity.RigidBody;
+                bodyA = manifold.ColliderA.Entity.Body;
                 hasRigidBodyA = ~isempty(bodyA);
 %                 tfA = manifold.ColliderA.Transform;
 
-                bodyB = manifold.ColliderB.Entity.RigidBody;
+                bodyB = manifold.ColliderB.Entity.Body;
                 hasRigidBodyB = ~isempty(bodyB);
 %                 tfB = manifold.ColliderB.Transform;
 
