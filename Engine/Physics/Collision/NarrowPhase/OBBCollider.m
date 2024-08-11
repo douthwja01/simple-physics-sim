@@ -373,7 +373,6 @@ classdef OBBCollider < Collider
             vertices(8,:) = [minExtents(1),maxExtents(2),minExtents(3)];
             % Transform
             temp = [vertices,ones(8,1)];
-%             T = this.Transform.Inertial.GetMatrix();
             T = this.Transform.GetWorldMatrix();
             temp = T*temp';
             vertices = temp(1:3,:)';

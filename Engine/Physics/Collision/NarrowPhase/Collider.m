@@ -20,12 +20,13 @@ classdef (Abstract) Collider < Element
         function [this] = Collider(entity)
             % CONSTRUCTOR - Base definition of colliders.
 
-            % Allow immediate assignment to an entity
-            if nargin > 1
-                this.AssignEntity(entity);
+            % Call the element constructor
+            if nargin < 1
+                entity = Entity.empty;
             end
+            [this] = this@Element(entity);
 
-            % Create a random colliderId
+            % Create a random collider-id
             this.Cid = uint32(RandIntOfLength(6));
 
             % Register for engine feedback

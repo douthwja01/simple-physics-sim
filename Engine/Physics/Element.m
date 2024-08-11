@@ -15,8 +15,10 @@ classdef (Abstract) Element < matlab.mixin.Heterogeneous & handle
     methods
         function [this] = Element(entity)
             % CONSTRUCTOR - Create an instance of the element class.
+            
+            % Assign the entity 
             if nargin > 0
-                this.Entity = entity;
+                this.AssignEntity(entity);
             end
         end
         % Get/sets
