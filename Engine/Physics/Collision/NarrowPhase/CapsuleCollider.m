@@ -22,7 +22,7 @@ classdef CapsuleCollider < Collider
             % Recompute AABB
             aabb = AABBCollider();
             % Assign the owner's id
-            aabb.Cid = this.Cid;
+            aabb.ReassignUid(this.Cid);
         end
     end
     %% Collision Pairing

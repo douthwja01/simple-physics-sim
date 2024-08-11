@@ -13,11 +13,16 @@ classdef PlaneCollider < Collider
         Distance = 0; % The position of the plane along the normal
     end
     methods
-        function [this] = PlaneCollider()
+        function [this] = PlaneCollider(entity)
             % CONSTRUCTOR - Generate a plane-collider with a normal.
 
+            % Input check
+            if nargin < 1
+                entity = Entity.empty;
+            end
+            
             % Create a collider
-            [this] = this@Collider();
+            [this] = this@Collider(entity);
         end
         function set.Normal(this,n)
             assert(IsColumn(n,3),"Expecting a normal [3x1].");
@@ -151,7 +156,7 @@ classdef PlaneCollider < Collider
             % This function retrieves the point on the plant nearest to a
             % given point.
 
-            R = this.Transform.Inertial.Rotation.GetMatrix();
+            R = this.Transform.GetWorldOrientation().GetMatrix();
 
             normal = R*this.Normal;
 
@@ -171,7 +176,6 @@ classdef PlaneCollider < Collider
             % Scale to configuration dimensions
             toSize = mesh.ScaleBy(this.Depth,this.Width,1);
             % Transform by transformation in space
-%             so3 = this.Transform.Inertial;
             T = this.Transform.GetWorldMatrix();
 
             mesh = toSize.TransformBy(T);
@@ -179,7 +183,7 @@ classdef PlaneCollider < Collider
             % aabb from extents
             aabb = AABB.FromMesh(mesh);
             % Return the collider ID
-            cid = this.Cid;
+            cid = this.Uid;         % Return the element's unique-id
         end
         function [this] = Normalize(this)
             % Normalize the plane object (this.Normal doesn't have to be

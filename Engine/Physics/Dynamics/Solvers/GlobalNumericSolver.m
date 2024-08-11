@@ -5,7 +5,6 @@ classdef GlobalNumericSolver < GlobalConstraintSolver
     properties (Constant)
         Name = "A nieve global solver implementation that solves constraints numerically.";
     end
-
     properties
         ChildSolvers = NumericConstraintSolver.empty;
     end
@@ -24,7 +23,7 @@ classdef GlobalNumericSolver < GlobalConstraintSolver
             % Initialise the global numeric solver.
 
             % Sanity check
-            assert(isa(bodies,"Particle"),"Expecting an array of particles.");
+            assert(isa(bodies,"Particle"),"Expecting an array of particles/rigidbodies.");
 
             % Solver
             this.ChildSolvers = [ImpulseSolver()];%,PositionSolver()];

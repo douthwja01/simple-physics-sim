@@ -5,8 +5,8 @@ classdef Manifold < event.EventData
     properties
         ColliderA = Collider.empty;         % The first collisionbject
         ColliderB = Collider.empty;         % The second collision object
-        BodyA = RigidBody.empty;
-        BodyB = RigidBody.empty;
+        BodyA = Particle.empty;
+        BodyB = Particle.empty;
         Points = ContactPoints.empty;       % The points defining the collision
     end
     
@@ -27,8 +27,8 @@ classdef Manifold < event.EventData
             this.ColliderA = colliderA;
             this.ColliderB = colliderB;
             % Get the rigidbody references
-            this.BodyA = this.ColliderA.Entity.RigidBody;
-            this.BodyB = this.ColliderB.Entity.RigidBody;
+            this.BodyA = colliderA.Entity.Body;
+            this.BodyB = colliderB.Entity.Body;
         end
     end
 end

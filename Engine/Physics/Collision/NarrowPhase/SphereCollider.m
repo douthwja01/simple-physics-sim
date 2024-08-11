@@ -9,8 +9,16 @@ classdef SphereCollider < Collider
     end
 
     methods
-        function [this] = SphereCollider()
-            % CONSTRUCTOR - Sphere collider.
+        function [this] = SphereCollider(entity)
+            % CONSTRUCTOR - Construct a sphere collider primitive.
+
+            % Input check
+            if nargin < 1
+                entity = Entity.empty;
+            end
+            
+            % Create a collider
+            [this] = this@Collider(entity);
         end
         % Get/sets
         function set.Radius(this,r)
@@ -212,13 +220,12 @@ classdef SphereCollider < Collider
             r = this.Radius;
             unit_aabb = AABB([-r,r],[-r,r],[-r,r]);
             % Get the world properties
-%             so3 = this.Transform.Inertial;
             p = this.Transform.GetWorldPosition();
             s = this.Transform.GetWorldScale();
             % Offset and scale the unit AABB
             aabb = p + s*unit_aabb;
             % Assign the owner's id
-            cid = this.Cid;
+            cid = this.Uid;     % Return the element's unique-id
         end
     end
 end

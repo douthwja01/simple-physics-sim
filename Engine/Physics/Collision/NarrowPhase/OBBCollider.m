@@ -16,11 +16,17 @@ classdef OBBCollider < Collider
 
     % Main methods
     methods
-        function [this] = OBBCollider()
+        function [this] = OBBCollider(entity)
             % CONSTRUCTOR - Generate a box-collider with a unitary cube mesh.
 
-            % Call the parent
-            [this] = this@Collider();
+            % Input check
+            if nargin < 1
+                entity = Entity.empty;
+            end
+            
+            % Create a collider
+            [this] = this@Collider(entity);
+
             % Recalculate 
             this.RecalculateProperties();
         end
@@ -341,7 +347,7 @@ classdef OBBCollider < Collider
             % Offset and scale the unit AABB
             aabb = p + s*unit_aabb;
             % Assign the owner's id
-            cid = this.Cid;
+            cid = this.Uid;         % return the element Uid
         end
         function [h] = Draw(this,container)
             % Draw the mesh collider
@@ -373,7 +379,6 @@ classdef OBBCollider < Collider
             vertices(8,:) = [minExtents(1),maxExtents(2),minExtents(3)];
             % Transform
             temp = [vertices,ones(8,1)];
-%             T = this.Transform.Inertial.GetMatrix();
             T = this.Transform.GetWorldMatrix();
             temp = T*temp';
             vertices = temp(1:3,:)';

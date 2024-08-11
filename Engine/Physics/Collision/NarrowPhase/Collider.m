@@ -7,7 +7,6 @@ classdef (Abstract) Collider < Element
     end
     properties
         IsTrigger = false;
-        Cid = uint32.empty;
         ShowEventsInConsole = false;
     end
     events
@@ -20,13 +19,11 @@ classdef (Abstract) Collider < Element
         function [this] = Collider(entity)
             % CONSTRUCTOR - Base definition of colliders.
 
-            % Allow immediate assignment to an entity
-            if nargin > 1
-                this.AssignEntity(entity);
+            % Call the element constructor
+            if nargin < 1
+                entity = Entity.empty;
             end
-
-            % Create a random colliderId
-            this.Cid = uint32(RandIntOfLength(6));
+            [this] = this@Element(entity);
 
             % Register for engine feedback
             addlistener(this,"Collided",@(src,evnt)this.OnColliderEvent(evnt));
@@ -35,10 +32,6 @@ classdef (Abstract) Collider < Element
         function set.IsTrigger(this,isTrigger)
             assert(islogical(isTrigger),"Expecting a boolean trigger.");
             this.IsTrigger = isTrigger;
-        end
-        function set.Cid(this,cid)
-            assert(isa(cid,"uint32"),"Expecting a 'uint32' cid code.");            
-            this.Cid = cid;
         end
     end
 

@@ -54,7 +54,8 @@ classdef SweepAndPruneBPCD < BroadPhaseCollisionDetector
                 for j = i+1:numberOfColliders
                     collider_j = colliders(j);
                     % Check if assessing self-collision
-                    if collider_i.Cid == collider_j.Cid
+%                     if collider_i.Cid == collider_j.Cid
+                    if collider_i.Uid == collider_j.Uid
                         continue
                     end
                     
@@ -117,8 +118,8 @@ classdef SweepAndPruneBPCD < BroadPhaseCollisionDetector
             manifolds = Manifold.empty(0,numberOfPairs);
             for i = 1:numberOfPairs
                 % Select the colliders
-                first = colliders([colliders.Cid] == pairs(i).CidA);
-                second = colliders([colliders.Cid] == pairs(i).CidB);
+                first = colliders([colliders.Uid] == pairs(i).CidA);
+                second = colliders([colliders.Uid] == pairs(i).CidB);
                 % Create a collision manifold
                 manifolds(i) = Manifold(first,second);
             end
