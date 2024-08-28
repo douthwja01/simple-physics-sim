@@ -43,7 +43,6 @@ classdef World < Module
             if rogueRoot ~= this.Root.Transform
                 rogueRoot.Parent = this.Root.Transform;
             end
-
         end
         function [this] = RemoveTransform(this,transform)
             % Add a transform to the world structure. 

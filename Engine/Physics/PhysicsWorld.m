@@ -1,5 +1,5 @@
 
-classdef DynamicsWorld < CollisionWorld
+classdef PhysicsWorld < CollisionWorld
     % Physics world primitive responsible for managing the dynamic
     % properties of the simulation.
 
@@ -19,7 +19,7 @@ classdef DynamicsWorld < CollisionWorld
     
     %% Main
     methods
-        function [this] = DynamicsWorld(worldSize)
+        function [this] = PhysicsWorld(worldSize)
             % DYNAMICSWORLD - Construct an instance of the dynamics world
             % object.
             
@@ -35,6 +35,9 @@ classdef DynamicsWorld < CollisionWorld
             this.State = WorldState(numel(this.Bodies));
         end
         % Get/sets
+        function set.ConstraintSolver(this,solver)
+            assert(isa(solver,"GlobalConstraintSolver"),"Expecting a valid global constraint solver.");
+            this.ConstraintSolver = solver;
         function set.Dynamics(this,dyn)
             assert(isa(dyn,"DynamicsModule"),"Expecting a valid dynamics module.");
             this.Dynamics = dyn;

@@ -48,11 +48,10 @@ sim.Add(ground);
 
 %% Simulator configuration
 sim.WorldSize = 15;
-sim.World.SubSteps = 5;
-sim.World.EnableSubStepping = false;
+sim.Physics.SubSteps = 5;
+sim.Physics.EnableSubStepping = false;
 % Backend
-sim.World.Dynamics = RNEDynamics(); %FeatherstoneDynamics();
-% sim.World.ConstraintSolver = 
-sim.World.OdeSolver = EulerSolver();
+% sim.Physics.Dynamics = RNEDynamics(); %FeatherstoneDynamics();
+sim.Physics.OdeSolver = EulerSolver();
 % Simulate
 sim.Simulate(inf);

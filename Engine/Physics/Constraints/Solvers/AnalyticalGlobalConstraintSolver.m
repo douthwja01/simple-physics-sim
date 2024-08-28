@@ -1,6 +1,6 @@
 classdef AnalyticalGlobalConstraintSolver < GlobalConstraintSolver
-% The root blass for all constraint solver that use a global/analytical
-% approach.
+    % The root blass for all constraint solver that use a global/analytical
+    % approach.
 
     properties (Constant)
         Name = "A global constraint solver that uses the global-analytical approach.";
@@ -30,7 +30,7 @@ classdef AnalyticalGlobalConstraintSolver < GlobalConstraintSolver
             [matrixIndices] = this.InitialiseGlobalProperties(bodies);
         end
         function [this] = Solve(this,dt,constraints)
-            % Solve the global set of constraints using the 
+            % Solve the global set of constraints using the
 
         end
     end

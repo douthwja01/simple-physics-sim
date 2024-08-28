@@ -4,14 +4,15 @@ classdef Simulator < handle
     properties
         FixedTimeDelta = 0.01;  % The fixed physics step
         SampleRate = 0.1;       % Time between physics updates
-        % Modules
-        Graphics;
         % Contents
         WorldSize = 10;
         g = [0;0;-9.81];
     end
     properties (SetAccess = private)
-        World;
+        % Modules
+        Graphics;
+        Physics;
+        % Contents
         Entities = [];
     end
     properties (Access = private)
@@ -24,30 +25,30 @@ classdef Simulator < handle
             % class representing a singular simulation.
 
             % Ensure all paths are available (needed for first run)
-            this.AddEnginePaths;   
+            this.AddEnginePaths();   
             % Create the dynamics world
-            this.World = DynamicsWorld(this.WorldSize);
+            this.Physics = PhysicsWorld(this.WorldSize);
             % Create a graphics handler
             this.Graphics = MatlabFigureGraphics();
         end
-        % Utilties
+        % Run the simulation
         function [this] = Simulate(this,duration)
             % This function executes the simulation sequence
 
             % Sanity check
             assert(isscalar(duration) && duration > 0,"Expecting a scalar duration greater than zero.");
-            assert(~isempty(this.World),"Expecting a valid physics-world object, something went wrong.");
+            assert(~isempty(this.Physics),"Expecting a valid physics-world object, something went wrong.");
             assert(this.FixedTimeDelta < this.SampleRate,"Input sample rate should not be greater than the fixed-physics rate.");
             
             % Initialise the physics world with substeps
-            this.World.Initialise();
+            this.Physics.Initialise();
            
             % Initialise the graphics output
             this.Graphics.Initialise(this.WorldSize);
             
             % Callback registration
-            addlistener(this.World,"CollisionFeedback",@(src,evnt)this.OnCollisionCallback(src,evnt));
-            addlistener(this.World,"TriggerFeedback",@(src,evnt)this.OnTriggerCallback(src,evnt));
+            addlistener(this.Physics,"CollisionFeedback",@(src,evnt)this.OnCollisionCallback(src,evnt));
+            addlistener(this.Physics,"TriggerFeedback",@(src,evnt)this.OnTriggerCallback(src,evnt));
 
             % Update routine
             timer = tic;
@@ -67,7 +68,7 @@ classdef Simulator < handle
                 % Compute the samepl
                 while t_accu > this.SampleRate
                     % Update physics
-                    this.World.Step(this.FixedTimeDelta);
+                    this.Physics.Step(this.FixedTimeDelta);
                     t_accu = t_accu - this.SampleRate;
                 end
                 % Update visuals
@@ -76,6 +77,7 @@ classdef Simulator < handle
                 t_elapsed = t_elapsed + t_delta;
             end
         end
+        % Entity operations
         function [entities] = Find(this,property,value)
             % Find an entity in the simulator by a given property.
 
@@ -97,11 +99,11 @@ classdef Simulator < handle
             assert(isa(entity,"Entity"),"Expecting a valid 'Entity'.");
 
             % Add the entity by its transform
-            this.World.AddTransform(entity.Transform);
+            this.Physics.AddTransform(entity.Transform);
             % Add collider
-            this.World.AddCollider(entity.Collider);
+            this.Physics.AddCollider(entity.Collider);
             % Add Rigid-body
-            this.World.AddRigidBody(entity.Body);
+            this.Physics.AddRigidBody(entity.Body);
             % Add renderer
             this.Graphics.AddRenderer(entity.Renderer);
             % Add to entity-list
@@ -116,11 +118,11 @@ classdef Simulator < handle
             % Remove renderer
             this.Graphics.RemoveRenderer(entity.Renderer);
             % Remove collider
-            this.World.RemoveCollider(entity.Collider);
+            this.Physics.RemoveCollider(entity.Collider);
             % Remove Rigid-body
-            this.World.RemoveRigidBody(entity.Body);
+            this.Physics.RemoveRigidBody(entity.Body);
             % Add the entity by its transform
-            this.World.RemoveTransform(entity.Transform);
+            this.Physics.RemoveTransform(entity.Transform);
 
             % Delete the entity from the world
             if isnumeric(entity)

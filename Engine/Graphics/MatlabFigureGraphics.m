@@ -10,6 +10,10 @@ classdef MatlabFigureGraphics < GraphicsModule
     end
     
     methods
+        function [this] = MatlabFigureGraphics()
+            % CONSTRUCTOR - Create an instance of the Matlab figure 
+            % graphics API instance.
+        end
         function [this] = Initialise(this,worldSize)
             % Draw the state of the world
 
