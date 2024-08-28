@@ -162,20 +162,6 @@ classdef PhysicsWorld < CollisionWorld
             this.OdeSolver.End();
             % Update .Bodies
             this.UpdateBodiesFromState(this.State,this.Bodies);
-        end 
-        function [this] = CalculationMotion(this)
-            % This function applies gravity to all particles
-
-            % Update rigidbodies (accelerations)
-            for i = 1:numel(this.Bodies)
-                body_i = this.Bodies(i);
-                % If this body is not effected by gravity
-                if ~body_i.IsDynamic
-                    continue;
-                end
-                % Apply gravity
-                body_i.Accelerate(this.Gravity);
-            end
         end
     end
     methods (Static)
@@ -231,5 +217,4 @@ classdef PhysicsWorld < CollisionWorld
             end
         end
     end
-%% 
 end
