@@ -38,6 +38,7 @@ classdef PhysicsWorld < CollisionWorld
         function set.ConstraintSolver(this,solver)
             assert(isa(solver,"GlobalConstraintSolver"),"Expecting a valid global constraint solver.");
             this.ConstraintSolver = solver;
+        end
         function set.Dynamics(this,dyn)
             assert(isa(dyn,"DynamicsModule"),"Expecting a valid dynamics module.");
             this.Dynamics = dyn;
