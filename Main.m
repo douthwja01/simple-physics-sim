@@ -3,7 +3,9 @@ clear all;
 close all;
 addpath("Engine");
 
-sim = Simulator();
+% Simulation setup
+worldSize = 15;
+sim = Simulator(worldSize);
 
 numberOfObjects = 5;
 numberPerColumn = 10;
@@ -47,7 +49,6 @@ ground.Renderer.Colour = "g";
 sim.Add(ground);
 
 %% Simulator configuration
-sim.WorldSize = 15;
 sim.Physics.SubSteps = 5;
 sim.Physics.EnableSubStepping = false;
 % Backend
