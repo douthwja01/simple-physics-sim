@@ -35,6 +35,17 @@ classdef Simulator < handle
             % Create a graphics handler
             this.Graphics = MatlabFigureGraphics(worldSize);
         end
+        % Get/sets
+        function set.Graphics(this,graphics)
+            assert(isa(graphics,"GraphicsModule"),"Expecting a valid graphics a module.");
+            this.Graphics = graphics;
+        end
+        function set.Physics(this,physics)
+            assert(isa(physics,"PhysicsWorld"),"Expecting a valid physics world object.");
+            this.Physics = physics;
+        end
+    end
+    methods
         % Run the simulation
         function [this] = Simulate(this,duration)
             % This function executes the simulation sequence
