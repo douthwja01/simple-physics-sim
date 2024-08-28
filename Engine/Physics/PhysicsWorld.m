@@ -1,5 +1,5 @@
 
-classdef DynamicsWorld < CollisionWorld
+classdef PhysicsWorld < CollisionWorld
     % Physics world primitive responsible for managing the dynamic
     % properties of the simulation.
 
@@ -7,10 +7,9 @@ classdef DynamicsWorld < CollisionWorld
         EnableSubStepping = true;
         SubSteps = 5;
         Gravity = [0;0;-9.81];
-        % Solvers
-%         Dynamics = RNEDynamics();                                         % Dynamics (velocity, forces, acceleration etc) approach
-        ConstraintSolver = GlobalNumericSolver();                          % Resolve constraint forces.
-        OdeSolver = VerletSolver();                                         % Numerical integration approach (x0 -> x1)
+        % Solvers                                       % Dynamics (velocity, forces, acceleration etc) approach
+        ConstraintSolver = GlobalNumericSolver();       % Resolve constraint forces.
+        OdeSolver = VerletSolver();                     % Numerical integration approach (x0 -> x1)
     end    
     properties (SetAccess = private)
         Bodies = RigidBody.empty;
@@ -19,7 +18,7 @@ classdef DynamicsWorld < CollisionWorld
     
     %% Main
     methods
-        function [this] = DynamicsWorld(worldSize)
+        function [this] = PhysicsWorld(worldSize)
             % DYNAMICSWORLD - Construct an instance of the dynamics world
             % object.
             
@@ -35,10 +34,6 @@ classdef DynamicsWorld < CollisionWorld
             this.State = WorldState(numel(this.Bodies));
         end
         % Get/sets
-%         function set.Dynamics(this,dyn)
-%             assert(isa(dyn,"DynamicsSolver"),"Expecting a valid dynamics-solver.");
-%             this.Dynamics = dyn;
-%         end
         function set.ConstraintSolver(this,solver)
             assert(isa(solver,"GlobalConstraintSolver"),"Expecting a valid global constraint solver.");
             this.ConstraintSolver = solver;
@@ -69,7 +64,6 @@ classdef DynamicsWorld < CollisionWorld
             end
 
             % Configuration sanity check
-%             assert(~isempty(this.Dynamics),"Cannot initialise, no dynamics element assigned.");
             assert(~isempty(this.ConstraintSolver),"Cannot initialise, no valid constraint solver assigned.");
             assert(~isempty(this.OdeSolver),"Cannot initialise, no valid numerical integration method assigned.");
         

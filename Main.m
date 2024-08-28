@@ -51,8 +51,7 @@ sim.WorldSize = 15;
 sim.Physics.SubSteps = 5;
 sim.Physics.EnableSubStepping = false;
 % Backend
-sim.Physics.Dynamics = RNEDynamics(); %FeatherstoneDynamics();
-% sim.World.ConstraintSolver = 
+% sim.Physics.Dynamics = RNEDynamics(); %FeatherstoneDynamics();
 sim.Physics.OdeSolver = EulerSolver();
 % Simulate
 sim.Simulate(inf);

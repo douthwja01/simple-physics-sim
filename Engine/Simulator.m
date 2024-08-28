@@ -27,7 +27,7 @@ classdef Simulator < handle
             % Ensure all paths are available (needed for first run)
             this.AddEnginePaths;   
             % Create the dynamics world
-            this.Physics = DynamicsWorld(this.WorldSize);
+            this.Physics = PhysicsWorld(this.WorldSize);
             % Create a graphics handler
             this.Graphics = MatlabFigureGraphics();
         end
