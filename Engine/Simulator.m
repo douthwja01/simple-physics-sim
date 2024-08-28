@@ -25,13 +25,13 @@ classdef Simulator < handle
             % class representing a singular simulation.
 
             % Ensure all paths are available (needed for first run)
-            this.AddEnginePaths;   
+            this.AddEnginePaths();   
             % Create the dynamics world
             this.Physics = PhysicsWorld(this.WorldSize);
             % Create a graphics handler
             this.Graphics = MatlabFigureGraphics();
         end
-        % Get/sets
+        % Run the simulation
         function [this] = Simulate(this,duration)
             % This function executes the simulation sequence
 
@@ -76,6 +76,7 @@ classdef Simulator < handle
                 t_elapsed = t_elapsed + t_delta;
             end
         end
+        % Entity operations
         function [entities] = Find(this,property,value)
             % Find an entity in the simulator by a given property.
 
