@@ -5,7 +5,6 @@ classdef Simulator < handle
         FixedTimeDelta = 0.01;  % The fixed physics step
         SampleRate = 0.1;       % Time between physics updates
         % Contents
-        WorldSize = 10;
         g = [0;0;-9.81];
     end
     properties (SetAccess = private)
@@ -20,16 +19,21 @@ classdef Simulator < handle
     end
     % Main
     methods
-        function [this] = Simulator()
+        function [this] = Simulator(worldSize)
             % CONSTRUCTOR - Construct an instance of the time simulator 
             % class representing a singular simulation.
+
+            % Sanity check
+            if nargin < 1
+                worldSize = 10;
+            end
 
             % Ensure all paths are available (needed for first run)
             this.AddEnginePaths();   
             % Create the dynamics world
-            this.Physics = PhysicsWorld(this.WorldSize);
+            this.Physics = PhysicsWorld(worldSize);
             % Create a graphics handler
-            this.Graphics = MatlabFigureGraphics();
+            this.Graphics = MatlabFigureGraphics(worldSize);
         end
         % Run the simulation
         function [this] = Simulate(this,duration)
@@ -44,7 +48,7 @@ classdef Simulator < handle
             this.Physics.Initialise();
            
             % Initialise the graphics output
-            this.Graphics.Initialise(this.WorldSize);
+            this.Graphics.Initialise();
             % Callback registration
             addlistener(this.Physics,"CollisionFeedback",@(src,evnt)this.OnCollisionCallback(src,evnt));
             addlistener(this.Physics,"TriggerFeedback",@(src,evnt)this.OnTriggerCallback(src,evnt));

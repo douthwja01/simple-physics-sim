@@ -7,14 +7,21 @@ classdef MatlabFigureGraphics < GraphicsModule
     end
     properties
         Axes = matlab.graphics.GraphicsPlaceholder.empty;
+        WorldSize = 10;
     end
     
     methods
-        function [this] = MatlabFigureGraphics()
+        function [this] = MatlabFigureGraphics(worldSize)
             % CONSTRUCTOR - Create an instance of the Matlab figure 
             % graphics API instance.
+            
+            % Input check
+            if nargin < 1
+                worldSize = 10;
+            end
+            this.WorldSize = worldSize;
         end
-        function [this] = Initialise(this,worldSize)
+        function [this] = Initialise(this)
             % Draw the state of the world
 
             fig = figure("Name","Simulation");
@@ -27,10 +34,10 @@ classdef MatlabFigureGraphics < GraphicsModule
             xlabel(this.Axes,"X (m)");
             ylabel(this.Axes,"Y (m)");
             zlabel(this.Axes,"Z (m)");
-            axisLimits = worldSize/2;
+            axisLimits = this.WorldSize/2;
             xlim(this.Axes,[-axisLimits,axisLimits]);
             ylim(this.Axes,[-axisLimits,axisLimits]);
-            zlim(this.Axes,[0,worldSize]);
+            zlim(this.Axes,[0,this.WorldSize]);
             % Register for key presses
             set(fig,'KeyPressFcn',@(src,evnt)OnKeyPressCallback(this,src,evnt));
         end
