@@ -48,9 +48,11 @@ sim.Add(ground);
 
 %% Simulator configuration
 sim.WorldSize = 15;
-sim.World.SubSteps = 5;
-% Numeric integrators
-sim.World.OdeSolver = EulerSolver();
-% sim.World.AddSolver(RotationalImpulseCR())
+sim.Physics.SubSteps = 5;
+sim.Physics.EnableSubStepping = false;
+% Backend
+sim.Physics.Dynamics = RNEDynamics(); %FeatherstoneDynamics();
+% sim.World.ConstraintSolver = 
+sim.Physics.OdeSolver = EulerSolver();
 % Simulate
 sim.Simulate(inf);
