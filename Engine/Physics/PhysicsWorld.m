@@ -14,7 +14,7 @@ classdef PhysicsWorld < CollisionWorld
     end    
     properties (SetAccess = private)
         Bodies = RigidBody.empty;
-        State = WorldState.empty;
+        State  = WorldState.empty;
     end
     
     %% Main
