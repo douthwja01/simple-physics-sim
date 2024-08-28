@@ -25,11 +25,14 @@ classdef AnalyticalGlobalConstraintSolver < GlobalConstraintSolver
 
             % Sanity check
             assert(isa(bodies,"Particle"),"Expecting an array of particles/rigidbodies.");
-
-
         end
         function [this] = Solve(this,dt,constraints)
             % Solve the global set of constraints using the
+
+            % Sanity check
+            if ~isempty(constraints)
+                return
+            end
 
         end
     end
