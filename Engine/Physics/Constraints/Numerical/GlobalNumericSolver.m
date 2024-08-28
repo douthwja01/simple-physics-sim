@@ -29,7 +29,13 @@ classdef GlobalNumericSolver < GlobalConstraintSolver
             this.ChildSolvers = [ImpulseSolver()];%,PositionSolver()];
         end
         function [this] = Solve(this,dt,constraints)
-            % Solve the global set of constraints using the 
+            % Solve the global set of constraints using the nested child
+            % solvers to numerically resolve the constraints.
+
+            % Sanity check
+            if ~isempty(constraints)
+                return
+            end
 
             for i = 1:numel(this.ChildSolvers)
                 % Solve the collisions

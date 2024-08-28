@@ -148,10 +148,7 @@ classdef PhysicsWorld < CollisionWorld
 
             % == Solve the contraints == 
             % (needs to be collision and dynamic)
-
-            if ~isempty(constraints)
-                this.ConstraintSolver.Solve(constraints,dt);
-            end
+            this.ConstraintSolver.Solve(constraints,dt);
 
             % == Integrate the new motion properties == 
             % Update .State

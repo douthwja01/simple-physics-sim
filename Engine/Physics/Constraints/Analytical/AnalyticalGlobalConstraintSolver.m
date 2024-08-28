@@ -32,6 +32,11 @@ classdef AnalyticalGlobalConstraintSolver < GlobalConstraintSolver
         function [this] = Solve(this,dt,constraints)
             % Solve the global set of constraints using the
 
+            % Sanity check
+            if ~isempty(constraints)
+                return
+            end
+
         end
     end
     methods (Static,Access = protected)
