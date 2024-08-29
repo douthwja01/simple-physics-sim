@@ -1,4 +1,3 @@
-
 classdef PhysicsWorld < CollisionWorld
     % Physics world primitive responsible for managing the dynamic
     % properties of the simulation.
@@ -7,7 +6,8 @@ classdef PhysicsWorld < CollisionWorld
         EnableSubStepping = true;
         SubSteps = 5;
         Gravity = [0;0;-9.81];
-        % Solvers                                       % Dynamics (velocity, forces, acceleration etc) approach
+        % Solvers  
+        Dynamics = NieveDynamics();                     % Dynamics (velocity, forces, acceleration etc) approach
         ConstraintSolver = GlobalNumericSolver();       % Resolve constraint forces.
         OdeSolver = VerletSolver();                     % Numerical integration approach (x0 -> x1)
     end    
@@ -34,6 +34,10 @@ classdef PhysicsWorld < CollisionWorld
             this.State = WorldState(numel(this.Bodies));
         end
         % Get/sets
+        function set.Dynamics(this,dyn)
+            assert(isa(dyn,"DynamicsModule"),"Expecting a valid dynamics module.");
+            this.Dynamics = dyn;
+        end
         function set.ConstraintSolver(this,solver)
             assert(isa(solver,"GlobalConstraintSolver"),"Expecting a valid global constraint solver.");
             this.ConstraintSolver = solver;
@@ -64,10 +68,12 @@ classdef PhysicsWorld < CollisionWorld
             end
 
             % Configuration sanity check
+            assert(~isempty(this.Dynamics),"Cannot initialise, no valid dynamics module assigned.");
             assert(~isempty(this.ConstraintSolver),"Cannot initialise, no valid constraint solver assigned.");
             assert(~isempty(this.OdeSolver),"Cannot initialise, no valid numerical integration method assigned.");
         
             % Initialise the modules
+            this.Dynamics.Initialise(this);
             this.ConstraintSolver.Initialise(this.Bodies);
         end
         function [this] = Step(this,dt)
@@ -120,7 +126,7 @@ classdef PhysicsWorld < CollisionWorld
             end
             % Remove the body
             this.Bodies = this.Bodies(selectionLogicals);
-
+            % Resize the world-state vector
             this.State.Resize(numel(this.Bodies));
         end
     end
@@ -131,8 +137,7 @@ classdef PhysicsWorld < CollisionWorld
             % This function computes each physics substep.
 
             % == Compute motion updates ==
-%             this.Dynamics.ComputeDynamics([this.Bodies]);
-            this.CalculationMotion();
+            this.Dynamics.Update(dt,[this.Bodies]);
 
             % == Find/solve the collisions == 
             [constraints] = this.FindCollisions();
@@ -150,24 +155,7 @@ classdef PhysicsWorld < CollisionWorld
             this.OdeSolver.End();
             % Update .Bodies
             this.UpdateBodiesFromState(this.State,this.Bodies);
-            
-            % == Recalculate world positions == 
-%             this.UpdateTransforms();            
         end 
-        function [this] = CalculationMotion(this)
-            % This function applies gravity to all particles
-
-            % Update rigidbodies (accelerations)
-            for i = 1:numel(this.Bodies)
-                body_i = this.Bodies(i);
-                % If this body is not effected by gravity
-                if ~body_i.IsDynamic
-                    continue;
-                end
-                % Apply gravity
-                body_i.Accelerate(this.Gravity);
-            end
-        end
     end
     methods (Static)
         function [state]  = UpdateStateFromBodies(state,bodies)
