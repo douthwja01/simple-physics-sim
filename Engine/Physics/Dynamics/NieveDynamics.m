@@ -12,8 +12,7 @@ classdef NieveDynamics < DynamicsModule
 
             % Sanity check
             assert(isa(world,"PhysicsWorld"),"Expecting a valid PhysicsWorld reference.");
-
-
+            % Property assignment
             this.Gravity = world.Gravity;
         end
         function [this] = Update(this,dt,bodies)
