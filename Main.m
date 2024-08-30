@@ -52,8 +52,8 @@ sim.Add(ground);
 sim.Physics.SubSteps = 5;
 sim.Physics.EnableSubStepping = false;
 % Backend
-sim.Physics.Dynamics = RNEDynamics(); 
-% sim.Physics.Dynamics = NieveDynamics();
+sim.Physics.Dynamics = GravityOnlyDynamics();
+% sim.Physics.Dynamics = RNEDynamics(); 
 % sim.Physics.Dynamics = FeatherstoneDynamics();
 % sim.Physics.OdeSolver = EulerSolver();
 % Simulate

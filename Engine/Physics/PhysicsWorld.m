@@ -7,9 +7,9 @@ classdef PhysicsWorld < CollisionWorld
         SubSteps = 5;
         Gravity = [0;0;-9.81];
         % Solvers  
-        Dynamics = NieveDynamics();                     % Dynamics (velocity, forces, acceleration etc) approach
+        Dynamics = GravityOnlyDynamics();               % Dynamics (velocity, forces, acceleration etc) approach
         ConstraintSolver = GlobalNumericSolver();       % Resolve constraint forces.
-        OdeSolver = EulerSolver();                     % Numerical integration approach (x0 -> x1)
+        OdeSolver = EulerSolver();                      % Numerical integration approach (x0 -> x1)
     end    
     properties (SetAccess = private)
         Bodies = RigidBody.empty;
