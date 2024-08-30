@@ -1,4 +1,4 @@
-classdef NieveDynamics < DynamicsModule
+classdef GravityOnlyDynamics < DynamicsModule
 
     properties (Constant)
         Name = "A Nieve dynamics approach to test dynamics module abstraction.";
