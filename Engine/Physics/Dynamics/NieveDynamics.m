@@ -43,7 +43,7 @@ classdef NieveDynamics < DynamicsModule
                     continue;
                 end
                 % Apply gravity
-                bodies(i).Accelerate(this.Gravity);
+                bodies(i).LinearAcceleration = this.Gravity;
             end
         end
     end

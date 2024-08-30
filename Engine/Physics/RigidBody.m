@@ -4,25 +4,21 @@ classdef RigidBody < Particle
     % non-point mass distribution.
 
     properties %(SetAccess = private)
+        CenterOfMass = [0;0;0];
         Mass = 1;
         InverseMass = 1;
         Inertia = eye(3);        InverseInertia = eye(3);
         Gravity = -9.81;            % Local value of gravity (viable between instances)
         TakesGravity = true;        % Uses world gravity
-% 		, AxisLock(0.f)
-% 		, IsAxisLocked(0.f)
-        IsSimulated = true;         
+        % 		, AxisLock(0.f)
+        % 		, IsAxisLocked(0.f)
+        IsSimulated = true;
         IsDynamic = true;           % Has dynamic reactions
         % Dynamic properties
         LinearAcceleration = zeros(3,1);
         AngularAcceleration = zeros(3,1);
         LinearMomentum = zeros(3,1);
         AngularMomentum = zeros(3,1);
-    end
-
-    properties (Access = private)
-        NetForce = zeros(3,1);
-        NetTorque = zeros(3,1);
     end
 
     methods
@@ -41,15 +37,15 @@ classdef RigidBody < Particle
         function set.IsDynamic(this,isDynamic)
             assert(islogical(isDynamic),"Expecting a boolean is dynamic.");
             this.IsDynamic = isDynamic;
-        end     
+        end
         function set.LinearAcceleration(this,dv)
             assert(IsColumn(dv,3),"Expecting a valid Cartesian linear acceleration [3x1].");
             this.LinearAcceleration = dv;
-        end  
+        end
         function set.AngularAcceleration(this,dw)
             assert(IsColumn(dw,3),"Expecting a valid Cartesian angular acceleration [3x1].");
             this.AngularAcceleration = dw;
-        end 
+        end
         function set.LinearMomentum(this,m)
             assert(IsColumn(m,3),"Expecting a valid Cartesian linear momentum [3x1].");
             this.LinearMomentum = m;
@@ -57,30 +53,6 @@ classdef RigidBody < Particle
         function set.AngularMomentum(this,m)
             assert(IsColumn(m,3),"Expecting a valid Cartesian angular momentum [3x1].");
             this.AngularMomentum = m;
-        end
-    end
-
-    methods
-        function [this] = ApplyForce(this,f,p)
-            % Sanity check one
-            assert(IsColumn(f,3),"Expecting a valid 3D force vector.");
-            % Update the orce accumulator
-            this.NetForce = this.NetForce + f;
-            if nargin < 3
-                return;
-            end
-            % Apply a force 'f' at position 'p' on the body.
-            assert(IsColumn(p,3),"Expecting a valid 3D position vector.");
-            % Create a torque
-            this.ApplyTorque(cross(p,f));
-        end
-        function [this] = ApplyTorque(this,tau)
-            assert(IsColumn(tau,3),"Expecting a valid 3D torque vector.");
-            this.NetTorque = this.NetTorque + tau;
-        end
-        function [this] = Accelerate(this,a)
-            % Calcuate the acceleration
-            this.LinearAcceleration = a;
         end
     end
 end
