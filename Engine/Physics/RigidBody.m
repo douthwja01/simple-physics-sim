@@ -39,11 +39,11 @@ classdef RigidBody < Particle
         function set.LinearAcceleration(this,dv)
             assert(IsColumn(dv,3),"Expecting a valid Cartesian linear acceleration [3x1].");
             this.LinearAcceleration = dv;
-        end  
+        end
         function set.AngularAcceleration(this,dw)
             assert(IsColumn(dw,3),"Expecting a valid Cartesian angular acceleration [3x1].");
             this.AngularAcceleration = dw;
-        end 
+        end
         function set.LinearMomentum(this,m)
             assert(IsColumn(m,3),"Expecting a valid Cartesian linear momentum [3x1].");
             this.LinearMomentum = m;

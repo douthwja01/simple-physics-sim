@@ -33,7 +33,7 @@ classdef GlobalNumericSolver < GlobalConstraintSolver
             % solvers to numerically resolve the constraints.
 
             % Sanity check
-            if ~isempty(constraints)
+            if isempty(constraints)
                 return
             end
 

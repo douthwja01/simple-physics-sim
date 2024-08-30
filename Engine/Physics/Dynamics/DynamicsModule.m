@@ -22,11 +22,11 @@ classdef (Abstract) DynamicsModule < Module
 %             this.ComputeAccelerations();  
          
     methods
-        function [this] = Initialise(this,bodies)
+        function [this] = Initialise(this,world)
             % Do nothing by default (may need solver initialisation)
 
             % Sanity check
-            assert(isa(bodies,"Particle"),"Expecting an array of particles.");
+            assert(isa(world,"PhysicsWorld"),"Expecting a valid PhysicsWorld reference.");
 
         end
         function [this] = Update(this,dt,bodies)
