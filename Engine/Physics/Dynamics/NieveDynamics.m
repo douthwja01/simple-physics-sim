@@ -22,11 +22,11 @@ classdef NieveDynamics < DynamicsModule
             % Compute Dynamics routine (may be different)
             this.ComputeDynamics(dt,bodies);
             
-%             % Clears all the dynamic properties/accumulators for the next
-%             % frame.
-%             for i = 1:numel(bodies)
-%                 bodies(i).ClearAccumulators();
-%             end
+            % Clears all the dynamic properties/accumulators for the next
+            % frame.
+            for i = 1:numel(bodies)
+                bodies(i).ClearAccumulators();
+            end
         end
     end
 

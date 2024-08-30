@@ -9,7 +9,7 @@ classdef PhysicsWorld < CollisionWorld
         % Solvers  
         Dynamics = NieveDynamics();                     % Dynamics (velocity, forces, acceleration etc) approach
         ConstraintSolver = GlobalNumericSolver();       % Resolve constraint forces.
-        OdeSolver = VerletSolver();                     % Numerical integration approach (x0 -> x1)
+        OdeSolver = EulerSolver();                     % Numerical integration approach (x0 -> x1)
     end    
     properties (SetAccess = private)
         Bodies = RigidBody.empty;
