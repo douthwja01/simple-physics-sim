@@ -62,10 +62,11 @@ classdef OBBCollider < Collider
             boxPosition = this.Transform.GetWorldPosition();
             spherePosition = sphere.Transform.GetWorldPosition();
 
-            relativePosition = spherePosition - boxPosition;
-            distance = norm(relativePosition);
+            seperationAxis = spherePosition - boxPosition;
+            distance = norm(seperationAxis);
+
             % Simple spherical check first
-            if distance > (this.ImaginaryRadius + sphere.Radius)
+            if distance > this.ImaginaryRadius + sphere.Radius
                 points = ContactPoints();
                 return;
             end
@@ -87,6 +88,11 @@ classdef OBBCollider < Collider
             collisionDistance = norm(collisionVector);
             collisionAxis = collisionVector/collisionDistance;
             
+            plot3(gca, ...
+                closestPoint(1), ...
+                closestPoint(2), ...
+                closestPoint(3),"k","LineWidth",8,"MarkerSize",5,"MarkerFaceColor","auto");
+
             % No collision if the distance to the nearest point is greater
             % than the radius
             isColliding = collisionDistance <= sphere.Radius;
@@ -98,7 +104,12 @@ classdef OBBCollider < Collider
             % Calculate the collision points
             A = spherePosition + collisionAxis * (sphere.Radius  - collisionDistance);
             B = spherePosition - collisionAxis * (sphere.Radius  - collisionDistance);
-            points = ContactPoints(A,B,collisionAxis,collisionDistance,isColliding);
+            points = ContactPoints( ...
+                A, ...
+                B, ...
+                collisionAxis, ...
+                collisionDistance, ...
+                isColliding);
         end
         function [isColliding,points] = CheckPlane(this,plane)              % [DONE]
             % Find the collision points between this OBB box and a plane.

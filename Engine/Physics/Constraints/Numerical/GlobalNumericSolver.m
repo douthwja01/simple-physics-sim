@@ -26,7 +26,7 @@ classdef GlobalNumericSolver < GlobalConstraintSolver
             assert(isa(bodies,"Particle"),"Expecting an array of particles/rigidbodies.");
 
             % Solver
-            this.ChildSolvers = [ImpulseSolver()];%,PositionSolver()];
+            this.ChildSolvers = [ImpulseSolver(),PositionSolver()];
         end
         function [this] = Solve(this,dt,constraints)
             % Solve the global set of constraints using the nested child

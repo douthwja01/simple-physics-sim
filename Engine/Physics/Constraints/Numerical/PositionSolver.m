@@ -13,22 +13,30 @@ classdef PositionSolver < NumericConstraintSolver
             assert(isa(manifolds,"Manifold"),"Expecting an array of collisions objects.");
             assert(isnumeric(dt),"Expecting an array of collisions objects.");
 
+            if isempty(manifolds)
+                return
+            end
+
             for i = 1:numel(manifolds)
                 % For each collision
-                collision = manifolds(i);
-                points = collision.Points;       
+                manifold = manifolds(i);
+                points = manifold.Points;       
 
                 % Party one
-                entityA     = collision.ColliderA.Entity;
-                transformA  = entityA.Transform;
-                isStaticA   = entityA.RigidBody.IsStatic;
-
+                bodyA = manifold.BodyA;
+                transformA  = bodyA.Transform;
+                isStaticA   = bodyA.IsStatic;                
+                
                 % Party two
-                entityB     = collision.ColliderB.Entity;
-                transformB  = entityB.Transform;
-                isStaticB   = entityB.RigidBody.IsStatic;
+                bodyB = manifold.BodyB;
+                transformB  = bodyB.Transform;
+                isStaticB   = bodyB.IsStatic;
 
 %                 fprintf("Resolving collision between %s and %s.\n",entityA.Name,entityB.Name);
+
+                assert(points.Depth > 0,"Depth value not defined correctly (it is negative).");
+
+                %----- [TO FIX] Depth value is incorrect
 
                 % Calculate the resolution
                 resolution = points.Normal * points.Depth / max(1, isStaticA + isStaticB);
@@ -36,12 +44,9 @@ classdef PositionSolver < NumericConstraintSolver
                 delta_a = resolution * (1 - isStaticA);
                 delta_b = resolution * (1 - isStaticB);
 
-                % Modify the positions
-                pA = transformA.GetWorldPosition();
-                pB = transformB.GetWorldPosition();
                 % Assign the positions
-                transformA.SetWorldPosition(pA + delta_a);
-                transformB.SetWorldPosition(pB - delta_b);
+                transformA.SetWorldPosition(transformA.GetWorldPosition() + delta_a);
+                transformB.SetWorldPosition(transformB.GetWorldPosition() - delta_b);
             end
         end
     end

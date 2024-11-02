@@ -75,13 +75,17 @@ classdef SphereCollider < Collider
             seperationAxis = positionA - positionB;
             distance = norm(seperationAxis);
             % The overlap distance
-            depth = distance - (this.Radius + sphere.Radius);
-            isColliding = depth <= 0;
+            sumRadii = this.Radius + sphere.Radius;
+            isColliding = sumRadii > distance;
             % No collision
             if ~isColliding
                 points = ContactPoints();
                 return;
             end
+            
+            % Define depth as a positive value
+            depth = sumRadii - distance;
+
             % Points furthest towards each other
             unitSeperationAxis = seperationAxis/distance;
             pointAinB = positionA + unitSeperationAxis*this.Radius;
@@ -106,7 +110,6 @@ classdef SphereCollider < Collider
 
             % Sphere properties
             sphereRadius = this.Radius; 
-
             planeNormal = plane.Transform.GetRotationMatrix()*plane.Normal;
             planeNormal = planeNormal/norm(planeNormal);
 

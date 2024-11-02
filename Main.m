@@ -11,23 +11,30 @@ numberOfObjects = 5;
 numberPerColumn = 10;
 gridPoints = CreateGrid([0;0;4],numberOfObjects,numberPerColumn,1.5);
 
-for i = 1:numberOfObjects
-    % Place the object
-    entity_i = EntityCreator.Box(sprintf("Object %d (Box)",i),gridPoints(:,i),Quaternion.Identity);
+% for i = 1:numberOfObjects
+%     % Place the object
+%     entity_i = EntityCreator.Box(sprintf("Object %d (Box)",i),gridPoints(:,i),Quaternion.Identity);
+% 
+%     entity_i.Transform.SetWorldOrientation(Quaternion.FromEulers(rand(1),rand(1),rand(1)));
+% 
+%     % Add elements
+%     entity_i.Body = RigidBody();
+%     entity_i.Renderer.Alpha = 0.2;
+%     if mod(i,2) == 0
+%         entity_i.Renderer.Colour = "b";
+%     else
+%         entity_i.Renderer.Colour = "c";
+%     end
+%     % Assign the object
+%     sim.Add(entity_i);
+% end
 
-    entity_i.Transform.SetWorldOrientation(Quaternion.FromEulers(rand(1),rand(1),rand(1)));
-    
-    % Add elements
-    entity_i.Body = RigidBody();
-    entity_i.Renderer.Alpha = 0.2;
-    if mod(i,2) == 0
-        entity_i.Renderer.Colour = "b";
-    else
-        entity_i.Renderer.Colour = "c";
-    end
-    % Assign the object
-    sim.Add(entity_i);
-end
+ball = EntityCreator.Box("Box",[0.1;0.2;5]);
+% Add elements
+ball.Body = RigidBody();
+ball.Renderer.Alpha = 0.2;
+ball.Renderer.Colour = "b";
+sim.Add(ball);
 
 % Add an obstacle
 fixed = EntityCreator.Sphere("Obstacle",[0;0;2]);
